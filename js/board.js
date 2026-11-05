@@ -257,6 +257,10 @@ export function createBoard(root, topic, { onChange } = {}) {
     getPlacements() {
       return words.map((w) => ({ word: w.text, pos: w.pos && { ...w.pos } }));
     },
+    /** 案内などを、今の状態で出し直す */
+    refresh() {
+      update();
+    },
     /** 5つとも置けたか */
     isComplete() {
       return words.every((w) => w.pos);

@@ -105,6 +105,57 @@ button {
   grid-template-columns: 1fr 1fr;
 }
 
+/* 小さいボタン＋大きいボタンを横に並べる */
+.actions--split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.actions--split > .btn {
+  padding-inline: 8px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.actions--split > .btn--primary {
+  font-size: min(1.1875rem, 5vw);
+}
+
+/* 2行のボタン（下の行は小さい補足）。.btn より後に効くよう、2つ重ねて指定する */
+.btn.btn--sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+.btn--sub,
+.btn--sub small {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.btn--sub small {
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.btn--sub.is-confirm {
+  border-color: var(--primary);
+  background: var(--yellow);
+  box-shadow: 0 4px 0 var(--primary-dark);
+}
+
+.btn--sub:disabled small {
+  color: var(--ink-soft);
+}
+
 .btn {
   display: block;
   width: 100%;
