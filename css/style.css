@@ -24,6 +24,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -62,6 +66,8 @@ button {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  /* 何かが一瞬でも横にはみ出すと、スマホではページがずれるので、画面の幅で切る */
+  overflow-x: clip;
   padding:
     calc(20px + env(safe-area-inset-top))
     calc(16px + env(safe-area-inset-right))
@@ -270,6 +276,34 @@ button {
   box-shadow: 0 1px 0 var(--ink);
 }
 
+.btn--text {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  box-shadow: none;
+}
+
+.btn--text:active {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.btn:disabled {
+  border: 0;
+  background: var(--line);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
 /* ---------- 人数などの目安 ---------- */
 .facts {
   display: flex;
@@ -384,6 +418,299 @@ button {
 
 .footer__copy {
   margin-top: 4px;
+}
+
+/* ---------- 自分のマップを作る画面 ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -8px 0 4px;
+}
+
+.bar__back {
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.bar__step {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.topic {
+  text-align: center;
+}
+
+.topic__genre {
+  display: inline-block;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.topic__title {
+  margin-top: 2px;
+  font-family: var(--font-round);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.guide {
+  min-height: 1.7em;
+  margin: 4px 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.board {
+  /* 横向きなど、縦が短い画面では少し小さくする */
+  width: min(100%, 60vh);
+  width: min(100%, 60svh);
+  margin: 0 auto;
+}
+
+.map--board {
+  /* 端に置いたピンの点が切れないように */
+  overflow: visible;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.map--board .map__label {
+  z-index: 1;
+  font-size: 0.8125rem;
+  pointer-events: none;
+}
+
+.map--board.is-waiting {
+  box-shadow: 0 0 0 4px var(--yellow);
+  cursor: crosshair;
+}
+
+.map--board.is-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.map--board.is-locked {
+  border-color: var(--accent);
+}
+
+.map--board.is-locked::after {
+  content: "ロック済み";
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  z-index: 3;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.map--board.is-locked .pin {
+  pointer-events: none;
+}
+
+/* ピン：点がそのワードの場所。名札は点の上（上が狭いときは下）に出す */
+.pin {
+  position: absolute;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pin__dot {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 1px rgba(43, 42, 58, 0.3), 0 2px 4px rgba(43, 42, 58, 0.3);
+  cursor: grab;
+}
+
+/* 点は小さいので、指で触れる範囲を広げる */
+.pin__dot::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+}
+
+.pin__label {
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  transform: translateX(calc(-50% + var(--shift, 0px)));
+  padding: 3px 10px;
+  border: 2px solid var(--primary);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 2px 0 rgba(43, 42, 58, 0.15);
+  cursor: grab;
+}
+
+.pin--below .pin__label {
+  top: 12px;
+  bottom: auto;
+}
+
+.pin.is-selected {
+  z-index: 3;
+}
+
+.pin.is-selected .pin__label {
+  background: var(--yellow);
+}
+
+.pin.is-dragging {
+  opacity: 0.3;
+}
+
+.pin--ghost {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.pin--ghost .pin__label {
+  box-shadow: 0 8px 18px rgba(43, 42, 58, 0.3);
+}
+
+.map--board.is-locked .pin__dot {
+  background: var(--accent);
+}
+
+.map--board.is-locked .pin__label {
+  border-color: var(--accent);
+}
+
+/* まだ置いていないワードの列 */
+.tray {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 8px;
+  min-height: 96px;
+  margin-top: 16px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 2px solid var(--primary);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(43, 42, 58, 0.15);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.chip.is-selected {
+  background: var(--yellow);
+  box-shadow: 0 0 0 3px var(--yellow), 0 3px 0 rgba(43, 42, 58, 0.15);
+}
+
+.chip.is-dragging {
+  opacity: 0.3;
+}
+
+/* 置いたワードの元の場所（点線の枠だけ残す） */
+.chip.is-placed {
+  border-style: dashed;
+  border-color: var(--line);
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.tray.is-empty .chip {
+  visibility: hidden;
+}
+
+.tray__done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tray:not(.is-empty) .tray__done {
+  display: none;
+}
+
+.hint {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.screen--make .actions {
+  margin-top: 12px;
+}
+
+.done {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.done__title {
+  color: var(--accent);
+  font-family: var(--font-round);
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.done__text {
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
 }
 
 /* ---------- お知らせ（画面の下に少しだけ出る） ---------- */

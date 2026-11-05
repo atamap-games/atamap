@@ -46,6 +46,8 @@
       <div class="actions">
         <button type="button" class="btn btn--primary" data-action="create-room">部屋を作る</button>
         <button type="button" class="btn btn--secondary" data-action="join-room">部屋に入る</button>
+        <!-- 部屋の機能ができるまでの、1台で試すための入り口 -->
+        <button type="button" class="btn btn--text" data-action="try-make">ためしにマップを作ってみる →</button>
       </div>
 
       <ul class="facts">
@@ -89,6 +91,38 @@
         <p>最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
         <p class="footer__copy">© アタマップ</p>
       </footer>
+    </section>
+
+    <!-- 自分のマップを作る画面 -->
+    <section class="screen screen--make" data-screen="make" hidden>
+      <div class="bar">
+        <button type="button" class="bar__back" data-action="home">← トップ</button>
+        <span class="bar__step">自分のマップを作る</span>
+      </div>
+
+      <header class="topic">
+        <p class="topic__genre" data-make="genre"></p>
+        <h2 class="topic__title" data-make="title"></h2>
+      </header>
+
+      <p class="guide" data-make="guide" aria-live="polite"></p>
+
+      <div class="board" data-make="board"></div>
+
+      <p class="hint" data-make="hint">置いたワードはマップの外へ動かすと、下に戻せます</p>
+
+      <div class="actions" data-make="actions">
+        <button type="button" class="btn btn--primary" data-action="lock" disabled>あと5つ置いてね</button>
+      </div>
+
+      <div class="done" data-make="done" hidden>
+        <p class="done__title">ロックしました！</p>
+        <p class="done__text">本番では、ここでみんなを待ちます。</p>
+        <div class="actions">
+          <button type="button" class="btn btn--primary" data-action="make-again">別のお題でもう一度</button>
+          <button type="button" class="btn btn--secondary" data-action="home">トップにもどる</button>
+        </div>
+      </div>
     </section>
   </main>
 
