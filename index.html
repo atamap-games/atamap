@@ -14,6 +14,7 @@
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
+  <!-- どの画面も、スマホの画面1枚に収める（スクロールさせない） -->
   <main id="app">
     <!-- トップ画面 -->
     <section class="screen screen--top" data-screen="top">
@@ -25,106 +26,97 @@
         </h1>
       </header>
 
-      <!-- マップの見本（お題1「コンビニおにぎり」） -->
+      <!-- マップの見本（お題1「コンビニおにぎり」）。空いている場所に合わせて大きさが変わる -->
       <figure class="sample">
-        <div class="map" aria-hidden="true">
-          <span class="map__axis map__axis--v"></span>
-          <span class="map__axis map__axis--h"></span>
-          <span class="map__label map__label--top">好き</span>
-          <span class="map__label map__label--bottom">苦手</span>
-          <span class="map__label map__label--left">最近<br>食べた</span>
-          <span class="map__label map__label--right">食べて<br>ない</span>
-          <span class="map__pin" style="--x: 26; --y: 20;">ツナマヨ</span>
-          <span class="map__pin" style="--x: 40; --y: 36;">鮭</span>
-          <span class="map__pin" style="--x: 72; --y: 24;">明太子</span>
-          <span class="map__pin" style="--x: 30; --y: 72;">梅</span>
-          <span class="map__pin" style="--x: 72; --y: 78;">昆布</span>
+        <div class="sample__stage">
+          <div class="map" aria-hidden="true">
+            <span class="map__axis map__axis--v"></span>
+            <span class="map__axis map__axis--h"></span>
+            <span class="map__label map__label--top">好き</span>
+            <span class="map__label map__label--bottom">苦手</span>
+            <span class="map__label map__label--left">最近<br>食べた</span>
+            <span class="map__label map__label--right">食べて<br>ない</span>
+            <span class="map__pin" style="--x: 25; --y: 23;">ツナマヨ</span>
+            <span class="map__pin" style="--x: 42; --y: 40;">鮭</span>
+            <span class="map__pin" style="--x: 72; --y: 24;">明太子</span>
+            <span class="map__pin" style="--x: 30; --y: 72;">梅</span>
+            <span class="map__pin" style="--x: 72; --y: 78;">昆布</span>
+          </div>
         </div>
-        <figcaption class="sample__caption">お題「コンビニおにぎり」を置いた例。<br>主役ならココらへん？ と当てよう！</figcaption>
+        <figcaption class="sample__caption">例：お題「コンビニおにぎり」</figcaption>
       </figure>
 
       <div class="actions">
         <button type="button" class="btn btn--primary" data-action="create-room">部屋を作る</button>
         <button type="button" class="btn btn--secondary" data-action="join-room">部屋に入る</button>
-        <!-- 部屋の機能ができるまでの、1台で試すための入り口 -->
-        <button type="button" class="btn btn--text" data-action="try-make">ためしにマップを作ってみる →</button>
       </div>
 
-      <ul class="facts">
-        <li>3〜8人</li>
-        <li>1ラウンド約3分</li>
-        <li>インストール不要</li>
-      </ul>
+      <div class="links">
+        <button type="button" class="btn btn--text" data-action="help">遊び方</button>
+        <!-- 部屋の機能ができるまでの、1台で試すための入り口 -->
+        <button type="button" class="btn btn--text" data-action="try-make">ためしに遊ぶ →</button>
+      </div>
 
-      <section class="howto" aria-labelledby="howto-title">
-        <h2 id="howto-title" class="howto__title">遊び方</h2>
-        <ol class="howto__steps">
-          <li>
-            <h3>部屋に集まる</h3>
-            <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから、名前を入れて参加します。</p>
-          </li>
-          <li>
-            <h3>自分のマップを作る</h3>
-            <p>全員にちがうお題と5つのワードが配られます。自分の感覚で、縦×横のマップに置きましょう（90秒）。</p>
-          </li>
-          <li>
-            <h3>主役の頭の中を当てる</h3>
-            <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置きます（90秒）。</p>
-          </li>
-          <li>
-            <h3>答え合わせ</h3>
-            <p>1ワードずつ発表。主役のピンに近いほど高得点です。「そこ置く!?」</p>
-            <dl class="score">
-              <div><dt>ど真ん中</dt><dd>3点</dd></div>
-              <div><dt>近い</dt><dd>1点</dd></div>
-              <div><dt>はずれ</dt><dd>0点</dd></div>
-            </dl>
-          </li>
-          <li>
-            <h3>表彰</h3>
-            <p>全員が1回ずつ主役をしたら、合計点と賞を発表。結果の画像を保存して投稿できます。</p>
-          </li>
-        </ol>
-      </section>
-
-      <footer class="footer">
-        <p>最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
-        <p class="footer__copy">© アタマップ</p>
-      </footer>
+      <p class="facts">3〜8人・1ラウンド約3分・インストール不要</p>
     </section>
 
     <!-- 自分のマップを作る画面 -->
     <section class="screen screen--make" data-screen="make" hidden>
-      <div class="bar">
-        <button type="button" class="bar__back" data-action="home">← トップ</button>
-        <span class="bar__step">自分のマップを作る</span>
-      </div>
-
-      <header class="topic">
-        <p class="topic__genre" data-make="genre"></p>
-        <h2 class="topic__title" data-make="title"></h2>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <div class="topic">
+          <p class="topic__genre" data-make="genre"></p>
+          <h2 class="topic__title" data-make="title"></h2>
+        </div>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
       </header>
 
       <p class="guide" data-make="guide" aria-live="polite"></p>
 
       <div class="board" data-make="board"></div>
 
-      <p class="hint" data-make="hint">置いたワードはマップの外へ動かすと、下に戻せます</p>
-
-      <div class="actions" data-make="actions">
-        <button type="button" class="btn btn--primary" data-action="lock" disabled>あと5つ置いてね</button>
-      </div>
-
-      <div class="done" data-make="done" hidden>
-        <p class="done__title">ロックしました！</p>
-        <p class="done__text">本番では、ここでみんなを待ちます。</p>
-        <div class="actions">
-          <button type="button" class="btn btn--primary" data-action="make-again">別のお題でもう一度</button>
-          <button type="button" class="btn btn--secondary" data-action="home">トップにもどる</button>
+      <div class="foot">
+        <div class="actions" data-make="actions">
+          <button type="button" class="btn btn--primary" data-action="lock" disabled>あと5つ置いてね</button>
+        </div>
+        <div class="actions actions--row" data-make="done" hidden>
+          <button type="button" class="btn btn--primary" data-action="make-again">別のお題で</button>
+          <button type="button" class="btn btn--secondary" data-action="home">トップへ</button>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- 遊び方（別窓） -->
+  <dialog class="sheet" id="howto" aria-labelledby="howto-title">
+    <div class="sheet__body">
+      <h2 id="howto-title" class="sheet__title">遊び方</h2>
+      <ol class="steps">
+        <li>
+          <h3>部屋に集まる</h3>
+          <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから参加（3〜8人）。</p>
+        </li>
+        <li>
+          <h3>自分のマップを作る</h3>
+          <p>配られたお題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
+        </li>
+        <li>
+          <h3>主役の頭の中を当てる</h3>
+          <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
+        </li>
+        <li>
+          <h3>答え合わせ</h3>
+          <p>主役のピンに近いほど高得点。ど真ん中3点、近い1点。「そこ置く!?」</p>
+        </li>
+        <li>
+          <h3>表彰</h3>
+          <p>全員が主役をしたら、合計点と賞を発表。結果の画像を投稿できる。</p>
+        </li>
+      </ol>
+      <p class="sheet__note">最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
+      <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
+    </div>
+  </dialog>
 
   <div class="toast" role="status" aria-live="polite" hidden></div>
 

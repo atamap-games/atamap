@@ -1,4 +1,6 @@
-/* アタマップ 全体のスタイル */
+/* アタマップ 全体のスタイル
+   決まりごと：どの画面もスマホの画面1枚に収める（スクロールさせない）。
+   空いている高さに合わせて、マップの大きさを変える。収まらないものは別窓（.sheet）に出す。 */
 
 :root {
   --bg: #FFF7EC;
@@ -12,7 +14,11 @@
   --accent: #127A70;
   --accent-soft: #DDF2EE;
   --yellow: #FFD54A;
+  --on-color: #FFFFFF;
+  --shade: rgba(43, 42, 58, 0.15);
   --radius: 16px;
+  /* 画面の高さに合わせて変わる大きさ */
+  --btn-h: clamp(46px, 8.5vh, 56px);
   --font: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
   --font-round: "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
   color-scheme: light;
@@ -29,22 +35,27 @@
 }
 
 html {
+  height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
 body {
+  height: 100%;
   margin: 0;
+  /* ページ自体は動かさない（指のドラッグでページが引っぱられないように） */
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.6;
   line-break: strict;
   -webkit-tap-highlight-color: transparent;
 }
 
-h1, h2, h3, p, ol, ul, dl, dd, figure {
+h1, h2, h3, p, ol, ul, figure {
   margin: 0;
 }
 
@@ -61,70 +72,134 @@ button {
   white-space: nowrap;
 }
 
-/* 画面ひとつ分のまとまり。横幅はスマホを基準に、広い画面では中央に寄せる */
+#app {
+  height: 100%;
+}
+
+/* 画面ひとつ分。高さは画面ぴったりで、中身は縦に並べる */
 .screen {
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  /* 何かが一瞬でも横にはみ出すと、スマホではページがずれるので、画面の幅で切る */
-  overflow-x: clip;
-  padding:
-    calc(20px + env(safe-area-inset-top))
-    calc(16px + env(safe-area-inset-right))
-    calc(32px + env(safe-area-inset-bottom))
-    calc(16px + env(safe-area-inset-left));
-}
-
-.screen[hidden] {
-  display: none;
-}
-
-/* ---------- タイトル ---------- */
-.hero {
-  text-align: center;
-}
-
-.hero__catch {
-  display: inline-block;
-  padding: 2px 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.hero__title {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 6px;
-  line-height: 1.1;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  margin: 0 auto;
+  padding:
+    calc(12px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right))
+    calc(16px + env(safe-area-inset-bottom))
+    calc(16px + env(safe-area-inset-left));
+  /* はみ出したものは切る（clip はスクロールもしない。使えない古いブラウザでは hidden） */
+  overflow: hidden;
+  overflow: clip;
 }
 
-.hero__title-ja {
-  font-family: var(--font-round);
-  font-size: clamp(2.5rem, 13vw, 3.25rem);
+/* ---------- ボタン ---------- */
+.actions {
+  display: grid;
+  gap: 10px;
+}
+
+.actions--row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: var(--btn-h);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 1.1875rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--primary);
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
-.hero__title-en {
-  margin-top: 4px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.4em;
-  /* 字間のぶん右にずれるのを打ち消す */
-  margin-right: -0.4em;
+.btn:focus-visible,
+.icon-btn:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+.btn--primary {
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 4px 0 var(--primary-dark);
+}
+
+.btn--secondary {
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--primary-dark);
+}
+
+.btn--secondary:active {
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.btn--text {
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  box-shadow: none;
+}
+
+.btn--text:active {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.btn:disabled {
+  border: 0;
+  background: var(--line);
   color: var(--ink-soft);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
 }
 
-/* ---------- マップ（見本にも、あとで作る画面にも使う） ---------- */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ---------- マップ（見本にも、置く画面にも使う） ---------- */
 /* ピンの位置は --x（左から）と --y（上から）に 0〜100 で入れる */
 .map {
   position: relative;
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   background: var(--surface);
   border: 2px solid var(--ink);
@@ -193,12 +268,13 @@ button {
   text-align: right;
 }
 
+/* 見本のピン（動かないもの） */
 .map__pin {
   position: absolute;
   left: calc(var(--x) * 1%);
   top: calc(var(--y) * 1%);
   transform: translate(-50%, -50%);
-  padding: 2px 10px;
+  padding: 1px 9px;
   border: 2px solid var(--primary);
   border-radius: 999px;
   background: var(--surface);
@@ -207,246 +283,117 @@ button {
   font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
-  box-shadow: 0 2px 0 rgba(43, 42, 58, 0.15);
+  box-shadow: 0 2px 0 var(--shade);
 }
 
-/* ---------- 見本 ---------- */
+/* ---------- トップ画面 ---------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.hero__catch {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.hero__title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.hero__title-ja {
+  font-family: var(--font-round);
+  font-size: clamp(2.125rem, 7.5vh, 3.25rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+
+.hero__title-en {
+  margin-top: 2px;
+  margin-right: -0.4em; /* 字間のぶん右にずれるのを打ち消す */
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--ink-soft);
+}
+
+/* 見本は残りの高さいっぱいを使い、狭ければ小さく、とても狭ければ隠す */
 .sample {
-  /* 縦が短い画面でもボタンが見えるよう、画面の高さに合わせて小さくする */
-  width: min(100%, 300px, 44vh);
-  width: min(100%, 300px, 44svh);
-  margin: 16px auto 0;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  container-type: size;
+}
+
+.sample .map {
+  width: min(100%, 300px);
+  width: min(100cqw, calc(100cqh - 26px), 300px);
 }
 
 .sample__caption {
-  margin-top: 8px;
   color: var(--ink-soft);
   font-size: 0.8125rem;
-  line-height: 1.6;
-  text-align: center;
+  line-height: 20px;
 }
 
-/* ---------- ボタン ---------- */
-.actions {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
+/* 見本が小さいときは、中の文字も小さくする */
+@container (max-height: 250px) {
+  .sample .map__pin {
+    padding: 0 6px;
+    font-size: 0.6875rem;
+    border-width: 1.5px;
+  }
+
+  .sample .map__label {
+    font-size: 0.625rem;
+  }
 }
 
-.btn {
-  display: block;
-  width: 100%;
-  min-height: 56px;
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  font-size: 1.1875rem;
-  font-weight: 800;
-  line-height: 1.4;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+@container (max-height: 120px) {
+  .sample > * {
+    display: none;
+  }
 }
 
-.btn:focus-visible {
-  outline: 3px solid var(--yellow);
-  outline-offset: 3px;
-}
-
-.btn--primary {
-  border: 0;
-  background: var(--primary);
-  color: #FFFFFF;
-  box-shadow: 0 4px 0 var(--primary-dark);
-}
-
-.btn--secondary {
-  border: 2px solid var(--ink);
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 4px 0 var(--ink);
-}
-
-.btn:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--primary-dark);
-}
-
-.btn--secondary:active {
-  box-shadow: 0 1px 0 var(--ink);
-}
-
-.btn--text {
-  min-height: 44px;
-  padding: 8px 16px;
-  border: 0;
-  background: none;
-  color: var(--accent);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  box-shadow: none;
-}
-
-.btn--text:active {
-  transform: none;
-  box-shadow: none;
-  opacity: 0.6;
-}
-
-.btn:disabled {
-  border: 0;
-  background: var(--line);
-  color: var(--ink-soft);
-  box-shadow: none;
-  cursor: default;
-  transform: none;
-}
-
-/* ---------- 人数などの目安 ---------- */
-.facts {
+.links {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 0;
-  list-style: none;
+  gap: 16px;
+  margin-top: -2px;
 }
 
-.facts li {
-  padding: 2px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
+.facts {
   color: var(--ink-soft);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
-}
-
-/* ---------- 遊び方 ---------- */
-.howto {
-  margin-top: 28px;
-  padding: 20px 16px;
-  border-radius: 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-
-.howto__title {
-  font-size: 1.25rem;
   text-align: center;
-}
-
-.howto__steps {
-  margin-top: 12px;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
-}
-
-.howto__steps > li {
-  position: relative;
-  padding: 12px 0 12px 44px;
-  counter-increment: step;
-}
-
-.howto__steps > li + li {
-  border-top: 1px dashed var(--line);
-}
-
-.howto__steps > li::before {
-  content: counter(step);
-  position: absolute;
-  left: 0;
-  top: 12px;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #FFFFFF;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.howto__steps h3 {
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.howto__steps p {
-  margin-top: 2px;
-  text-wrap: pretty;
-  color: var(--ink-soft);
-  font-size: 0.9375rem;
-}
-
-.score {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.score > div {
-  display: flex;
-  gap: 6px;
-  padding: 2px 10px;
-  border-radius: 8px;
-  background: var(--bg);
-  font-size: 0.8125rem;
-}
-
-.score dt {
-  color: var(--ink-soft);
-}
-
-.score dd {
-  font-weight: 800;
-}
-
-/* ---------- 下の部分 ---------- */
-.footer {
-  margin-top: 28px;
-  color: var(--ink-soft);
-  font-size: 0.8125rem;
-  text-align: center;
-}
-
-.footer__copy {
-  margin-top: 4px;
 }
 
 /* ---------- 自分のマップを作る画面 ---------- */
-.bar {
-  display: flex;
+.head {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
-  justify-content: space-between;
-  margin: -8px 0 4px;
-}
-
-.bar__back {
-  min-height: 44px;
-  padding: 8px 4px;
-  border: 0;
-  background: none;
-  color: var(--ink-soft);
-  font-size: 0.9375rem;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.bar__step {
-  color: var(--ink-soft);
-  font-size: 0.8125rem;
-  font-weight: 700;
+  gap: 8px;
 }
 
 .topic {
+  min-width: 0;
   text-align: center;
 }
 
@@ -456,34 +403,52 @@ button {
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
+  line-height: 1.6;
 }
 
 .topic__title {
-  margin-top: 2px;
+  overflow: hidden;
   font-family: var(--font-round);
-  font-size: 1.5rem;
+  font-size: min(1.375rem, 5.6vw);
   font-weight: 800;
-  line-height: 1.4;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .guide {
-  min-height: 1.7em;
-  margin: 4px 0 12px;
+  overflow: hidden;
+  height: 1.5em;
   font-size: 0.9375rem;
   font-weight: 700;
+  line-height: 1.5;
   text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+/* マップとワードの列。マップは残りの高さに合わせて大きさが変わる */
 .board {
-  /* 横向きなど、縦が短い画面では少し小さくする */
-  width: min(100%, 60vh);
-  width: min(100%, 60svh);
-  margin: 0 auto;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.board__stage {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
 }
 
 .map--board {
+  width: min(100%, 45vh);
+  width: min(100cqw, 100cqh);
   /* 端に置いたピンの点が切れないように */
   overflow: visible;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -518,7 +483,7 @@ button {
   padding: 0 10px;
   border-radius: 999px;
   background: var(--accent);
-  color: #FFFFFF;
+  color: var(--on-color);
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 22px;
@@ -575,7 +540,7 @@ button {
   font-weight: 700;
   line-height: 1.4;
   white-space: nowrap;
-  box-shadow: 0 2px 0 rgba(43, 42, 58, 0.15);
+  box-shadow: 0 2px 0 var(--shade);
   cursor: grab;
 }
 
@@ -617,29 +582,29 @@ button {
 /* まだ置いていないワードの列 */
 .tray {
   position: relative;
+  flex: none;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   justify-content: center;
   gap: 8px;
-  min-height: 96px;
-  margin-top: 16px;
+  min-height: 88px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 6px 14px;
+  min-height: 40px;
+  padding: 4px 14px;
   border: 2px solid var(--primary);
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.3;
   white-space: nowrap;
-  box-shadow: 0 3px 0 rgba(43, 42, 58, 0.15);
+  box-shadow: 0 3px 0 var(--shade);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -649,7 +614,7 @@ button {
 
 .chip.is-selected {
   background: var(--yellow);
-  box-shadow: 0 0 0 3px var(--yellow), 0 3px 0 rgba(43, 42, 58, 0.15);
+  box-shadow: 0 0 0 3px var(--yellow), 0 3px 0 var(--shade);
 }
 
 .chip.is-dragging {
@@ -666,7 +631,8 @@ button {
   pointer-events: none;
 }
 
-.tray.is-empty .chip {
+.tray.is-empty .chip,
+.tray.is-locked .chip {
   visibility: hidden;
 }
 
@@ -674,43 +640,115 @@ button {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--accent);
   font-weight: 700;
+  text-align: center;
 }
 
 .tray:not(.is-empty) .tray__done {
   display: none;
 }
 
-.hint {
-  margin-top: 4px;
-  color: var(--ink-soft);
-  font-size: 0.75rem;
-  text-align: center;
-}
-
-.screen--make .actions {
-  margin-top: 12px;
-}
-
-.done {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.done__title {
-  color: var(--accent);
+.tray.is-locked .tray__done {
   font-family: var(--font-round);
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 800;
 }
 
-.done__text {
-  margin-top: 2px;
+.tray__sub {
   color: var(--ink-soft);
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.foot {
+  flex: none;
+}
+
+/* ---------- 別窓（遊び方など） ---------- */
+.sheet {
+  width: min(100% - 24px, 440px);
+  max-height: calc(100% - 24px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 16px 40px rgba(43, 42, 58, 0.3);
+  /* 小さすぎる画面のときだけの、念のための逃げ道 */
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.sheet::backdrop {
+  background: rgba(43, 42, 58, 0.5);
+}
+
+.sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 16px 16px;
+}
+
+.sheet__title {
+  font-family: var(--font-round);
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps > li {
+  position: relative;
+  padding-left: 38px;
+  counter-increment: step;
+}
+
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-color);
   font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.steps h3 {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.steps p {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.sheet__note {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 /* ---------- お知らせ（画面の下に少しだけ出る） ---------- */
@@ -718,13 +756,13 @@ button {
   position: fixed;
   left: 50%;
   bottom: calc(24px + env(safe-area-inset-bottom));
-  z-index: 10;
+  z-index: 30;
   width: max-content;
   max-width: calc(100% - 32px);
   padding: 12px 18px;
   border-radius: 14px;
   background: var(--ink);
-  color: #FFFFFF;
+  color: var(--on-color);
   font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.5;
@@ -732,10 +770,6 @@ button {
   box-shadow: 0 8px 24px rgba(43, 42, 58, 0.25);
   transform: translate(-50%, 0);
   animation: toast-in 0.2s ease-out;
-}
-
-.toast[hidden] {
-  display: none;
 }
 
 @keyframes toast-in {
@@ -746,17 +780,78 @@ button {
 }
 
 .noscript {
-  max-width: 480px;
-  margin: 16px auto;
+  position: fixed;
+  inset: auto 16px 16px;
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--yellow);
   font-weight: 700;
 }
 
+/* 縦がとても短い画面では、文字やすきまを少しつめる */
+@media (max-height: 520px) {
+  .screen {
+    gap: 8px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .hero__catch {
+    font-size: 0.75rem;
+  }
+
+  .tray {
+    gap: 6px;
+    min-height: 78px;
+  }
+
+  .chip {
+    min-height: 36px;
+    font-size: 0.875rem;
+  }
+
+  .sheet__body {
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .sheet__title {
+    font-size: 1.0625rem;
+  }
+
+  .steps {
+    gap: 4px;
+  }
+
+  .steps > li {
+    padding-left: 32px;
+  }
+
+  .steps > li::before {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8125rem;
+  }
+
+  .steps h3 {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .steps p {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .sheet .btn {
+    min-height: 42px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn,
-  .toast {
+  .toast,
+  .map--board {
     transition: none;
     animation: none;
   }

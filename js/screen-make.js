@@ -28,7 +28,6 @@ export async function startMake() {
   part('title').textContent = topic.title;
   part('done').hidden = true;
   part('actions').hidden = false;
-  part('hint').hidden = false;
   board = createBoard(part('board'), topic, { onChange: render });
 }
 
@@ -38,7 +37,7 @@ export function stopMake() {
   board = null;
 }
 
-// 置いた数などに合わせて、案内の文とボタンを変える
+// 置いた数などに合わせて、案内の文とボタンを変える（案内は1行に収まる長さにする）
 function render({ placed, total, selected, locked }) {
   const guide = part('guide');
   const lockButton = part('actions').querySelector('[data-action="lock"]');
@@ -47,13 +46,13 @@ function render({ placed, total, selected, locked }) {
   if (locked) {
     guide.textContent = 'このマップで決まり！';
   } else if (selected) {
-    guide.textContent = `「${selected}」を置きたいところをタップ`;
+    guide.textContent = 'マップの置きたいところをタップ';
   } else if (placed === 0) {
-    guide.textContent = 'ワードを指で動かして、マップに置こう';
+    guide.textContent = 'ワードを指でマップへ動かそう';
   } else if (left > 0) {
     guide.textContent = `あと${left}つ。自分の感覚で置いてね`;
   } else {
-    guide.textContent = '置き直すなら、ワードを動かしてね';
+    guide.textContent = '外へ出すと、下に戻せます';
   }
 
   lockButton.disabled = left > 0;
@@ -64,13 +63,9 @@ function render({ placed, total, selected, locked }) {
 export const makeActions = {
   lock: () => {
     if (!board?.isComplete()) return;
-    board.lock();
+    board.lock({ message: 'ロックしました！', note: '本番では、ここでみんなを待ちます' });
     part('actions').hidden = true;
-    part('hint').hidden = true;
     part('done').hidden = false;
   },
-  'make-again': () => {
-    window.scrollTo(0, 0);
-    startMake();
-  },
+  'make-again': () => startMake(),
 };

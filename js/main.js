@@ -1,5 +1,5 @@
 // アタマップ：最初に読み込まれるファイル。画面の切り替えと、ボタンをつなぐ。
-import { showScreen, showToast } from './ui.js';
+import { showScreen, showToast, openSheet, closeSheet } from './ui.js';
 import { startMake, stopMake, makeActions } from './screen-make.js';
 
 // 画面の名前と、その画面に入るとき・出るときにすること。
@@ -42,6 +42,8 @@ const actions = {
   },
   'try-make': () => navigate('make'),
   home: () => navigate('top'),
+  help: () => openSheet('howto'),
+  'close-help': () => closeSheet('howto'),
   ...makeActions,
 };
 

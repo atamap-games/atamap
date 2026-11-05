@@ -10,7 +10,6 @@ export function showScreen(name) {
   screens.forEach((screen) => {
     screen.hidden = screen.dataset.screen !== name;
   });
-  window.scrollTo(0, 0);
 }
 
 let toastTimer = 0;
@@ -34,4 +33,26 @@ export function showToast(message, duration = 2600) {
   toastTimer = window.setTimeout(() => {
     toast.hidden = true;
   }, duration);
+}
+
+/**
+ * 別窓（<dialog class="sheet">）を開く。外側の暗いところを押しても閉じる。
+ * @param {string} id 別窓の id
+ */
+export function openSheet(id) {
+  const sheet = document.getElementById(id);
+  if (!sheet || sheet.open) return;
+  if (!sheet.dataset.ready) {
+    sheet.dataset.ready = '1';
+    sheet.addEventListener('click', (event) => {
+      // 別窓の外（暗いところ）を押したとき
+      if (event.target === sheet) sheet.close();
+    });
+  }
+  sheet.showModal();
+}
+
+/** 別窓を閉じる */
+export function closeSheet(id) {
+  document.getElementById(id)?.close();
 }

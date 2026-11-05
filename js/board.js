@@ -49,7 +49,10 @@ export function createBoard(root, topic, { onChange } = {}) {
     tray.insertBefore(chip, trayDone);
   }
 
-  root.append(map, tray);
+  // マップは、空いている高さに合わせて大きさが変わる（css の .board__stage）
+  const stage = el('div', 'board__stage');
+  stage.append(map);
+  root.append(stage, tray);
 
   // マップの何もないところをタップしたとき：選んでいるワードをそこに置く
   map.addEventListener('pointerdown', (event) => {
@@ -258,12 +261,19 @@ export function createBoard(root, topic, { onChange } = {}) {
     isComplete() {
       return words.every((w) => w.pos);
     },
-    /** 動かせないようにする（ロック） */
-    lock() {
+    /**
+     * 動かせないようにする（ロック）。ワードの列のところに、知らせる文を出す。
+     * @param {object} [text]
+     * @param {string} [text.message] 大きく出す文
+     * @param {string} [text.note] 小さく添える文
+     */
+    lock({ message = 'ロックしました！', note = '' } = {}) {
       locked = true;
       select(null);
       map.classList.add('is-locked');
-      tray.hidden = true;
+      tray.classList.add('is-locked');
+      trayDone.replaceChildren(message);
+      if (note) trayDone.append(el('span', 'tray__sub', note));
       update();
     },
     /** 後片づけ（画面を離れるとき） */
