@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>アタマップ（ATAMAP）｜友だちの頭の中の地図を当てるパーティーゲーム</title>
+  <meta name="description" content="お題の5つのワードを縦×横のマップに置いて、友だちの置き場所を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
+  <meta name="theme-color" content="#FFF7EC">
+  <meta property="og:title" content="アタマップ（ATAMAP）">
+  <meta property="og:description" content="友だちの「頭の中の地図」を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0462A'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22.5' cy='9.5' r='3.5' fill='%23FFD54A'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <main id="app">
+    <!-- トップ画面 -->
+    <section class="screen screen--top" data-screen="top">
+      <header class="hero">
+        <p class="hero__catch">友だちの「頭の中の地図」を当てる</p>
+        <h1 class="hero__title">
+          <span class="hero__title-ja">アタマップ</span>
+          <span class="hero__title-en">ATAMAP</span>
+        </h1>
+      </header>
+
+      <!-- マップの見本（お題1「コンビニおにぎり」） -->
+      <figure class="sample">
+        <div class="map" aria-hidden="true">
+          <span class="map__axis map__axis--v"></span>
+          <span class="map__axis map__axis--h"></span>
+          <span class="map__label map__label--top">好き</span>
+          <span class="map__label map__label--bottom">苦手</span>
+          <span class="map__label map__label--left">最近<br>食べた</span>
+          <span class="map__label map__label--right">食べて<br>ない</span>
+          <span class="map__pin" style="--x: 26; --y: 20;">ツナマヨ</span>
+          <span class="map__pin" style="--x: 40; --y: 36;">鮭</span>
+          <span class="map__pin" style="--x: 72; --y: 24;">明太子</span>
+          <span class="map__pin" style="--x: 30; --y: 72;">梅</span>
+          <span class="map__pin" style="--x: 72; --y: 78;">昆布</span>
+        </div>
+        <figcaption class="sample__caption">お題「コンビニおにぎり」を置いた例。<br>主役ならココらへん？ と当てよう！</figcaption>
+      </figure>
+
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-action="create-room">部屋を作る</button>
+        <button type="button" class="btn btn--secondary" data-action="join-room">部屋に入る</button>
+      </div>
+
+      <ul class="facts">
+        <li>3〜8人</li>
+        <li>1ラウンド約3分</li>
+        <li>インストール不要</li>
+      </ul>
+
+      <section class="howto" aria-labelledby="howto-title">
+        <h2 id="howto-title" class="howto__title">遊び方</h2>
+        <ol class="howto__steps">
+          <li>
+            <h3>部屋に集まる</h3>
+            <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから、名前を入れて参加します。</p>
+          </li>
+          <li>
+            <h3>自分のマップを作る</h3>
+            <p>全員にちがうお題と5つのワードが配られます。自分の感覚で、縦×横のマップに置きましょう（90秒）。</p>
+          </li>
+          <li>
+            <h3>主役の頭の中を当てる</h3>
+            <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置きます（90秒）。</p>
+          </li>
+          <li>
+            <h3>答え合わせ</h3>
+            <p>1ワードずつ発表。主役のピンに近いほど高得点です。「そこ置く!?」</p>
+            <dl class="score">
+              <div><dt>ど真ん中</dt><dd>3点</dd></div>
+              <div><dt>近い</dt><dd>1点</dd></div>
+              <div><dt>はずれ</dt><dd>0点</dd></div>
+            </dl>
+          </li>
+          <li>
+            <h3>表彰</h3>
+            <p>全員が1回ずつ主役をしたら、合計点と賞を発表。結果の画像を保存して投稿できます。</p>
+          </li>
+        </ol>
+      </section>
+
+      <footer class="footer">
+        <p>最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
+        <p class="footer__copy">© アタマップ</p>
+      </footer>
+    </section>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript>
+    <p class="noscript">このゲームで遊ぶには、ブラウザの JavaScript をオンにしてください。</p>
+  </noscript>
+</body>
+</html>
