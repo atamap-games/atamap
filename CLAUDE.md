@@ -7,8 +7,10 @@
 - 専門用語は使わず、やさしい日本語にする。画面のボタン名などは画面に出ているとおりに「」で書く。
 
 ## 仕様の置き場所
-- 仕様書（Claude Docs）：https://claude.ai/artifact/Vr4rXyugXSvVbHEU7Dn4K3 （doc id: e999b3cc-d98e-4e64-94f7-a753e1dec04a）。遊び方、点数、お題50個の表がある。
+- 仕様書の原本（Claude Docs）：https://claude.ai/artifact/Vr4rXyugXSvVbHEU7Dn4K3 （doc id: e999b3cc-d98e-4e64-94f7-a753e1dec04a）。遊び方、点数、お題50個の表がある。
+- 仕様書の写し：`docs/spec.md`。原本が見られないとき（別のアカウントで作業するときなど）は、これを正とする。原本が見られるときは、作業の最初に見比べ、原本が変わっていれば `docs/spec.md` を新しくする。
 - 作る順番と進み具合は、このリポジトリの PROGRESS.md が正。仕様書と食い違うときは、仕様書の遊び方を優先し、PROGRESS.md を直す。
+- 引き継ぎ書：`docs/handover.md`。決まっていること、アカウント、自動タスクの中身、別のアカウントでの再開手順がある。大きなことが決まったら更新する。
 
 ## 技術の決まりごと
 - ビルド不要の静的サイトにする。HTML・CSS・素のJavaScript（ESモジュール）だけで書く。npm のパッケージやビルドの手順は増やさない。
