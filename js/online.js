@@ -81,7 +81,7 @@ export async function startOnline({ mode, code = '', auto = false, onExit }) {
           knownCode = '';
         } else {
           console.error(err);
-          error = 'つながりませんでした。通信を確かめて、もう一度ためしてね';
+          error = explainError(err);
         }
       } finally {
         setEntryBusy(false);
@@ -130,6 +130,22 @@ function savedName() {
   } catch {
     return '';
   }
+}
+
+// つながらなかった理由を、分かる言葉にする（Firebase の設定が足りないときに、何を直せばよいか分かるように）
+function explainError(err) {
+  const code = String(err?.code ?? '');
+  const text = `${code} ${err?.message ?? ''}`;
+  if (code === 'auth/operation-not-allowed' || code === 'auth/admin-restricted-operation') {
+    return 'つながりませんでした：Firebase の「匿名」ログインがオフのようです（Authentication の設定）';
+  }
+  if (/permission[_ ]denied/i.test(text)) {
+    return 'つながりませんでした：Firebase のデータベースのルールが、まだ設定されていないようです';
+  }
+  if (code === 'auth/network-request-failed' || /failed to fetch|import|load/i.test(text)) {
+    return 'つながりませんでした。通信を確かめて、もう一度ためしてね';
+  }
+  return `つながりませんでした（${code || err?.name || 'ふめい'}）。もう一度ためしてね`;
 }
 
 // ---------- 部屋を作る・入る ----------
