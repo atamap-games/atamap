@@ -21,7 +21,16 @@ export function el(tag, className = '', text) {
 export function showScreen(name) {
   const screens = document.querySelectorAll('[data-screen]');
   screens.forEach((screen) => {
-    screen.hidden = screen.dataset.screen !== name;
+    const show = screen.dataset.screen === name;
+    // 新しく出す画面には、ぽんっと出てくる動きを付ける（css の .is-entering）
+    if (show && screen.hidden) {
+      screen.classList.remove('is-entering');
+      void screen.offsetWidth;
+      screen.classList.add('is-entering');
+      window.setTimeout(() => screen.classList.remove('is-entering'), 400);
+    }
+    if (!show) screen.classList.remove('is-final');
+    screen.hidden = !show;
   });
 }
 

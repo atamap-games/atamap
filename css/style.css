@@ -3,24 +3,39 @@
    空いている高さに合わせて、マップの大きさを変える。収まらないものは別窓（.sheet）に出す。 */
 
 :root {
-  --bg: #FFF7EC;
+  /* ポップな見た目：明るい地に、太いふちどりとずらした影（シールのような形） */
+  --bg: #FFF3D1;
+  --bg-dot: #FFE6A3;
   --surface: #FFFFFF;
-  --ink: #2B2A3A;
-  --ink-soft: #5E5A6B;
-  --line: #E6DCCD;
-  --axis: #CFC4B4;
-  --primary: #E0462A;
-  --primary-dark: #A93017;
-  --accent: #127A70;
-  --accent-soft: #DDF2EE;
-  --yellow: #FFD54A;
+  --ink: #22203A;
+  --ink-soft: #57536B;
+  --line: #E9DABA;
+  --axis: #C9B994;
+  --primary: #F24E2E;
+  --primary-dark: #22203A;
+  --accent: #0E7F6A;
+  --accent-soft: #D3F5EC;
+  --yellow: #FFD23F;
+  --mint: #3DDBB0;
+  --pink: #FF7EB6;
+  --sky: #59B7FF;
+  --purple: #8B6CFF;
   --on-color: #FFFFFF;
-  --shade: rgba(43, 42, 58, 0.15);
-  --radius: 16px;
+  --shade: rgba(34, 32, 58, 0.18);
+  --outline: 3px solid var(--ink);
+  --pop-shadow: 0 4px 0 var(--ink);
+  --radius: 18px;
+  /* マップの4つの角のうすい色（左上・右上・左下・右下） */
+  --q-tl: #FFF6D6;
+  --q-tr: #FFEAF3;
+  --q-bl: #E6FAF3;
+  --q-br: #E8F4FF;
   /* 画面の高さに合わせて変わる大きさ */
   --btn-h: clamp(46px, 8.5vh, 56px);
-  --font: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
-  --font-round: "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+  --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
+  --font-round: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+  /* タイトルやボタンに使う、ポップな文字 */
+  --font-pop: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
   color-scheme: light;
 }
 
@@ -1883,5 +1898,810 @@ button {
   .map--board {
     transition: none;
     animation: none;
+  }
+}
+
+/* =====================================================================
+   ポップな見た目（色・ふちどり・影・文字）
+   大きさや並べ方は上のままにして、見た目だけをここで上書きする。
+   ===================================================================== */
+
+/* 水玉もようの背景 */
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--bg-dot) 2.2px, transparent 2.6px);
+  background-size: 22px 22px;
+  font-weight: 500;
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  border: var(--outline);
+  font-family: var(--font-pop);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+}
+
+.btn--primary {
+  border: var(--outline);
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 5px 0 var(--ink);
+  text-shadow: 0 2px 0 rgba(34, 32, 58, 0.25);
+}
+
+.btn--secondary {
+  border: var(--outline);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+.btn:active,
+.btn--secondary:active {
+  transform: translateY(4px) scale(0.98);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.btn--text {
+  border: 0;
+  font-family: var(--font-round);
+  font-weight: 800;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  box-shadow: none;
+}
+
+.btn:disabled {
+  border: 3px solid #D9C9A6;
+  background: #F1E6CC;
+  color: var(--ink-soft);
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.btn.btn--sub small {
+  font-family: var(--font-round);
+}
+
+.btn--sub.is-confirm {
+  border-color: var(--ink);
+  background: var(--yellow);
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+.btn.btn--small {
+  border: var(--outline);
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.icon-btn {
+  border: var(--outline);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-pop);
+  font-weight: 400;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.icon-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.icon-btn:disabled {
+  border-color: #D9C9A6;
+  box-shadow: none;
+}
+
+/* ---------- タイトルまわり ---------- */
+.hero__catch {
+  padding: 3px 14px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--yellow);
+  font-weight: 800;
+  transform: rotate(-2deg);
+}
+
+/* ロゴ：1文字ずつ色を変え、太いふちと影をつける */
+.hero__title-ja {
+  display: inline-flex;
+  font-family: var(--font-pop);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 5px 0 var(--ink);
+}
+
+.hero__title-ja > span {
+  display: inline-block;
+}
+
+.hero__title-ja > span:nth-child(1) { color: var(--primary); }
+.hero__title-ja > span:nth-child(2) { color: var(--yellow); }
+.hero__title-ja > span:nth-child(3) { color: var(--sky); }
+.hero__title-ja > span:nth-child(4) { color: var(--mint); }
+.hero__title-ja > span:nth-child(5) { color: var(--pink); }
+
+.hero__title-en {
+  margin-top: 6px;
+  font-family: var(--font-pop);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.head__title,
+.topic__title,
+.sheet__title,
+.reveal__word,
+.waiting__title,
+.done__title,
+.announce__topic,
+.count__num,
+.room-code {
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.topic__genre,
+.pass__note {
+  border: 2px solid var(--ink);
+  background: var(--mint);
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.guide {
+  font-weight: 800;
+}
+
+/* ---------- マップ ---------- */
+.map {
+  border: var(--outline);
+  border-radius: 22px;
+  background: conic-gradient(var(--q-tr) 0 25%, var(--q-br) 0 50%, var(--q-bl) 0 75%, var(--q-tl) 0);
+  box-shadow: 0 6px 0 var(--ink);
+}
+
+.map__axis--v {
+  width: 3px;
+  margin-left: -1.5px;
+  background: repeating-linear-gradient(to bottom, var(--axis) 0 9px, transparent 9px 15px);
+}
+
+.map__axis--h {
+  height: 3px;
+  margin-top: -1.5px;
+  background: repeating-linear-gradient(to right, var(--axis) 0 9px, transparent 9px 15px);
+}
+
+.map__label {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.map__label--top { top: 8px; }
+.map__label--bottom { bottom: 8px; }
+.map__label--left { left: 8px; }
+.map__label--right { right: 8px; }
+
+.map__pin {
+  border: 2.5px solid var(--ink);
+  font-weight: 800;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.sample .map__pin:nth-of-type(odd) { background: #FFF1B8; }
+.sample .map__pin:nth-of-type(even) { background: #FFE0EE; }
+
+.map--board.is-waiting {
+  box-shadow: 0 6px 0 var(--ink), 0 0 0 5px var(--yellow);
+}
+
+.map--board.is-over {
+  border-color: var(--ink);
+  box-shadow: 0 6px 0 var(--ink), 0 0 0 5px var(--mint);
+}
+
+.map--board.is-locked {
+  border-color: var(--ink);
+}
+
+.map--board.is-locked::after {
+  border: 2px solid var(--ink);
+  background: var(--mint);
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* ピン：白い名札に太いふち。点は白いふちと黒い線で目立たせる */
+.pin__dot {
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 2.5px var(--ink), 0 3px 0 2px var(--ink);
+}
+
+.pin__label {
+  border: 2.5px solid var(--ink);
+  background: var(--surface);
+  font-weight: 800;
+  box-shadow: inset 0 -4px 0 var(--pin-color, var(--primary)), 0 3px 0 var(--ink);
+  padding-bottom: 5px;
+}
+
+.pin.is-selected .pin__label {
+  background: var(--yellow);
+}
+
+.map--board.is-locked .pin__label {
+  border-color: var(--ink);
+  box-shadow: inset 0 -4px 0 var(--mint), 0 3px 0 var(--ink);
+}
+
+.map--board.is-locked .pin__dot {
+  background: var(--mint);
+}
+
+.pin--answer .pin__label {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--yellow);
+  box-shadow: 0 3px 0 var(--primary);
+}
+
+.pin--answer .pin__dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 7px rgba(242, 78, 46, 0.25);
+}
+
+.pin--guess .pin__label {
+  border-width: 2px;
+  padding-bottom: 3px;
+  box-shadow: inset 0 -3px 0 var(--pin-color), 0 2px 0 var(--ink);
+}
+
+.pin--guess .pin__dot {
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.pin__shout {
+  border: 2.5px solid var(--ink);
+  background: var(--yellow);
+  font-family: var(--font-pop);
+  font-weight: 400;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.ring--close {
+  border: 2px dashed rgba(242, 78, 46, 0.6);
+  background: rgba(255, 210, 63, 0.22);
+}
+
+.ring--near {
+  border: 2.5px solid rgba(242, 78, 46, 0.8);
+  background: rgba(242, 78, 46, 0.18);
+}
+
+/* ---------- ワードの列 ---------- */
+.chip {
+  border: var(--outline);
+  background: var(--surface);
+  font-weight: 800;
+  box-shadow: 0 4px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
+}
+
+/* かたむけたぶん、列の上下に少しすきまを足す */
+.tray {
+  padding-block: 3px 5px;
+}
+
+/* 少しずつかたむけて、カードを並べたように見せる */
+.tray .chip:nth-of-type(4n + 1) { rotate: -2deg; }
+.tray .chip:nth-of-type(4n + 2) { rotate: 1.5deg; }
+.tray .chip:nth-of-type(4n + 3) { rotate: -1deg; }
+.tray .chip:nth-of-type(4n) { rotate: 2deg; }
+
+.chip:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.chip.is-selected {
+  background: var(--yellow);
+  box-shadow: 0 4px 0 var(--ink), 0 0 0 4px rgba(255, 210, 63, 0.5);
+}
+
+.chip.is-placed {
+  border: 3px dashed #D9C9A6;
+  background: transparent;
+  box-shadow: none;
+  rotate: 0deg;
+}
+
+.chip.chip--static {
+  border-width: 2.5px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.tray__done {
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+/* ---------- カード（賞・順位・まとめ・一覧など） ---------- */
+.award,
+.summary__row,
+.rank-row,
+.stats-row,
+.invite,
+.name-field,
+.field__input,
+.member,
+.score-chip {
+  border: var(--outline);
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.summary__row,
+.rank-row,
+.stats-row {
+  border-left-width: 10px;
+  border-left-color: var(--player-color, var(--primary));
+}
+
+.stats-row {
+  border-left-color: var(--primary);
+}
+
+.award {
+  border-top-width: 8px;
+  border-top-color: var(--award-color, var(--primary));
+}
+
+.award__winner,
+.summary__points,
+.rank-row__points,
+.stats-row__word {
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.rank-row--top,
+.score-chip--p3,
+.summary__miss {
+  background: #FFF1B8;
+}
+
+.rank-row--top .rank-row__rank::before {
+  content: "★";
+  margin-right: 2px;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.5px var(--ink);
+  paint-order: stroke fill;
+}
+
+.summary__miss {
+  border: 2.5px dashed var(--ink);
+}
+
+.score-chip {
+  border-color: var(--player-color);
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.score-chip--p0 {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.member {
+  border-color: var(--player-color, var(--ink));
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.member.is-done {
+  background: var(--accent-soft);
+}
+
+.member.is-offline {
+  box-shadow: none;
+}
+
+.name-field,
+.field__input {
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.name-field:focus-within,
+.field__input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink), 0 0 0 4px var(--yellow);
+}
+
+.name-field__num,
+.steps > li::before {
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.segmented {
+  border: var(--outline);
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.segmented__item {
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.segmented__item.is-on {
+  background: var(--ink);
+  color: var(--yellow);
+}
+
+/* 残り時間の円 */
+.timer {
+  --ring: var(--mint);
+  box-shadow: 0 0 0 3px var(--ink);
+}
+
+.timer span {
+  font-family: var(--font-pop);
+  font-weight: 400;
+}
+
+.timer.is-hurry {
+  --ring: var(--primary);
+}
+
+/* QRコード */
+.qr svg {
+  border: var(--outline);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+/* 名前（スマホを渡す・主役の発表） */
+.pass__name,
+.announce__name {
+  font-family: var(--font-pop);
+  font-weight: 400;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 var(--ink);
+}
+
+/* 別窓 */
+.sheet {
+  border: var(--outline);
+  box-shadow: 0 8px 0 var(--ink);
+}
+
+.sheet::backdrop {
+  background: rgba(34, 32, 58, 0.55);
+}
+
+.share__frame {
+  border: var(--outline);
+}
+
+/* お知らせ */
+.toast {
+  border: 3px solid var(--yellow);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
+  box-shadow: 0 5px 0 rgba(34, 32, 58, 0.35);
+}
+
+/* =====================================================================
+   演出（動き）。スマホが「動きを減らす」設定のときは出さない。
+   ===================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* 画面の切りかえ：ぽんっと出てくる */
+  .screen.is-entering {
+    animation: screen-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  }
+
+  /* ロゴの文字が1文字ずつはねる */
+  .hero__title-ja > span {
+    animation: letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+  }
+
+  .hero__title-ja > span:nth-child(2) { animation-delay: 0.07s; }
+  .hero__title-ja > span:nth-child(3) { animation-delay: 0.14s; }
+  .hero__title-ja > span:nth-child(4) { animation-delay: 0.21s; }
+  .hero__title-ja > span:nth-child(5) { animation-delay: 0.28s; }
+
+  .hero__catch {
+    animation: catch-in 0.6s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  }
+
+  /* 見本のワードが、ふわふわ浮かぶ */
+  .sample .map__pin {
+    animation: bob 3.4s ease-in-out infinite;
+  }
+
+  .sample .map__pin:nth-of-type(2) { animation-delay: -0.6s; }
+  .sample .map__pin:nth-of-type(3) { animation-delay: -1.3s; }
+  .sample .map__pin:nth-of-type(4) { animation-delay: -2s; }
+  .sample .map__pin:nth-of-type(5) { animation-delay: -2.7s; }
+
+  /* 選んだワードが、ぷるぷるゆれる */
+  .chip.is-selected,
+  .pin.is-selected .pin__label {
+    animation: wiggle 0.45s ease-in-out infinite alternate;
+  }
+
+  /* 「そこ置く!?」が、どきどきする */
+  .pin__shout {
+    animation: shout 0.8s ease-in-out infinite;
+  }
+
+  /* 残りわずか：画面のふちが赤く光る */
+  .screen.is-final {
+    animation: final-glow 1s ease-in-out infinite;
+  }
+
+  .toast {
+    animation: toast-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+  }
+
+  .btn--primary:not(:disabled) {
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+  }
+
+  .btn--primary:not(:disabled):hover {
+    filter: brightness(1.05);
+  }
+}
+
+/* 少し小さい所から大きくなる（下にずらすと、画面の外にはみ出してしまうため） */
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes letter-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.6) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.08) rotate(3deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes catch-in {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.6);
+  }
+}
+
+@keyframes bob {
+  0%, 100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 4px));
+  }
+}
+
+@keyframes wiggle {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes shout {
+  0%, 100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.14;
+  }
+}
+
+@keyframes final-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 0 0 rgba(242, 78, 46, 0);
+  }
+  50% {
+    box-shadow: inset 0 0 0 6px rgba(242, 78, 46, 0.55);
+  }
+}
+
+@keyframes toast-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.7);
+  }
+}
+
+/* 演出の部品（js/fx.js）が使うもの */
+.fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fx-bit {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.fx-bit--star {
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.fx-ripple {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.fx-stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  padding: 4px 18px;
+  border: 4px solid var(--primary);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  font-family: var(--font-pop);
+  font-size: clamp(1.25rem, 7vw, 2rem);
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  pointer-events: none;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.fx-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 縦がとても短い画面では、ポップな見た目のふちや文字を少しつめる */
+@media (max-height: 520px) {
+  .end {
+    gap: 8px;
+  }
+
+  .awards {
+    gap: 6px;
+  }
+
+  .award {
+    padding: 2px 8px 5px;
+    border-top-width: 6px;
+    box-shadow: 0 3px 0 var(--ink);
+  }
+
+  .award__title {
+    font-size: 0.6875rem;
+  }
+
+  .award__winner {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .award__note {
+    font-size: 0.625rem;
+  }
+
+  .rank-row,
+  .summary__row {
+    border-width: 2px;
+    border-left-width: 8px;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  .ranking--two .rank-row,
+  .summary__list--two .summary__row {
+    padding: 2px 8px;
+  }
+
+  .sheet__title {
+    font-size: 1rem;
+  }
+
+  .steps > li::before {
+    border-width: 1.5px;
+  }
+
+  .sheet .btn {
+    box-shadow: 0 3px 0 var(--ink);
+  }
+}
+
+@media (max-height: 520px) {
+  .steps h3 {
+    font-size: 0.8125rem;
+  }
+
+  .steps p {
+    font-size: 0.6875rem;
+  }
+
+  .sheet__note {
+    font-size: 0.6875rem;
+  }
+}
+
+/* 順位（★1位）と、右上の数（1/5・まとめ）は折り返さない */
+.rank-row__rank,
+.head__count {
+  white-space: nowrap;
+}
+
+.rank-row__rank {
+  width: auto;
+  min-width: 3.4em;
+}
+
+.head__count {
+  font-size: clamp(0.75rem, 3.4vw, 1rem);
+  letter-spacing: -0.02em;
+}
+
+/* 横幅がせまいスマホでは、ワードの札を少しつめて、列を2行に収める（そのぶんマップが大きくなる） */
+@media (max-width: 340px) {
+  .tray {
+    gap: 6px;
+  }
+
+  .chip {
+    padding-inline: 10px;
+  }
+}
+
+/* マップがとても小さいときは、名札の文字を一回り小さくして、マップの中に収める */
+@container (max-height: 210px) {
+  .map--board .pin__label {
+    padding: 2px 7px 4px;
+    font-size: 0.75rem;
   }
 }

@@ -6,19 +6,22 @@ import { playerById } from './game.js';
 const W = 1200;
 const H = 675;
 
+// 色と文字は、画面（css/style.css）のポップな見た目にそろえる
 const COLOR = {
-  bg: '#FFF7EC',
+  bg: '#FFF3D1',
+  dot: '#FFE6A3',
   surface: '#FFFFFF',
-  ink: '#2B2A3A',
-  inkSoft: '#5E5A6B',
-  line: '#E6DCCD',
-  axis: '#CFC4B4',
-  primary: '#E0462A',
-  accent: '#127A70',
-  yellow: '#FFD54A',
+  ink: '#22203A',
+  inkSoft: '#57536B',
+  line: '#E9DABA',
+  axis: '#C9B994',
+  primary: '#F24E2E',
+  accent: '#0E7F6A',
+  yellow: '#FFD23F',
+  quarters: ['#FFF6D6', '#FFEAF3', '#E6FAF3', '#E8F4FF'], // 左上・右上・左下・右下
 };
-const FONT = '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif';
-const FONT_ROUND = `"Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", ${FONT}`;
+const FONT = '"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif';
+const FONT_ROUND = `"Mochiy Pop One", ${FONT}`;
 
 /**
  * 結果画像を描く。
@@ -28,6 +31,8 @@ const FONT_ROUND = `"Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", ${FONT}`;
  */
 export async function drawResultImage(game, topics) {
   await document.fonts?.ready;
+  // 画像に使うポップな文字を、読みこんでおく（読みこめなくても、ほかの文字で描く）
+  await Promise.all([document.fonts?.load(`40px "Mochiy Pop One"`), document.fonts?.load(`800 24px "M PLUS Rounded 1c"`)].map((p) => p?.catch(() => {})));
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
@@ -36,6 +41,15 @@ export async function drawResultImage(game, topics) {
 
   ctx.fillStyle = COLOR.bg;
   ctx.fillRect(0, 0, W, H);
+  // 水玉もよう
+  ctx.fillStyle = COLOR.dot;
+  for (let y = 12; y < H; y += 26) {
+    for (let x = 12; x < W; x += 26) {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
   let summary = null;
   const zure = result.zure;
@@ -90,11 +104,22 @@ function drawMap(ctx, box, topic, result, game) {
   const toX = (v) => x + (v / 100) * size;
   const toY = (v) => y + (v / 100) * size;
 
+  // ずらした影
+  roundRect(ctx, x, y + 8, size, size, 28);
+  ctx.fillStyle = COLOR.ink;
+  ctx.fill();
+
   ctx.save();
   roundRect(ctx, x, y, size, size, 28);
   ctx.fillStyle = COLOR.surface;
   ctx.fill();
   ctx.clip();
+  // 4つの角を、うすく色分け
+  const half = size / 2;
+  [[0, 0], [half, 0], [0, half], [half, half]].forEach(([qx, qy], i) => {
+    ctx.fillStyle = COLOR.quarters[i];
+    ctx.fillRect(x + qx, y + qy, half, half);
+  });
 
   // 軸
   ctx.strokeStyle = COLOR.axis;
@@ -143,7 +168,7 @@ function drawMap(ctx, box, topic, result, game) {
   // 枠
   roundRect(ctx, x, y, size, size, 28);
   ctx.strokeStyle = COLOR.ink;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 5;
   ctx.stroke();
 }
 

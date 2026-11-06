@@ -1,6 +1,7 @@
 // 主役の発表（ラウンドのはじめ）。主役のお題と5つのワードを全員に見せる（置き場所は秘密）。
 import { showScreen, el } from './ui.js';
 import { createMap } from './mapview.js';
+import { popIn, burstAt } from './fx.js';
 
 const screen = document.querySelector('[data-screen="round"]');
 const part = (name) => screen.querySelector(`[data-round="${name}"]`);
@@ -29,6 +30,11 @@ export function showRound({ main, topic, round, rounds, canAdvance = true, isMe 
   part('map').replaceChildren(createMap(topic, 'map--static map--preview'));
   part('words').replaceChildren(...topic.words.map((word) => el('span', 'chip chip--static', word)));
   showScreen('round');
+  // 演出：主役の名前がどーんと出て、まわりに星がはじける
+  const name = part('name').parentElement;
+  popIn(name, { delay: 150, from: 'scale(2.2)' });
+  window.setTimeout(() => burstAt(name, { count: 14, spread: 80, stars: true }), 450);
+  [...part('words').children].forEach((chip, i) => popIn(chip, { delay: 500 + i * 70 }));
   return new Promise((resolve) => {
     resolveCurrent = resolve;
   });

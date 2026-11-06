@@ -4,6 +4,7 @@ import { showScreen, el } from './ui.js';
 import { createMap, createPin, placePin, watchResize } from './mapview.js';
 import { playerById } from './game.js';
 import { wordResult, roundPoints, biggestMiss, gradeName, NEAR, CLOSE } from './score.js';
+import { popIn, dropIn, slideIn, burstAt, shake, haptic } from './fx.js';
 
 const screen = document.querySelector('[data-screen="reveal"]');
 const part = (name) => screen.querySelector(`[data-reveal="${name}"]`);
@@ -14,6 +15,17 @@ const SHOUT_DISTANCE = 35;
 
 let state = null;
 let stopWatching = () => {};
+// 答え合わせの演出のタイマー（次のワードへ進んだら止める）
+let fxTimers = [];
+
+function later(ms, callback) {
+  fxTimers.push(window.setTimeout(callback, ms));
+}
+
+function clearFx() {
+  fxTimers.forEach((t) => window.clearTimeout(t));
+  fxTimers = [];
+}
 
 /**
  * @param {object} options
@@ -55,6 +67,7 @@ export function showRevealAt({ game, main, topic, isLast, index, canAdvance, onN
 export function stopReveal() {
   stopWatching();
   stopWatching = () => {};
+  clearFx();
 }
 
 function words() {
@@ -91,6 +104,7 @@ function renderWord() {
   const farthest = result.results
     .filter((r) => r.distance !== null && r.distance > SHOUT_DISTANCE)
     .sort((a, b) => b.distance - a.distance)[0];
+  const guessPins = [];
   for (const r of result.results) {
     if (!r.pos) continue;
     const player = playerById(game, r.playerId);
@@ -98,17 +112,34 @@ function renderWord() {
     if (r === farthest) pin.append(el('span', 'pin__shout', 'そこ置く!?'));
     map.append(pin);
     pins.push([pin, r.pos]);
+    guessPins.push([pin, r]);
   }
+  let answerPin = null;
   if (result.answer) {
-    const answer = createPin('答え', { className: 'pin--answer' });
-    map.append(answer);
-    pins.push([answer, result.answer]);
+    answerPin = createPin('答え', { className: 'pin--answer' });
+    map.append(answerPin);
+    pins.push([answerPin, result.answer]);
   }
   part('map').replaceChildren(map);
   const layout = () => pins.forEach(([pin, pos]) => placePin(pin, map, pos));
   stopWatching();
   stopWatching = watchResize(map, layout);
   layout();
+
+  // 演出：ワードがぽんっと出る → みんなの予想が出る → 主役の答えが落ちてくる → 輪が広がる → 点数
+  clearFx();
+  popIn(part('word'), { from: 'scale(0.4) rotate(-6deg)' });
+  guessPins.forEach(([pin], i) => popIn(pin, { delay: 250 + i * 80, from: 'scale(0)' }));
+  const answerDelay = 350 + guessPins.length * 80;
+  dropIn(answerPin, { delay: answerDelay });
+  map.querySelectorAll('.ring').forEach((ring, i) => popIn(ring, { delay: answerDelay + 450 + i * 120, from: 'scale(0)', base: 'translate(-50%, -50%)' }));
+  later(answerDelay + 500, () => haptic(12));
+  // ど真ん中（3点）の予想は、キラキラさせる
+  later(answerDelay + 750, () => {
+    guessPins.filter(([, r]) => r.points === 3).forEach(([pin]) => burstAt(pin.querySelector('.pin__dot'), { count: 10, spread: 40, stars: true }));
+    const shout = map.querySelector('.pin__shout');
+    if (shout) shake(shout.parentElement);
+  });
 
   // 点数：近い人から順に
   const chips = [...result.results]
@@ -124,6 +155,7 @@ function renderWord() {
     });
   part('scores').classList.toggle('scores--compact', result.results.length > 4);
   part('scores').replaceChildren(...chips);
+  chips.forEach((chip, i) => popIn(chip, { delay: answerDelay + 800 + i * 70 }));
 
   nextButton().textContent = state.index < list.length - 1 ? '次のワード' : 'このラウンドの結果';
   applyControl();
@@ -157,11 +189,14 @@ function renderSummary() {
   part('summary').hidden = false;
   const list = el('ol', `summary__list${rows.length > 4 ? ' summary__list--two' : ''}`);
   list.append(...rows);
-  part('summary').replaceChildren(
-    list,
-    el('p', 'summary__miss', miss ? `いちばんズレたのは「${miss.word}」。${main.name}さん、ひとこと説明を！` : ''),
-  );
+  const missText = el('p', 'summary__miss', miss ? `いちばんズレたのは「${miss.word}」。${main.name}さん、ひとこと説明を！` : '');
+  part('summary').replaceChildren(list, missText);
   stopWatching();
+  clearFx();
+  popIn(part('word'));
+  rows.forEach((row, i) => slideIn(row, { delay: 150 + i * 80 }));
+  popIn(missText, { delay: 250 + rows.length * 80, from: 'scale(0.6) rotate(3deg)' });
+  if (rows.length) later(300, () => burstAt(rows[0].querySelector('.summary__points'), { count: 10, spread: 45, stars: true }));
   nextButton().textContent = isLast ? '最終結果へ' : '次の主役へ';
   applyControl();
 }

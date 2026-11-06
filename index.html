@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>アタマップ（ATAMAP）｜友だちの頭の中の地図を当てるパーティーゲーム</title>
   <meta name="description" content="お題の5つのワードを縦×横のマップに置いて、友だちの置き場所を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
-  <meta name="theme-color" content="#FFF7EC">
+  <meta name="theme-color" content="#FFF3D1">
   <meta property="og:title" content="アタマップ（ATAMAP）">
   <meta property="og:description" content="友だちの「頭の中の地図」を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0462A'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22.5' cy='9.5' r='3.5' fill='%23FFD54A'/%3E%3C/svg%3E">
+  <!-- ポップな文字（Google Fonts）。読み込めないときは、スマホの丸い文字で表示する -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Mochiy+Pop+One&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -21,7 +25,7 @@
       <header class="hero">
         <p class="hero__catch">友だちの「頭の中の地図」を当てる</p>
         <h1 class="hero__title">
-          <span class="hero__title-ja">アタマップ</span>
+          <span class="hero__title-ja" aria-label="アタマップ"><span aria-hidden="true">ア</span><span aria-hidden="true">タ</span><span aria-hidden="true">マ</span><span aria-hidden="true">ッ</span><span aria-hidden="true">プ</span></span>
           <span class="hero__title-en">ATAMAP</span>
         </h1>
       </header>

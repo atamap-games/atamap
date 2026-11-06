@@ -1,5 +1,6 @@
 // スマホを次の人に渡す画面。前の人の画面を見せないために、あいだにはさむ。
 import { showScreen } from './ui.js';
+import { popIn } from './fx.js';
 
 const screen = document.querySelector('[data-screen="pass"]');
 const part = (name) => screen.querySelector(`[data-pass="${name}"]`);
@@ -21,6 +22,7 @@ export function showPass({ player, step, text, note = '' }) {
   part('text').textContent = text;
   part('note').textContent = note;
   showScreen('pass');
+  popIn(part('name').parentElement, { delay: 120, from: 'scale(0.3) rotate(-10deg)' });
   return new Promise((resolve) => {
     resolveCurrent = resolve;
   });

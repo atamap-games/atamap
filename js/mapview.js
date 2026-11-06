@@ -66,5 +66,11 @@ export function fitLabel(pin, x, y, areaWidth) {
 export function watchResize(map, callback) {
   const observer = new ResizeObserver(() => callback());
   observer.observe(map);
-  return () => observer.disconnect();
+  // 文字（Google Fonts）があとから読み込まれたときも、名札を整え直す
+  const onFonts = () => callback();
+  document.fonts?.addEventListener?.('loadingdone', onFonts);
+  return () => {
+    observer.disconnect();
+    document.fonts?.removeEventListener?.('loadingdone', onFonts);
+  };
 }
