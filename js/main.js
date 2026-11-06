@@ -10,6 +10,7 @@ import { roundActions } from './screen-round.js';
 import { revealActions } from './screen-reveal.js';
 import { endActions } from './screen-end.js';
 import { roomActions } from './screen-room.js';
+import { showStats, statsActions } from './screen-stats.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
 // ブラウザの「戻る」も効く。ゲームの中の画面の切り替えは flow.js と online.js が受け持つ。
@@ -32,6 +33,10 @@ function render() {
   if (hash === '#play') {
     if (isOnline()) leaveOnline();
     if (!isPlaying()) startSoloGame({ onExit: () => navigate('top') });
+  } else if (hash === '#stats') {
+    if (isPlaying()) quitGame();
+    if (isOnline()) leaveOnline();
+    showStats();
   } else if (hash === '#room') {
     if (isPlaying()) quitGame();
     if (!isOnline()) {
@@ -96,6 +101,7 @@ const actions = {
   ...revealActions,
   ...endActions,
   ...roomActions,
+  ...statsActions,
 };
 
 document.addEventListener('click', (event) => {

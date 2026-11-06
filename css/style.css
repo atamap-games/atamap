@@ -1118,6 +1118,63 @@ button {
   font-weight: 700;
 }
 
+/* ---------- お題の見直し（作る人向け） ---------- */
+.stats__summary {
+  font-weight: 800;
+  text-align: center;
+}
+
+.stats__list {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats__empty {
+  margin: auto;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 8px;
+  padding: 6px 12px;
+  border-left: 6px solid var(--primary);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.stats-row__topic {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stats-row__word {
+  grid-row: span 2;
+  align-self: center;
+  font-family: var(--font-round);
+  font-size: 1.125rem;
+}
+
+.stats-row__meta {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* ---------- 遊ぶ人の名前 ---------- */
 .count {
   display: flex;

@@ -50,6 +50,8 @@ async function open() {
     get: async (path) => (await dbSdk.get(ref(path))).val(),
     set: (path, value) => dbSdk.set(ref(path), value),
     update: (path, values) => dbSdk.update(ref(path), values),
+    /** 新しい名前（自動の番号）で付け足す */
+    push: (path, value) => dbSdk.push(ref(path), value),
     remove: (path) => dbSdk.remove(ref(path)),
     /** 中身が変わるたびに呼ばれるようにする。やめる関数を返す */
     watch: (path, callback) => dbSdk.onValue(ref(path), (snap) => callback(snap.val())),

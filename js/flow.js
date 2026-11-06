@@ -9,6 +9,8 @@ import { runPlace, stopPlace } from './screen-place.js';
 import { showRound } from './screen-round.js';
 import { showReveal, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
+import { connect } from './net.js';
+import { recordMaps } from './stats.js';
 
 // ロックしたあと、次の画面へ移るまで少し待つ（「ロックしました！」が見えるように）
 const AFTER_LOCK_MS = 700;
@@ -109,7 +111,15 @@ async function playOneGame({ names, timeLimit }, topics, step) {
     await step(showReveal({ game, main, topic, isLast: index === count - 1 }));
   }
 
+  recordSoloMaps(game, topics);
   return step(showEnd({ game, topics }));
+}
+
+// ワードごとの置き場所を記録する（お題の見直しに使う）。つながらなくても、遊ぶのには困らないので何もしない
+function recordSoloMaps(game, topics) {
+  connect()
+    .then((net) => recordMaps(net, Object.values(game.maps), topics))
+    .catch(() => {});
 }
 
 function wait(ms) {

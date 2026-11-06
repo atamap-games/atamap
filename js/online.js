@@ -15,6 +15,8 @@ import { runPlace, stopPlace } from './screen-place.js';
 import { showRound } from './screen-round.js';
 import { showRevealAt, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
+import { recordMaps } from './stats.js';
+import { decodePlacements } from './room.js';
 
 // 締め切りのあと、遅れて届く人を待つ時間
 const GRACE_MS = 3000;
@@ -422,6 +424,13 @@ function direct(me, room) {
     const done = guessers.filter((uid) => room.guesses?.[s.mainUid]?.[uid]?.done);
     if (done.length === guessers.length || late) hostStartReveal(me);
     else later();
+  } else if (s.phase === 'end' && me.recorded !== `${me.code}:${s.gameNo}`) {
+    // ゲームが終わったら、ワードごとの置き場所を記録する（お題の見直しに使う。ホストが1回だけ）
+    me.recorded = `${me.code}:${s.gameNo}`;
+    const maps = Object.values(room.maps ?? {})
+      .filter((m) => m?.done)
+      .map((m) => ({ topicId: m.topicId, timeUp: Boolean(m.timeUp), placements: decodePlacements(m.placements) }));
+    recordMaps(me.net, maps, me.topics).catch((err) => console.error(err));
   }
 }
 

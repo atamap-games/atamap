@@ -54,8 +54,8 @@ export function dealTopic(game, topics, alsoExclude = [], random = Math.random) 
 }
 
 /** 自分のマップ（主役のときの答え）を入れる */
-export function setMap(game, playerId, { topicId, placements, rerolled = false }) {
-  game.maps[playerId] = { topicId, placements: placements.map(copyPlacement), rerolled };
+export function setMap(game, playerId, { topicId, placements, rerolled = false, timeUp = false }) {
+  game.maps[playerId] = { topicId, placements: placements.map(copyPlacement), rerolled, timeUp };
 }
 
 /** 主役のマップを予想する人の一覧（主役の次の人から順に） */

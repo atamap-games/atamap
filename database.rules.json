@@ -35,6 +35,15 @@
           }
         }
       }
+    },
+    "stats": {
+      ".read": "auth != null",
+      "$topicId": {
+        "$entry": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "$topicId.matches(/^[0-9]{1,3}$/) && newData.hasChildren(['p', 'at']) && newData.child('p').hasChildren(['0', '1', '2', '3', '4'])"
+        }
+      }
     }
   }
 }

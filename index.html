@@ -258,6 +258,24 @@
         </div>
       </div>
     </section>
+
+    <!-- お題の見直し（作る人向け。アドレスの最後に #stats を付けて開く） -->
+    <section class="screen screen--stats" data-screen="stats" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <h2 class="head__title">お題の見直し</h2>
+        <span class="head__space"></span>
+      </header>
+      <p class="stats__summary" data-stats="summary">読み込んでいます…</p>
+      <p class="note" data-stats="note"></p>
+      <ol class="stats__list" data-stats="list"></ol>
+      <div class="foot">
+        <div class="actions actions--row">
+          <button type="button" class="btn btn--secondary" data-action="stats-prev">前へ</button>
+          <button type="button" class="btn btn--secondary" data-action="stats-next">次へ</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- 遊び方（別窓） -->
