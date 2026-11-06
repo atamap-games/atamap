@@ -3348,7 +3348,8 @@ body::before {
   .screen--round,
   .screen--lobby {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
+    /* 左の列は、正方形のマップが入るだけの幅（高さから決める）。残りは全部、右の列に使う */
+    grid-template-columns: var(--left, min(calc(100vh - 7rem), 58%)) minmax(0, 1fr);
     column-gap: 2.6rem;
     row-gap: 0.85rem;
   }
@@ -3565,5 +3566,198 @@ body::before {
   .map--demo .suspense-text,
   .suspense-text {
     font-size: 2.25rem;
+  }
+
+  /* ---------- 右の列を大きく使う（2026-11-06 ユーザーの希望：小さくて見づらい） ---------- */
+  .screen--top { --left: min(calc(100vh - 5rem), 52%); }
+  .screen--lobby { --left: min(calc(100vh - 7rem), 46%); }
+
+  .screen--top .hero,
+  .screen--top .actions,
+  .screen--top .links,
+  .screen--top .facts {
+    justify-self: center;
+    width: min(100%, 34rem);
+  }
+
+  .screen--top .hero__catch { font-size: 1.25rem; }
+  .screen--top .hero__title-ja { font-size: 5.5rem; }
+  .screen--top .hero__title-en { font-size: 1.1rem; }
+  .screen--top .links .btn--text { font-size: 1.2rem; }
+  .screen--top .facts { font-size: 1.05rem; }
+
+  .screen--top .actions .btn,
+  .screen .foot .btn {
+    min-height: 4rem;
+    font-size: 1.45rem;
+  }
+
+  .screen .foot .btn--sub,
+  .screen .foot .btn.btn--sub {
+    font-size: 1.2rem;
+  }
+
+  .screen .foot .btn small {
+    font-size: 0.8rem;
+  }
+
+  /* マップ作り：ワードの札を大きく。「〇〇さんの予想（主役：〇〇さん）」は、右の列の幅に合わせて小さくし、入らなければ折り返す */
+  .screen--place .who {
+    flex-wrap: wrap;
+    overflow: visible;
+    font-size: min(1.2rem, 1.5vw);
+    white-space: normal;
+  }
+
+  .screen--place .guide,
+  .screen--round .guide {
+    font-size: 1.3rem;
+  }
+
+  .screen--place .tray {
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .screen--place .chip {
+    min-height: 3.6rem;
+    padding: 0.3rem 1.4rem;
+    border-radius: 14px;
+    font-size: 1.55rem;
+  }
+
+  .screen--place .tray__done {
+    font-size: 1.6rem;
+  }
+
+  /* 答え合わせ：ワードを大きく、点数は1人1行で大きく */
+  /* 右の列の幅に合わせて（「このラウンドの点数」も1行に収まるように） */
+  .screen--reveal .reveal__word {
+    font-size: min(3.4rem, 3.6vw);
+  }
+
+  .screen--reveal .scores,
+  .screen--reveal .scores.scores--compact {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .screen--reveal .score-chip {
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 14px;
+    font-size: 1.4rem;
+  }
+
+  .screen--reveal .scores--compact .score-chip {
+    padding-block: 0.3rem;
+    font-size: 1.2rem;
+  }
+
+  /* まとめ（左の列）も大きく */
+  .summary__row {
+    padding-block: 0.5rem;
+    font-size: 1.35rem;
+  }
+
+  .summary__miss {
+    font-size: 1.1rem;
+  }
+
+  /* 主役を待つ画面（部屋）：主役とお題を大きく */
+  .screen--round .announce__lead { font-size: 1.2rem; }
+  .screen--round .announce__name { font-size: 3.2rem; }
+
+  .screen--round .announce__topic {
+    font-size: 2.4rem;
+  }
+
+  .screen--round .wordlist {
+    gap: 0.6rem;
+  }
+
+  .screen--round .chip {
+    min-height: 3rem;
+    padding-inline: 1.2rem;
+    font-size: 1.35rem;
+  }
+
+  /* 待合室：リンク・参加者・設定を大きく */
+  .screen--lobby .invite { font-size: 1.15rem; }
+  .screen--lobby .members-count { font-size: 1.25rem; }
+
+  .screen--lobby .member {
+    padding: 0.4rem 1rem;
+    font-size: 1.3rem;
+  }
+
+  .screen--lobby .setting {
+    font-size: 1.15rem;
+  }
+
+  /* ---------- 1列の画面も、文字と入れる欄を大きく ---------- */
+  .screen--players .guide,
+  .screen--entry .guide {
+    height: auto;
+    font-size: 1.3rem;
+  }
+
+  .screen--players .count__num { font-size: 2.6rem; }
+
+  .screen--players .names {
+    gap: 0.8rem;
+  }
+
+  .name-field,
+  .field__input {
+    min-height: 3.4rem;
+    font-size: 1.35rem;
+  }
+
+  .field__label,
+  .setting,
+  .screen--players .note {
+    font-size: 1.1rem;
+  }
+
+  .pass__lead { font-size: 1.35rem; }
+  .pass__text { font-size: 1.5rem; }
+  .pass__note { font-size: 1.1rem; }
+
+  .pass__name {
+    font-size: min(4rem, 36rem / var(--name-len, 4));
+  }
+
+  .pass__name small {
+    font-size: 1.5rem;
+  }
+
+  .waiting__title { font-size: 2.2rem; }
+  .waiting__text { font-size: 1.2rem; }
+
+  .member {
+    font-size: 1.2rem;
+  }
+
+  .rank-row {
+    padding-block: 0.45rem;
+    font-size: 1.3rem;
+  }
+
+  .award__title { font-size: 1rem; }
+  .award__winner { font-size: 1.35rem; }
+  .award__note { font-size: 0.85rem; }
+
+  .name-input,
+  .name-field input {
+    font-size: 1.35rem;
+  }
+
+  .setting__label,
+  .segmented__item {
+    font-size: 1.1rem;
   }
 }
