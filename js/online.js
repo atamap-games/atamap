@@ -1,18 +1,19 @@
 // 各自のスマホで遊ぶ（部屋を作る・部屋に入る）ときの流れ。
 // 部屋を作った人（ホスト）のスマホが、ゲームを進める役をする。
-//   待合室 → 全員同時にマップ作り → 主役の発表 → 主役以外が同時に予想 → 1ワードずつ答え合わせ → まとめ →（次の主役）… → 最終結果
+//   待合室 →（主役を順番に回す：主役がマップを作ってロック → 主役以外が同時に予想 → 1ワードずつ答え合わせ → まとめ）… → 最終結果
+// 答え合わせを進めるボタンは主役のスマホにある（主役がホストでなければ、ホストにお願いを送って進めてもらう）。
 // ほかの人のスマホは、部屋のデータ（Firebase）が変わるたびに、同じ画面を出す。
 import { showToast, closeSheet } from './ui.js';
 import { loadTopics } from './topics.js';
 import { connect, useEmulator } from './net.js';
 import { TIME_LIMIT, PLAYER_COLORS } from './game.js';
 import {
-  makeCode, encodePlacements, playersInOrder, toGame, dealTopics, pickRerollTopic, guessersOf,
+  makeCode, encodePlacements, playersInOrder, toGame, pickRerollTopic, guessersOf,
   MIN_PLAYERS, MAX_PLAYERS,
 } from './room.js';
 import { askEntry, setEntryBusy, showLobby, showWait, stopWait } from './screen-room.js';
 import { runPlace, stopPlace } from './screen-place.js';
-import { showRound } from './screen-round.js';
+import { showMaking, stopMaking } from './screen-round.js';
 import { showRevealAt, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
 import { recordMaps } from './stats.js';
@@ -217,6 +218,7 @@ function enterView(me, key) {
   if (me.view.startsWith('place:')) stopPlace();
   if (me.view.startsWith('wait:')) stopWait();
   if (me.view.startsWith('reveal:')) stopReveal();
+  if (me.view.startsWith('making:')) stopMaking();
   me.view = key;
   return true;
 }
@@ -250,52 +252,67 @@ function render(me, room, isHost) {
 
   if (!order.includes(me.uid)) {
     // ゲームのあとから入った人（ふつうは入れないが、念のため）
-    if (enterView(me, `wait:watch:${game}`)) stopPlace();
+    enterView(me, `wait:watch:${game}`);
     showWait({ step: '見学中', title: 'ゲームのとちゅうです', text: '次のゲームから参加できます', members: statusList(me, room, order, () => false), remaining: null, canSkip: false, handlers: {} });
     return;
   }
 
-  if (phase === 'make') {
-    if (room.maps?.[me.uid]?.done) {
-      enterView(me, `wait:make:${game}`);
-      showWait({
-        step: 'マップ作り',
-        title: 'みんながマップを作っています',
-        text: 'ロックしました。全員がそろうと、次に進みます',
-        members: statusList(me, room, order, (uid) => room.maps?.[uid]?.done),
-        remaining: remainingSeconds(me, s.deadline),
-        deadline: s.deadline ?? null,
-        total: room.meta.timeLimit,
-        canSkip: isHost,
-        handlers: { skip: () => hostStartRounds(me) },
+  if (phase === 'end') {
+    if (enterView(me, `end:${game}`)) {
+      showEnd({ game: toGame(room), topics: me.topics, canRestart: isHost }).then((next) => {
+        if (next === 'again' && isHost) hostRestart(me);
+        else leave(me);
       });
-    } else if (enterView(me, `place:make:${game}`)) {
-      startMake(me, room);
     }
     return;
   }
 
-  const mains = s.mains ?? order;
   const mainUid = s.mainUid;
   const round = (s.roundIndex ?? 0) + 1;
+  const rounds = order.length;
   const main = playerOf(room, mainUid);
-  const topic = me.topics.find((t) => t.id === room.maps?.[mainUid]?.topicId);
-  if (!main || !topic) return;
+  const isMain = mainUid === me.uid;
+  const mainOffline = room.players?.[mainUid]?.online === false;
+  if (!main) return;
 
-  if (phase === 'round') {
-    if (enterView(me, `round:${game}:${round}`)) {
-      showRound({ main, topic, round, rounds: mains.length, canAdvance: isHost, isMe: mainUid === me.uid })
-        .then(() => isHost && hostStartGuess(me));
+  // 主役がマップを作る：主役はマップを作る画面、ほかの人は主役とお題を先に見て待つ
+  if (phase === 'make') {
+    if (isMain) {
+      if (room.maps?.[me.uid]?.done) {
+        enterView(me, `wait:made:${game}:${round}`);
+        showWait({ step: `ラウンド ${round}/${rounds}`, title: 'ロックしました！', text: 'みんなの予想が始まります', members: [], remaining: null, canSkip: false, handlers: {} });
+      } else if (enterView(me, `place:make:${game}:${round}`)) {
+        startMake(me, room);
+      }
+      return;
     }
+    const topic = me.topics.find((t) => t.id === room.topics?.[mainUid]) ?? me.topics[0];
+    enterView(me, `making:${game}:${round}`);
+    showMaking({
+      key: `${game}:${round}`,
+      main,
+      topic,
+      round,
+      rounds,
+      remaining: remainingSeconds(me, s.deadline),
+      deadline: s.deadline ?? null,
+      total: room.meta.timeLimit,
+      // ホストは、主役がいなくなったときだけ、とばせる
+      canSkip: isHost && mainOffline,
+      onSkip: () => hostSkipMain(me),
+    });
     return;
   }
 
+  const topic = me.topics.find((t) => t.id === room.maps?.[mainUid]?.topicId);
+  if (!topic) return;
+
+  // 主役以外が予想する：主役は待つ
   if (phase === 'guess') {
-    const isMain = mainUid === me.uid;
     if (isMain || room.guesses?.[mainUid]?.[me.uid]?.done) {
       enterView(me, `wait:guess:${game}:${round}`);
       showWait({
-        step: `ラウンド ${round}/${mains.length}・予想`,
+        step: `ラウンド ${round}/${rounds}・予想`,
         title: isMain ? 'みんなが予想しています' : 'みんなを待っています',
         text: isMain ? 'あなたが主役です。みんなの予想を待とう' : '予想を決めました。全員がそろうと、答え合わせです',
         members: statusList(me, room, guessersOf(room, mainUid), (uid) => room.guesses?.[mainUid]?.[uid]?.done),
@@ -311,29 +328,21 @@ function render(me, room, isHost) {
     return;
   }
 
+  // 答え合わせ：進めるのは主役（主役がいなくなったときは、ホストが代わりに進められる）
   if (phase === 'reveal' || phase === 'summary') {
-    const index = phase === 'summary' ? topic.words.length : (s.wordIndex ?? 0);
-    if (enterView(me, `reveal:${game}:${round}:${index}`)) {
-      showRevealAt({
-        game: toGame(room),
-        main,
-        topic,
-        isLast: round >= mains.length,
-        index,
-        canAdvance: isHost,
-        onNext: () => hostNextReveal(me),
-      });
-    }
-    return;
-  }
-
-  if (phase === 'end') {
-    if (enterView(me, `end:${game}`)) {
-      showEnd({ game: toGame(room), topics: me.topics, canRestart: isHost }).then((next) => {
-        if (next === 'again' && isHost) hostRestart(me);
-        else leave(me);
-      });
-    }
+    enterView(me, `reveal:${game}`);
+    showRevealAt({
+      key: `${game}:${round}`,
+      game: toGame(room),
+      main,
+      topic,
+      isLast: round >= rounds,
+      index: phase === 'summary' ? topic.words.length : (s.wordIndex ?? 0),
+      answerShown: Boolean(s.answerShown),
+      canAdvance: isMain || (isHost && mainOffline),
+      onAnswer: () => control(me, 'answer'),
+      onNext: () => control(me, 'next'),
+    });
   }
 }
 
@@ -366,7 +375,7 @@ function startMake(me, room) {
     mode: 'make',
     player: playerOf(room, me.uid),
     topic,
-    // 引き直し：ほかの人が使っていないお題を選び、部屋のデータにも書く
+    // 引き直し：このゲームでまだ使っていないお題を選び、部屋のデータにも書く（ほかの人の画面のお題も変わる）
     reroll: () => {
       const next = pickRerollTopic(me.room, me.uid, me.topics);
       me.net.set(`rooms/${me.code}/topics/${me.uid}`, next.id).catch((err) => console.error(err));
@@ -416,9 +425,46 @@ function startGuess(me, room, main, topic) {
   });
 }
 
+// ---------- 答え合わせを進める（主役のボタン） ----------
+
+// 今の答え合わせの場所（同じボタンが2回効かないように、お願いにこれを付ける）
+function controlKey(room) {
+  const s = room?.state ?? {};
+  return `${s.gameNo ?? 0}:${s.phase}:${s.roundIndex ?? 0}:${s.wordIndex ?? 0}:${s.answerShown ? 1 : 0}`;
+}
+
+// 主役が「答えを見る！」「次へ」を押したとき。ホストならそのまま進め、ほかの人ならホストにお願いを送る
+function control(me, action) {
+  const room = me.room;
+  if (!room) return;
+  if (room.meta.hostUid === me.uid) {
+    applyControl(me, room, action);
+    return;
+  }
+  me.net.set(`rooms/${me.code}/requests/${me.uid}`, { action, key: controlKey(room), at: me.net.serverTime() }).catch((err) => {
+    console.error(err);
+    showToast('うまく進められませんでした。もう一度押してね');
+  });
+}
+
+// ホストのスマホで、答え合わせを進める
+function applyControl(me, room, action) {
+  const s = room.state ?? {};
+  if (!once(me, `control:${controlKey(room)}:${action}`)) return;
+  if (action === 'answer' && s.phase === 'reveal' && !s.answerShown) {
+    updateState(me, { answerShown: true });
+  } else if (action === 'next' && s.phase === 'reveal' && s.answerShown) {
+    const words = me.topics.find((t) => t.id === room.maps?.[s.mainUid]?.topicId)?.words.length ?? 5;
+    if ((s.wordIndex ?? 0) < words - 1) updateState(me, { wordIndex: (s.wordIndex ?? 0) + 1, answerShown: false });
+    else updateState(me, { phase: 'summary' });
+  } else if (action === 'next' && s.phase === 'summary') {
+    hostNextRound(me);
+  }
+}
+
 // ---------- ホストがゲームを進める ----------
 
-// 全員がそろったか、締め切りを過ぎたら、次に進める
+// 主役がロックしたら予想へ、全員が予想したら答え合わせへ。締め切りを過ぎても進める
 function direct(me, room) {
   for (const t of me.timers) window.clearTimeout(t);
   me.timers = [];
@@ -431,15 +477,18 @@ function direct(me, room) {
   };
 
   if (s.phase === 'make') {
-    const order = s.order ?? [];
-    const done = order.filter((uid) => room.maps?.[uid]?.done);
-    if (done.length === order.length || late) hostStartRounds(me);
+    if (room.maps?.[s.mainUid]?.done) hostStartGuess(me);
+    else if (late) hostSkipMain(me); // 主役が締め切りを過ぎてもロックしない（いなくなった）ときは、とばす
     else later();
   } else if (s.phase === 'guess') {
     const guessers = guessersOf(room, s.mainUid);
     const done = guessers.filter((uid) => room.guesses?.[s.mainUid]?.[uid]?.done);
     if (done.length === guessers.length || late) hostStartReveal(me);
     else later();
+  } else if ((s.phase === 'reveal' || s.phase === 'summary') && s.mainUid !== me.uid) {
+    // 主役からの「答えを見る！」「次へ」のお願い
+    const request = room.requests?.[s.mainUid];
+    if (request?.key === controlKey(room)) applyControl(me, room, request.action);
   } else if (s.phase === 'end' && me.recorded !== `${me.code}:${s.gameNo}`) {
     // ゲームが終わったら、ワードごとの置き場所を記録する（お題の見直しに使う。ホストが1回だけ）
     me.recorded = `${me.code}:${s.gameNo}`;
@@ -479,9 +528,22 @@ function hostSetTime(me, on) {
   me.net.update(`rooms/${me.code}/meta`, { timeLimit: on ? TIME_LIMIT : 0 }).catch((err) => console.error(err));
 }
 
+function deadlineFrom(me, room) {
+  const timeLimit = room.meta.timeLimit ?? 0;
+  return timeLimit ? me.net.now() + timeLimit * 1000 + START_BUFFER_MS : null;
+}
+
+// このゲームでまだ使っていないお題を1つ選ぶ
+function unusedTopic(me, used) {
+  const usedSet = new Set(used);
+  const pool = me.topics.filter((t) => !usedSet.has(t.id));
+  const list = pool.length ? pool : me.topics;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 function newGameUpdate(me, room, order) {
   const s = room.state ?? {};
-  const timeLimit = room.meta.timeLimit ?? 0;
+  const first = unusedTopic(me, []);
   const values = {
     'meta/status': 'playing',
     state: {
@@ -489,16 +551,20 @@ function newGameUpdate(me, room, order) {
       order,
       gameNo: (s.gameNo ?? 0) + 1,
       roundIndex: 0,
+      mainUid: order[0],
       wordIndex: 0,
-      deadline: timeLimit ? me.net.now() + timeLimit * 1000 + START_BUFFER_MS : null,
+      answerShown: false,
+      deadline: deadlineFrom(me, room),
     },
   };
-  for (const [uid, topicId] of Object.entries(dealTopics(order, me.topics))) values[`topics/${uid}`] = topicId;
-  // 前のゲームのマップと予想を消す
+  // 前のゲームのお題・マップ・予想・お願いを消す
+  for (const uid of Object.keys(room.topics ?? {})) values[`topics/${uid}`] = null;
   for (const uid of Object.keys(room.maps ?? {})) values[`maps/${uid}`] = null;
+  for (const uid of Object.keys(room.requests ?? {})) values[`requests/${uid}`] = null;
   for (const [mainUid, byGuesser] of Object.entries(room.guesses ?? {})) {
     for (const uid of Object.keys(byGuesser ?? {})) values[`guesses/${mainUid}/${uid}`] = null;
   }
+  values[`topics/${order[0]}`] = first.id;
   return values;
 }
 
@@ -526,47 +592,48 @@ function hostRestart(me) {
   me.net.update(`rooms/${me.code}`, newGameUpdate(me, room, order)).catch((err) => console.error(err));
 }
 
-function hostStartRounds(me) {
+// 次の主役へ（最後の主役が終わったら最終結果）。次の主役にお題を配る
+function hostNextRound(me) {
   const room = me.room;
   const s = room.state;
-  if (s?.phase !== 'make' || !once(me, `rounds:${stateKey(room)}`)) return;
-  const mains = (s.order ?? []).filter((uid) => room.maps?.[uid]?.done);
-  if (!mains.length) {
-    updateState(me, { phase: 'end', deadline: null, mains: [] });
+  if (!once(me, `round:${stateKey(room)}`)) return;
+  const order = s.order ?? [];
+  const next = (s.roundIndex ?? 0) + 1;
+  if (next >= order.length) {
+    updateState(me, { phase: 'end', deadline: null });
     return;
   }
-  updateState(me, { phase: 'round', mains, roundIndex: 0, mainUid: mains[0], wordIndex: 0, deadline: null });
+  const mainUid = order[next];
+  const topic = unusedTopic(me, Object.values(room.topics ?? {}));
+  me.net.update(`rooms/${me.code}`, {
+    [`topics/${mainUid}`]: topic.id,
+    state: { ...s, phase: 'make', roundIndex: next, mainUid, wordIndex: 0, answerShown: false, deadline: deadlineFrom(me, room) },
+  }).catch((err) => {
+    console.error(err);
+    me.advanced = null;
+    showToast('うまく進められませんでした。もう一度押してね');
+  });
+}
+
+// 主役がいなくなったときに、その主役をとばす
+function hostSkipMain(me) {
+  const s = me.room?.state;
+  if (s?.phase !== 'make') return;
+  hostNextRound(me);
 }
 
 function hostStartGuess(me) {
   const room = me.room;
   const s = room.state;
-  if (s?.phase !== 'round' || !once(me, `guess:${stateKey(room)}`)) return;
-  const timeLimit = room.meta.timeLimit ?? 0;
-  updateState(me, { phase: 'guess', deadline: timeLimit ? me.net.now() + timeLimit * 1000 + START_BUFFER_MS : null });
+  if (s?.phase !== 'make' || !once(me, `guess:${stateKey(room)}`)) return;
+  updateState(me, { phase: 'guess', deadline: deadlineFrom(me, room) });
 }
 
 function hostStartReveal(me) {
   const room = me.room;
   const s = room.state;
   if (s?.phase !== 'guess' || !once(me, `reveal:${stateKey(room)}`)) return;
-  updateState(me, { phase: 'reveal', wordIndex: 0, deadline: null });
-}
-
-function hostNextReveal(me) {
-  const room = me.room;
-  const s = room.state;
-  if (!once(me, `next:${stateKey(room)}`)) return;
-  const words = me.topics.find((t) => t.id === room.maps?.[s.mainUid]?.topicId)?.words.length ?? 5;
-  if (s.phase === 'reveal') {
-    if ((s.wordIndex ?? 0) < words - 1) updateState(me, { wordIndex: (s.wordIndex ?? 0) + 1 });
-    else updateState(me, { phase: 'summary' });
-  } else if (s.phase === 'summary') {
-    const mains = s.mains ?? [];
-    const next = (s.roundIndex ?? 0) + 1;
-    if (next < mains.length) updateState(me, { phase: 'round', roundIndex: next, mainUid: mains[next], wordIndex: 0 });
-    else updateState(me, { phase: 'end' });
-  }
+  updateState(me, { phase: 'reveal', wordIndex: 0, answerShown: false, deadline: null });
 }
 
 // ---------- 部屋を出る ----------
@@ -580,6 +647,7 @@ async function leave(me, { silent = false } = {}) {
   stopPlace();
   stopWait();
   stopReveal();
+  stopMaking();
   closeSheet('quit');
   closeSheet('share');
   rememberRoom('');

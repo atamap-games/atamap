@@ -33,6 +33,12 @@
               ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)"
             }
           }
+        },
+        "requests": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['action', 'key']) && newData.child('action').isString() && newData.child('action').val().length <= 10"
+          }
         }
       }
     },

@@ -208,12 +208,14 @@
       </div>
     </section>
 
-    <!-- 主役の発表（ラウンドのはじめ） -->
+    <!-- 主役がマップを作っているあいだ（部屋で遊ぶときの、ほかの人の画面） -->
     <section class="screen screen--round" data-screen="round" hidden>
       <header class="head">
-        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
         <p class="head__step" data-round="step"></p>
-        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+        <div class="head__right">
+          <p class="timer" data-round="timer" role="timer" aria-label="残り時間" hidden><span data-round="seconds"></span></p>
+        </div>
       </header>
       <div class="announce">
         <p class="announce__lead">主役は</p>
@@ -222,9 +224,9 @@
       </div>
       <div class="stage" data-round="map"></div>
       <div class="wordlist" data-round="words"></div>
-      <p class="guide">主役の頭の中を、みんなで当てよう！</p>
+      <p class="guide" data-round="guide">主役がマップを作っています。ロックしたら予想スタート！</p>
       <div class="foot">
-        <button type="button" class="btn btn--primary" data-action="round-go" data-round="go">予想をはじめる</button>
+        <button type="button" class="btn btn--secondary" data-action="round-go" data-round="go" disabled>主役のロックを待っています</button>
       </div>
     </section>
 
@@ -292,16 +294,16 @@
           <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから参加（3〜8人）。</p>
         </li>
         <li>
-          <h3>自分のマップを作る</h3>
-          <p>配られたお題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
+          <h3>主役がマップを作る</h3>
+          <p>順番に交代。お題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
         </li>
         <li>
-          <h3>主役の頭の中を当てる</h3>
-          <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
+          <h3>みんなで予想する</h3>
+          <p>ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
         </li>
         <li>
           <h3>答え合わせ</h3>
-          <p>主役のピンに近いほど高得点。ど真ん中3点、近い1点。「そこ置く!?」</p>
+          <p>予想が出そろったら、主役が答えを発表。ど真ん中3点、近い1点。</p>
         </li>
         <li>
           <h3>表彰</h3>
