@@ -2680,8 +2680,8 @@ body::before {
 }
 
 .segmented__item.is-on {
-  background: var(--ink);
-  color: var(--yellow);
+  background: var(--primary);
+  color: var(--on-color);
 }
 
 /* 残り時間の円 */
@@ -3069,7 +3069,6 @@ body::before {
   background: radial-gradient(circle, rgba(255, 212, 0, 0) 55%, rgba(255, 212, 0, 0.35));
   box-shadow: 0 0 0 999px rgba(22, 22, 22, 0.55), 0 0 18px 4px rgba(255, 212, 0, 0.8);
   transform: translate(-50%, -50%);
-  transition: left 0.16s cubic-bezier(0.3, 0.7, 0.4, 1), top 0.16s cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
 .suspense-text {
@@ -3088,11 +3087,11 @@ body::before {
   pointer-events: none;
 }
 
-/* 「答えを見る！」は、黒地に黄色の文字にして目立たせる */
+/* 「答えを見る！」は、ふつうのボタン（マゼンタ）とちがう、濃い水色にして目立たせる */
 .btn.is-answer {
-  --lip: #000000;
-  background: var(--ink);
-  color: var(--yellow);
+  --lip: #06557E;
+  background: #0A86C4;
+  color: var(--on-color);
   box-shadow: 0 5px 0 var(--lip);
 }
 
@@ -3123,9 +3122,9 @@ body::before {
 
 @keyframes answer-call {
   0%, 100% {
-    box-shadow: 0 5px 0 var(--lip), 0 0 0 0 rgba(229, 0, 127, 0.7);
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 0 rgba(25, 180, 240, 0.8);
   }
   50% {
-    box-shadow: 0 5px 0 var(--lip), 0 0 0 9px rgba(229, 0, 127, 0);
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 10px rgba(25, 180, 240, 0);
   }
 }

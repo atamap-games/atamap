@@ -6,7 +6,7 @@ import { loadTopics } from './topics.js';
 import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { PLAYER_COLORS } from './game.js';
 import { NEAR, CLOSE } from './score.js';
-import { popIn, dropIn, burstAt, shake, reduced, spotlightTour } from './fx.js';
+import { popIn, dropIn, burstAt, shake, reduced, moveSpotlight } from './fx.js';
 
 const stage = document.querySelector('[data-screen="top"] .sample__stage');
 const caption = document.querySelector('[data-screen="top"] .sample__caption');
@@ -26,6 +26,7 @@ const FADE = 350;
 
 let running = false;
 let timers = [];
+let stopSpot = () => {};
 let stopWatching = () => {};
 let topics = null;
 let order = [];
@@ -49,6 +50,7 @@ export function stopDemo() {
   running = false;
   timers.forEach((t) => window.clearTimeout(t));
   timers = [];
+  stopSpot();
   // とちゅうで止めたときは、スポットライトを片づける
   stage?.querySelectorAll('.map__spot-layer, .suspense-text').forEach((part) => part.remove());
 }
@@ -144,13 +146,10 @@ function play(topic, word) {
   const spot = el('span', 'reveal-spot');
   layer.append(spot);
   const text = el('span', 'suspense-text', 'ドキドキ…');
-  later(time, () => map.append(layer, text));
-  for (const { pos, at } of spotlightTour(guesses.map((g) => g.pos), SPOT_MS)) {
-    later(time + at, () => {
-      spot.style.left = `${pos.x}%`;
-      spot.style.top = `${pos.y}%`;
-    });
-  }
+  later(time, () => {
+    map.append(layer, text);
+    stopSpot = moveSpotlight(spot, guesses.map((g) => g.pos), SPOT_MS);
+  });
   time += SPOT_MS;
   later(time, () => layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }));
   // 答えが落ちてくる

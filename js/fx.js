@@ -241,28 +241,65 @@ export function haptic(pattern = 10) {
 }
 
 /**
- * 答え合わせのスポットライトがめぐる道すじを作る。
- * 答えの場所とは関係なく、みんなの予想とランダムな場所をめぐる（止まる場所で答えが先にわからないように）。
- * はじめは速く、だんだんゆっくりになる。
+ * 答え合わせのスポットライトを、なめらかな曲線でマップの上をめぐらせる。
+ * 答えの場所とは関係なく、みんなの予想とランダムな場所を通る（止まる場所で答えが先にわからないように）。
+ * 終わりに近づくほど、ゆっくりになる。
+ * @param {HTMLElement} spot 動かすスポットライト（left・top を % で入れる）
  * @param {{ x: number, y: number }[]} guesses みんなの予想の場所（0〜100）
  * @param {number} [total] めぐる時間（ミリ秒）
- * @returns {{ pos: { x: number, y: number }, at: number }[]} 動き出す時刻（ミリ秒）と場所
+ * @returns {() => void} とちゅうで止める関数
  */
-export function spotlightTour(guesses, total = 5000) {
-  const tour = [];
-  let at = 0;
-  let last = null;
-  for (let i = 0; at < total; i++) {
+// 次に通る場所としてよいか：前の場所から少しはなれていて、来た向きと逆もどりしない（角ばった動きにしない）
+function goodNext(points, pos) {
+  const last = points.at(-1);
+  if (!last) return true;
+  if (Math.hypot(pos.x - last.x, pos.y - last.y) < 22) return false;
+  const before = points.at(-2);
+  if (!before) return true;
+  const a = Math.atan2(last.y - before.y, last.x - before.x);
+  const b = Math.atan2(pos.y - last.y, pos.x - last.x);
+  let turn = Math.abs(a - b);
+  if (turn > Math.PI) turn = 2 * Math.PI - turn;
+  return turn < (Math.PI * 100) / 180;
+}
+
+export function moveSpotlight(spot, guesses, total = 5000) {
+  // 通る場所：1秒に2か所くらい（前の半分くらいの速さ）。となりの場所とは、少しはなす
+  const count = Math.max(4, Math.round((total / 1000) * 2));
+  const points = [];
+  for (let i = 0; i <= count; i++) {
     let pos;
+    let tries = 0;
     do {
       pos = guesses.length && Math.random() < 0.45
         ? guesses[Math.floor(Math.random() * guesses.length)]
-        : { x: 10 + Math.random() * 80, y: 10 + Math.random() * 80 };
-    } while (last && Math.hypot(pos.x - last.x, pos.y - last.y) < 15);
-    tour.push({ pos, at });
-    last = pos;
-    // 間かく：140ミリ秒から、終わりに近づくほど長く（最後は500ミリ秒くらい）
-    at += 140 + 360 * (at / total) ** 2;
+        : { x: 12 + Math.random() * 76, y: 12 + Math.random() * 76 };
+      tries += 1;
+    } while (tries < 40 && !goodNext(points, pos));
+    points.push(pos);
   }
-  return tour;
+  // 点をなめらかにつなぐ曲線（カトマル－ロム）。曲線はマップの中に収める
+  const at = (u) => {
+    const seg = Math.min(points.length - 2, Math.floor(u * (points.length - 1)));
+    const t = u * (points.length - 1) - seg;
+    const p0 = points[Math.max(0, seg - 1)];
+    const p1 = points[seg];
+    const p2 = points[seg + 1];
+    const p3 = points[Math.min(points.length - 1, seg + 2)];
+    const curve = (a, b, c, d) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
+    const clampPos = (v) => Math.min(94, Math.max(6, v));
+    return { x: clampPos(curve(p0.x, p1.x, p2.x, p3.x)), y: clampPos(curve(p0.y, p1.y, p2.y, p3.y)) };
+  };
+  const start = performance.now();
+  let frame = 0;
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / total);
+    // だんだんゆっくり
+    const pos = at(1 - (1 - t) ** 1.5);
+    spot.style.left = `${pos.x}%`;
+    spot.style.top = `${pos.y}%`;
+    if (t < 1) frame = requestAnimationFrame(step);
+  };
+  frame = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(frame);
 }
