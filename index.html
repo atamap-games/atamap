@@ -74,6 +74,13 @@
         <button type="button" class="icon-btn" data-action="players-plus" aria-label="1人ふやす">＋</button>
       </div>
       <div class="names" data-players="names"></div>
+      <div class="setting">
+        <p class="setting__label">制限時間</p>
+        <div class="segmented" role="radiogroup" aria-label="制限時間">
+          <button type="button" class="segmented__item" role="radio" data-action="time-on" data-players="time-on">90秒</button>
+          <button type="button" class="segmented__item" role="radio" data-action="time-off" data-players="time-off">なし</button>
+        </div>
+      </div>
       <p class="note">この順番で主役になります（名前は8文字まで）</p>
       <div class="foot">
         <button type="button" class="btn btn--primary" data-action="players-start">はじめる</button>
@@ -106,7 +113,10 @@
           <p class="topic__genre" data-place="genre"></p>
           <h2 class="topic__title" data-place="title"></h2>
         </div>
-        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+        <div class="head__right">
+          <p class="timer" data-place="timer" role="timer" aria-label="残り時間" hidden><span data-place="seconds">90</span></p>
+          <button type="button" class="icon-btn" data-action="help" data-place="help" aria-label="遊び方">?</button>
+        </div>
       </header>
 
       <p class="who" data-place="who"></p>

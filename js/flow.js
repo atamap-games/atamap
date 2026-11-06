@@ -12,6 +12,8 @@ import { showEnd } from './screen-end.js';
 
 // ロックしたあと、次の画面へ移るまで少し待つ（「ロックしました！」が見えるように）
 const AFTER_LOCK_MS = 700;
+// 時間切れのときは、何が起きたか読めるように長めに待つ
+const AFTER_TIMEUP_MS = 2200;
 
 class GameQuit extends Error {}
 
@@ -45,9 +47,9 @@ export async function startSoloGame({ onExit }) {
 
   try {
     const topics = await step(loadTopics());
-    let names = await step(askPlayers());
+    const settings = await step(askPlayers());
     for (;;) {
-      const next = await step(playOneGame(names, topics, step));
+      const next = await step(playOneGame(settings, topics, step));
       if (next !== 'again') break;
     }
   } catch (error) {
@@ -63,8 +65,8 @@ export async function startSoloGame({ onExit }) {
   onExit('home');
 }
 
-async function playOneGame(names, topics, step) {
-  const game = createGame(names);
+async function playOneGame({ names, timeLimit }, topics, step) {
+  const game = createGame(names, { timeLimit });
   const count = game.players.length;
 
   // 1人ずつ、自分のマップを作る
@@ -78,11 +80,12 @@ async function playOneGame(names, topics, step) {
     const result = await step(runPlace({
       mode: 'make',
       player,
+      timeLimit: game.timeLimit,
       topic: dealTopic(game, topics),
       reroll: (now) => dealTopic(game, topics, [now.id]),
     }));
     setMap(game, player.id, result);
-    await step(wait(AFTER_LOCK_MS));
+    await step(wait(result.timeUp ? AFTER_TIMEUP_MS : AFTER_LOCK_MS));
   }
 
   // 主役を順番に回す
@@ -98,9 +101,9 @@ async function playOneGame(names, topics, step) {
         text: `${main.name}さんのマップを予想する番です`,
         note: 'ほかの人の予想は見ないでね',
       }));
-      const result = await step(runPlace({ mode: 'guess', player: guesser, main, topic }));
+      const result = await step(runPlace({ mode: 'guess', player: guesser, main, topic, timeLimit: game.timeLimit }));
       setGuess(game, main.id, guesser.id, result.placements);
-      await step(wait(AFTER_LOCK_MS));
+      await step(wait(result.timeUp ? AFTER_TIMEUP_MS : AFTER_LOCK_MS));
     }
 
     await step(showReveal({ game, main, topic, isLast: index === count - 1 }));

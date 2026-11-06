@@ -809,6 +809,98 @@ button {
   font-size: 0.8125rem;
 }
 
+/* ---------- 残り時間 ---------- */
+.head__right {
+  display: grid;
+  place-items: center;
+  width: 44px;
+}
+
+/* 円のまわりが、残り時間に合わせて減っていく */
+.timer {
+  --ring: var(--accent);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring) calc(var(--left, 1) * 1turn), var(--line) 0);
+}
+
+.timer span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer.is-hurry {
+  --ring: var(--primary);
+  animation: hurry 1s ease-in-out infinite;
+}
+
+.timer.is-hurry span {
+  color: var(--primary);
+}
+
+@keyframes hurry {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* 制限時間の切りかえ */
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.setting__label {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented__item {
+  min-width: 72px;
+  min-height: 36px;
+  padding: 2px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.segmented__item.is-on {
+  background: var(--ink);
+  color: var(--on-color);
+}
+
+.segmented__item:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: -3px;
+}
+
 /* ---------- 遊ぶ人の名前 ---------- */
 .count {
   display: flex;
@@ -848,7 +940,7 @@ button {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  height: clamp(42px, 8vh, 48px);
+  height: clamp(36px, 7.8vh, 48px);
   padding: 0 10px;
   border: 2px solid var(--line);
   border-radius: 12px;
@@ -1370,10 +1462,11 @@ button {
 }
 
 /* ---------- お知らせ（画面の下に少しだけ出る） ---------- */
+/* 下の大きなボタンに重ならないよう、画面の上のほうに出す */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom));
+  top: calc(64px + env(safe-area-inset-top));
   z-index: 30;
   width: max-content;
   max-width: calc(100% - 32px);
@@ -1393,7 +1486,7 @@ button {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 12px);
+    transform: translate(-50%, -12px);
   }
 }
 
@@ -1408,6 +1501,18 @@ button {
 
 /* 縦がとても短い画面では、文字やすきまを少しつめる */
 @media (max-height: 520px) {
+  .names {
+    gap: 6px;
+  }
+
+  .count__num span {
+    font-size: 1.625rem;
+  }
+
+  .segmented__item {
+    min-height: 32px;
+  }
+
   .screen {
     gap: 8px;
     padding-top: calc(8px + env(safe-area-inset-top));
@@ -1467,6 +1572,10 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .timer.is-hurry {
+    animation: none;
+  }
+
   .btn,
   .toast,
   .map--board {

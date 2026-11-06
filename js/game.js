@@ -4,6 +4,8 @@
 export const MIN_PLAYERS = 3;
 export const MAX_PLAYERS = 8;
 export const NAME_MAX = 8;
+// マップ作りと予想の制限時間（秒）。仮の値で、試遊で決め直す
+export const TIME_LIMIT = 90;
 
 // プレイヤーごとの色（白い地の上で見分けやすいもの）
 export const PLAYER_COLORS = ['#2F6FDB', '#1E8F55', '#C2410C', '#7C3AED', '#DB2777', '#0E7490', '#A16207', '#4B5563'];
@@ -11,9 +13,12 @@ export const PLAYER_COLORS = ['#2F6FDB', '#1E8F55', '#C2410C', '#7C3AED', '#DB27
 /**
  * 新しいゲームを作る。
  * @param {string[]} names 遊ぶ人の名前（この順番で主役を回す）
+ * @param {object} [options]
+ * @param {number} [options.timeLimit] 制限時間（秒）。0 なら制限なし
  */
-export function createGame(names) {
+export function createGame(names, { timeLimit = TIME_LIMIT } = {}) {
   return {
+    timeLimit,
     players: names.map((name, index) => ({ id: `p${index + 1}`, name, color: PLAYER_COLORS[index % PLAYER_COLORS.length] })),
     // プレイヤーの id → { topicId, placements: [{ word, pos }], rerolled }
     maps: {},

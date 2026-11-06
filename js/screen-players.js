@@ -1,20 +1,22 @@
 // 遊ぶ人の名前を入れる画面（1台のスマホを回して遊ぶとき）
 import { showScreen, el } from './ui.js';
-import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX } from './game.js';
+import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX, TIME_LIMIT } from './game.js';
 
 const screen = document.querySelector('[data-screen="players"]');
 const part = (name) => screen.querySelector(`[data-players="${name}"]`);
 
 // 前に入れた名前を、このブラウザにだけ覚えておく（次に遊ぶときに便利なように）
 const STORAGE_KEY = 'atamap.players';
+const TIME_KEY = 'atamap.timeLimit';
 
 let count = 4;
 let names = [];
+let timeOn = true;
 let resolveCurrent = null;
 
 /**
- * 名前を入れてもらう。
- * @returns {Promise<string[]>} 遊ぶ人の名前（入れていない人は「プレイヤー1」のような名前にする）
+ * 名前と制限時間を決めてもらう。
+ * @returns {Promise<{ names: string[], timeLimit: number }>} 遊ぶ人の名前（入れていない人は「プレイヤー1」のような名前にする）と、制限時間（秒。0 は制限なし）
  */
 export function askPlayers() {
   const saved = load();
@@ -22,6 +24,7 @@ export function askPlayers() {
     names = saved;
     count = saved.length;
   }
+  timeOn = loadTimeOn();
   render();
   showScreen('players');
   return new Promise((resolve) => {
@@ -31,6 +34,11 @@ export function askPlayers() {
 
 function render() {
   part('count').textContent = count;
+  for (const [key, on] of [['time-on', true], ['time-off', false]]) {
+    const button = part(key);
+    button.classList.toggle('is-on', timeOn === on);
+    button.setAttribute('aria-checked', String(timeOn === on));
+  }
   screen.querySelector('[data-action="players-minus"]').disabled = count <= MIN_PLAYERS;
   screen.querySelector('[data-action="players-plus"]').disabled = count >= MAX_PLAYERS;
   const list = part('names');
@@ -83,8 +91,17 @@ function load() {
 function save(list) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    localStorage.setItem(TIME_KEY, timeOn ? 'on' : 'off');
   } catch {
     // 覚えられなくても遊べるので、何もしない
+  }
+}
+
+function loadTimeOn() {
+  try {
+    return localStorage.getItem(TIME_KEY) !== 'off';
+  } catch {
+    return true;
   }
 }
 
@@ -99,6 +116,14 @@ export const playersActions = {
     count += 1;
     render();
   },
+  'time-on': () => {
+    timeOn = true;
+    render();
+  },
+  'time-off': () => {
+    timeOn = false;
+    render();
+  },
   'players-start': () => {
     if (!resolveCurrent) return;
     document.activeElement?.blur?.();
@@ -106,6 +131,6 @@ export const playersActions = {
     save(result);
     const resolve = resolveCurrent;
     resolveCurrent = null;
-    resolve(result);
+    resolve({ names: result, timeLimit: timeOn ? TIME_LIMIT : 0 });
   },
 };

@@ -1,6 +1,7 @@
 // ワードを置く画面。「自分のマップを作る」と「主役のマップを予想する」の両方で使う。
 import { createBoard } from './board.js';
 import { showScreen, showToast, el } from './ui.js';
+import { createTimer } from './timer.js';
 
 const screen = document.querySelector('[data-screen="place"]');
 const part = (name) => screen.querySelector(`[data-place="${name}"]`);
@@ -9,10 +10,15 @@ const rerollButton = () => part('actions').querySelector('[data-action="reroll"]
 
 // 引き直しを押してから、もう一度押すまで待つ時間（置いたワードが消えるときだけ確かめる）
 const CONFIRM_MS = 2500;
+// 残りがこの秒数になったら、残り時間の表示を目立たせる
+const HURRY_SECONDS = 10;
+// 時間切れのとき、主役のマップでまだ置いていないワードを置く場所（真ん中）
+const CENTER = { x: 50, y: 50 };
 
 let board = null;
 let current = null; // 今の画面の設定と状態
 let confirmTimer = 0;
+let timer = null;
 
 /**
  * ワードを置いてもらう。
@@ -22,9 +28,10 @@ let confirmTimer = 0;
  * @param {{ name: string }} [options.main] 主役（予想のとき）
  * @param {object} options.topic お題
  * @param {() => object} [options.reroll] 引き直したときの新しいお題を返す関数（自分のマップのときだけ）
- * @returns {Promise<{ topicId: number, placements: object[], rerolled: boolean }>}
+ * @param {number} [options.timeLimit] 制限時間（秒）。0 なら制限なし
+ * @returns {Promise<{ topicId: number, placements: object[], rerolled: boolean, timeUp: boolean }>}
  */
-export function runPlace({ mode, player, main = null, topic, reroll = null }) {
+export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0 }) {
   stopPlace();
   current = { mode, player, main, topic, reroll, rerolled: false, placed: 0, resolve: null };
 
@@ -38,6 +45,7 @@ export function runPlace({ mode, player, main = null, topic, reroll = null }) {
   setTopic(topic);
   renderReroll();
   showScreen('place');
+  startTimer(timeLimit);
 
   return new Promise((resolve) => {
     current.resolve = resolve;
@@ -46,9 +54,56 @@ export function runPlace({ mode, player, main = null, topic, reroll = null }) {
 
 /** 画面を離れるときの後片づけ */
 export function stopPlace() {
+  timer?.stop();
+  timer = null;
   board?.destroy();
   board = null;
   resetConfirm();
+}
+
+// 右上に残り時間を出す（制限時間がないときは「?」を出す）
+function startTimer(seconds) {
+  timer?.stop();
+  timer = null;
+  const box = part('timer');
+  box.hidden = !seconds;
+  part('help').hidden = Boolean(seconds);
+  if (!seconds) return;
+  timer = createTimer({
+    seconds,
+    onTick: (left) => {
+      part('seconds').textContent = left;
+      box.style.setProperty('--left', String(left / seconds));
+      box.classList.toggle('is-hurry', left <= HURRY_SECONDS);
+      box.setAttribute('aria-label', `残り${left}秒`);
+    },
+    onEnd: timeUp,
+  });
+}
+
+// 時間切れ：自分のマップは、置いていないワードを真ん中に置いて決める。予想は、置いていないワードが0点になる
+function timeUp() {
+  if (!current?.resolve || !board) return;
+  resetConfirm();
+  const guessing = current.mode === 'guess';
+  const left = board.getPlacements().filter((p) => !p.pos).length;
+  if (!guessing && left) board.placeRemaining(CENTER);
+  board.lock({ message: '時間切れ！' });
+  if (left) showToast(guessing ? `時間切れ！置いていない${left}つは0点です` : `時間切れ！置いていない${left}つは真ん中に置きました`);
+  else showToast('時間切れ！このまま決めます');
+  finish(true);
+}
+
+function finish(timeUpFlag) {
+  timer?.stop();
+  timer = null;
+  // 決まったあとは、次の画面へ移るまでボタンを押せないようにする
+  lockButton().disabled = true;
+  lockButton().textContent = timeUpFlag ? '時間切れ' : current.mode === 'guess' ? '決定しました' : 'ロックしました';
+  rerollButton().disabled = true;
+  const { resolve, topic, rerolled } = current;
+  current.resolve = null;
+  resolve({ topicId: topic.id, placements: board.getPlacements(), rerolled, timeUp: timeUpFlag });
 }
 
 function setTopic(topic) {
@@ -102,7 +157,7 @@ function resetConfirm() {
 
 export const placeActions = {
   reroll: () => {
-    if (!current?.reroll || current.rerolled || !board) return;
+    if (!current?.reroll || current.rerolled || !current.resolve || !board) return;
     // ワードを置いたあとなら、置いたものが消えるので、もう一度押してもらう
     if (current.placed > 0 && !confirmTimer) {
       renderReroll(true);
@@ -123,8 +178,6 @@ export const placeActions = {
     if (!board?.isComplete() || !current?.resolve) return;
     resetConfirm();
     board.lock({ message: current.mode === 'guess' ? '予想を決めました！' : 'ロックしました！' });
-    const { resolve, topic, rerolled } = current;
-    current.resolve = null;
-    resolve({ topicId: topic.id, placements: board.getPlacements(), rerolled });
+    finish(false);
   },
 };

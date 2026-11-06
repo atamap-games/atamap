@@ -244,6 +244,12 @@ export function createBoard(root, topic, { onChange } = {}) {
     refresh() {
       update();
     },
+    /** まだ置いていないワードを、すべて同じ場所に置く（時間切れのとき） */
+    placeRemaining(pos) {
+      for (const word of words) {
+        if (!word.pos) place(word, { ...pos });
+      }
+    },
     /** 5つとも置けたか */
     isComplete() {
       return words.every((w) => w.pos);
