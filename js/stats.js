@@ -19,7 +19,8 @@ export async function recordMaps(net, maps, topics) {
   for (const map of maps) {
     if (map.timeUp) continue;
     const topic = topics.find((t) => t.id === map.topicId);
-    if (!topic) continue;
+    // オリジナルのお題（自分たちで作ったもの）は、お題の見直しには使わないので記録しない
+    if (!topic || topic.custom) continue;
     const p = topic.words.map((word) => {
       const pos = map.placements.find((x) => x.word === word)?.pos;
       return pos ? [round1(pos.x), round1(pos.y)] : null;

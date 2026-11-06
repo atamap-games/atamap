@@ -107,11 +107,17 @@
       </div>
       <p class="members-count"><span data-lobby="count">1</span>人（3〜8人で遊べます）</p>
       <ul class="members" data-lobby="members"></ul>
-      <div class="setting" data-lobby="setting">
-        <p class="setting__label">制限時間</p>
-        <div class="segmented" role="radiogroup" aria-label="制限時間" data-lobby="time">
-          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-on" data-lobby="time-on">90秒</button>
-          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-off" data-lobby="time-off">なし</button>
+      <div class="settings-row" data-lobby="setting">
+        <div class="setting">
+          <p class="setting__label">制限時間</p>
+          <div class="segmented" role="radiogroup" aria-label="制限時間" data-lobby="time">
+            <button type="button" class="segmented__item" role="radio" data-action="lobby-time-on" data-lobby="time-on">90秒</button>
+            <button type="button" class="segmented__item" role="radio" data-action="lobby-time-off" data-lobby="time-off">なし</button>
+          </div>
+        </div>
+        <div class="setting">
+          <p class="setting__label">お題</p>
+          <button type="button" class="topic-mode-button" data-action="lobby-topic" data-lobby="topic">いつものお題</button>
         </div>
       </div>
       <div class="foot">
@@ -152,11 +158,17 @@
         <button type="button" class="icon-btn" data-action="players-plus" aria-label="1人ふやす">＋</button>
       </div>
       <div class="names" data-players="names"></div>
-      <div class="setting">
-        <p class="setting__label">制限時間</p>
-        <div class="segmented" role="radiogroup" aria-label="制限時間">
-          <button type="button" class="segmented__item" role="radio" data-action="time-on" data-players="time-on">90秒</button>
-          <button type="button" class="segmented__item" role="radio" data-action="time-off" data-players="time-off">なし</button>
+      <div class="settings-row">
+        <div class="setting">
+          <p class="setting__label">制限時間</p>
+          <div class="segmented" role="radiogroup" aria-label="制限時間">
+            <button type="button" class="segmented__item" role="radio" data-action="time-on" data-players="time-on">90秒</button>
+            <button type="button" class="segmented__item" role="radio" data-action="time-off" data-players="time-off">なし</button>
+          </div>
+        </div>
+        <div class="setting">
+          <p class="setting__label">お題</p>
+          <button type="button" class="topic-mode-button" data-action="players-topic" data-players="topic">いつものお題</button>
         </div>
       </div>
       <p class="note">この順番で主役になります（名前は8文字まで）</p>
@@ -321,6 +333,116 @@
         <button type="button" class="btn btn--secondary btn--sound sound-toggle" data-action="sound-toggle" aria-pressed="true"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="sound-icon__wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sound-icon__mute" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span data-sound="label">音 オン</span></button>
         <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- お題を作る（画面いっぱいの別窓。待合室などの上に重ねる） -->
+  <dialog class="fullsheet" id="maketopic" aria-labelledby="mt-heading">
+    <div class="screen screen--maketopic">
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="mt-back" data-mt="back" aria-label="もどる">←</button>
+        <h2 class="head__title" id="mt-heading" data-mt="heading">お題を作る</h2>
+        <div class="head__right">
+          <p class="timer" data-mt="timer" role="timer" aria-label="残り時間" hidden><span data-mt="seconds"></span></p>
+          <p class="head__count" data-mt="count">1/2</p>
+        </div>
+      </header>
+      <p class="guide" data-mt="guide">お題の名前と、縦と横の軸を決めよう</p>
+
+      <!-- 1/2：お題の名前と軸 -->
+      <div class="mt-step" data-mt="step1">
+        <label class="field">
+          <span class="field__label">お題の名前（12文字まで）</span>
+          <input class="field__input" id="mt-title" type="text" maxlength="12" autocomplete="off" enterkeyhint="next" placeholder="例：夏の思い出">
+        </label>
+        <div class="mt-axis">
+          <span class="mt-axis__badge mt-axis__badge--v" aria-hidden="true">縦</span>
+          <input class="mt-axis__input" id="mt-top" type="text" maxlength="6" autocomplete="off" enterkeyhint="next" placeholder="上：好き" aria-label="縦の軸の上（6文字まで）">
+          <input class="mt-axis__input" id="mt-bottom" type="text" maxlength="6" autocomplete="off" enterkeyhint="next" placeholder="下：苦手" aria-label="縦の軸の下（6文字まで）">
+          <button type="button" class="btn btn--secondary btn--small" data-action="mt-pick" data-axis="vertical">えらぶ</button>
+        </div>
+        <div class="mt-axis">
+          <span class="mt-axis__badge mt-axis__badge--h" aria-hidden="true">横</span>
+          <input class="mt-axis__input" id="mt-left" type="text" maxlength="6" autocomplete="off" enterkeyhint="next" placeholder="左：よくやる" aria-label="横の軸の左（6文字まで）">
+          <input class="mt-axis__input" id="mt-right" type="text" maxlength="6" autocomplete="off" enterkeyhint="done" placeholder="右：やらない" aria-label="横の軸の右（6文字まで）">
+          <button type="button" class="btn btn--secondary btn--small" data-action="mt-pick" data-axis="horizontal">えらぶ</button>
+        </div>
+        <!-- 入れた軸で、マップがどう見えるか -->
+        <div class="mt-preview" data-mt="preview"></div>
+      </div>
+
+      <!-- 2/2：5つのワード -->
+      <div class="mt-step" data-mt="step2" hidden>
+        <p class="mt-summary" data-mt="summary"></p>
+        <div class="mt-words" data-mt="words"></div>
+        <p class="note">ワードは8文字まで。人によって置き場所が分かれそうなものが楽しい</p>
+      </div>
+
+      <p class="entry__error" data-mt="error" role="alert"></p>
+      <div class="foot">
+        <div class="actions actions--split">
+          <button type="button" class="btn btn--secondary" data-action="mt-prev" data-mt="prev">やめる</button>
+          <button type="button" class="btn btn--primary" data-action="mt-next" data-mt="next">次へ</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 用意した軸からえらぶ（別窓） -->
+  <dialog class="sheet sheet--small" id="axis-pick" aria-labelledby="axis-pick-title">
+    <div class="sheet__body">
+      <h2 class="sheet__title" id="axis-pick-title" data-axis-pick="title">縦の軸をえらぶ</h2>
+      <p class="sheet__text" data-axis-pick="text"></p>
+      <div class="axis-pick" data-axis-pick="list"></div>
+      <button type="button" class="btn btn--text" data-action="axis-pick-close">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- マイお題（このスマホに保存したお題。画面いっぱいの別窓） -->
+  <dialog class="fullsheet" id="mytopics" aria-labelledby="my-heading">
+    <div class="screen screen--mytopics">
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="my-close" aria-label="もどる">←</button>
+        <h2 class="head__title" id="my-heading">マイお題</h2>
+        <p class="head__count" data-my="count"></p>
+      </header>
+      <p class="guide" data-my="guide">✓を付けたお題を使います</p>
+      <ul class="my-list" data-my="list"></ul>
+      <div class="pager" data-my="pager">
+        <button type="button" class="btn btn--secondary btn--small" data-action="my-prev">前へ</button>
+        <p class="pager__text" data-my="page"></p>
+        <button type="button" class="btn btn--secondary btn--small" data-action="my-next">次へ</button>
+      </div>
+      <p class="note" data-my="note">足りない分は、いつものお題から出します</p>
+      <div class="foot">
+        <div class="actions actions--split">
+          <button type="button" class="btn btn--secondary" data-action="my-close">もどる</button>
+          <button type="button" class="btn btn--primary" data-action="my-new" data-my="new">＋ 新しく作る</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- お題のえらび方（別窓） -->
+  <dialog class="sheet sheet--small" id="topic-mode" aria-labelledby="topic-mode-title">
+    <div class="sheet__body">
+      <h2 class="sheet__title" id="topic-mode-title">お題のえらび方</h2>
+      <div class="mode-list">
+        <button type="button" class="mode" data-action="topic-mode" data-mode="standard">
+          <span class="mode__title">いつものお題</span>
+          <span class="mode__text">用意した50個から出します</span>
+        </button>
+        <button type="button" class="mode" data-action="topic-mode" data-mode="make">
+          <span class="mode__title">みんなで作る</span>
+          <span class="mode__text">はじめに1人1つずつ作ります。自分の番には、ほかの人のお題が出ます</span>
+        </button>
+        <button type="button" class="mode" data-action="topic-mode" data-mode="mine" data-mode-mine>
+          <span class="mode__title" data-mode-mine-title>マイお題</span>
+          <span class="mode__text">前もって作って保存したお題を使います（足りない分は、いつものお題）</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn--secondary btn--small" data-action="my-open" data-mode-edit>マイお題を作る・えらぶ</button>
+      <button type="button" class="btn btn--text" data-action="topic-mode-close">閉じる</button>
     </div>
   </dialog>
 

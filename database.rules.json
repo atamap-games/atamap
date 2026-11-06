@@ -19,7 +19,7 @@
         "topics": {
           "$uid": {
             ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
-            ".validate": "newData.isNumber()"
+            ".validate": "newData.isNumber() || (newData.isString() && newData.val().length <= 40)"
           }
         },
         "maps": {
@@ -38,6 +38,12 @@
           "$uid": {
             ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
             ".validate": "newData.hasChildren(['action', 'key']) && newData.child('action').isString() && newData.child('action').val().length <= 10"
+          }
+        },
+        "custom": {
+          "$id": {
+            ".write": "auth != null && (auth.uid === $id || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "$id.length <= 40 && (newData.hasChild('none') || (newData.child('title').isString() && newData.child('title').val().length >= 1 && newData.child('title').val().length <= 12 && newData.child('axes').hasChildren(['top', 'bottom', 'left', 'right']) && newData.child('words').hasChildren(['0', '1', '2', '3', '4'])))"
           }
         }
       }

@@ -17,8 +17,13 @@ import { showMaking, stopMaking } from './screen-round.js';
 import { showRevealAt, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
 import { recordMaps } from './stats.js';
+import { editTopic, closeEditor } from './screen-maketopic.js';
+import { openTopicMode, openMyTopics, TOPIC_MODES } from './screen-mytopics.js';
+import { assignMadeTopics, chosenMyTopics, isCustomTopic, shuffle } from './custom.js';
 import { decodePlacements } from './room.js';
 
+// 「みんなで作る」で、お題を作る時間（秒。制限時間ありのとき）
+const CREATE_SECONDS = 150;
 // 締め切りのあと、遅れて届く人を待つ時間
 const GRACE_MS = 3000;
 // ロックしたあと、待つ画面へ移るまで少し待つ（「ロックしました！」が見えるように）
@@ -219,6 +224,7 @@ function enterView(me, key) {
   if (me.view.startsWith('wait:')) stopWait();
   if (me.view.startsWith('reveal:')) stopReveal();
   if (me.view.startsWith('making:')) stopMaking();
+  if (me.view.startsWith('create:')) closeEditor();
   me.view = key;
   return true;
 }
@@ -245,7 +251,8 @@ function render(me, room, isHost) {
       uid: me.uid,
       isHost,
       timeOn: Boolean(room.meta.timeLimit),
-      handlers: { start: () => hostStartGame(me), setTime: (on) => hostSetTime(me, on) },
+      topicMode: TOPIC_MODES[room.meta.topicMode] ? (room.meta.topicMode === 'mine' ? 'ホストのマイお題' : TOPIC_MODES[room.meta.topicMode]) : TOPIC_MODES.standard,
+      handlers: { start: () => hostStartGame(me), setTime: (on) => hostSetTime(me, on), topic: () => hostChooseTopicMode(me) },
     });
     return;
   }
@@ -259,11 +266,17 @@ function render(me, room, isHost) {
 
   if (phase === 'end') {
     if (enterView(me, `end:${game}`)) {
-      showEnd({ game: toGame(room), topics: me.topics, canRestart: isHost }).then((next) => {
+      showEnd({ game: toGame(room), topics: allTopics(me, room), canRestart: isHost }).then((next) => {
         if (next === 'again' && isHost) hostRestart(me);
         else leave(me);
       });
     }
+    return;
+  }
+
+  // みんなで作る：はじめに全員がお題を1つ作る。作ったら、みんなを待つ
+  if (phase === 'create') {
+    renderCreate(me, room, isHost, game, order);
     return;
   }
 
@@ -286,7 +299,7 @@ function render(me, room, isHost) {
       }
       return;
     }
-    const topic = me.topics.find((t) => t.id === room.topics?.[mainUid]) ?? me.topics[0];
+    const topic = findTopic(me, room, room.topics?.[mainUid]) ?? me.topics[0];
     enterView(me, `making:${game}:${round}`);
     showMaking({
       key: `${game}:${round}`,
@@ -304,7 +317,7 @@ function render(me, room, isHost) {
     return;
   }
 
-  const topic = me.topics.find((t) => t.id === room.maps?.[mainUid]?.topicId);
+  const topic = findTopic(me, room, room.maps?.[mainUid]?.topicId);
   if (!topic) return;
 
   // 主役以外が予想する：主役は待つ
@@ -346,6 +359,22 @@ function render(me, room, isHost) {
   }
 }
 
+// 部屋で使えるお題：いつものお題と、部屋にあるオリジナルのお題（みんなで作った・ホストのマイお題）
+function allTopics(me, room) {
+  const custom = Object.values(room?.custom ?? {}).filter(isCustomTopic).map((t) => ({ ...t, custom: true }));
+  return custom.length ? [...me.topics, ...custom] : me.topics;
+}
+
+function findTopic(me, room, id) {
+  return allTopics(me, room).find((t) => t.id === id);
+}
+
+// お題の札の文字（だれが作ったお題か）
+function topicLabel(topic, fallback) {
+  if (!topic?.custom) return fallback;
+  return topic.author ? `${topic.author}さんが作ったお題` : 'ホストのマイお題';
+}
+
 function playerOf(room, uid) {
   const order = room.state?.order ?? [];
   const index = order.indexOf(uid);
@@ -369,14 +398,15 @@ function remainingSeconds(me, deadline) {
 
 function startMake(me, room) {
   const s = room.state;
-  const topic = me.topics.find((t) => t.id === room.topics?.[me.uid]) ?? me.topics[0];
+  const topic = findTopic(me, room, room.topics?.[me.uid]) ?? me.topics[0];
   const remaining = remainingSeconds(me, s.deadline);
   runPlace({
     mode: 'make',
     player: playerOf(room, me.uid),
     topic,
     // 引き直し：このゲームでまだ使っていないお題を選び、部屋のデータにも書く（ほかの人の画面のお題も変わる）
-    reroll: () => {
+    // オリジナルのお題は引き直さない（作った人の気持ちがこもっているので）
+    reroll: topic.custom ? null : () => {
       const next = pickRerollTopic(me.room, me.uid, me.topics);
       me.net.set(`rooms/${me.code}/topics/${me.uid}`, next.id).catch((err) => console.error(err));
       return next;
@@ -385,7 +415,7 @@ function startMake(me, room) {
     timeTotal: room.meta.timeLimit,
     pausable: false,
     // 主役には、はじめにお題を大きく出す（とちゅうで開き直したときは出さない）
-    intro: remaining === null || remaining > (room.meta.timeLimit || 90) - 10,
+    intro: (remaining === null || remaining > (room.meta.timeLimit || 90) - 10) && topicLabel(topic, 'あなたのお題'),
   }).then(async (result) => {
     if (me.closed) return;
     me.holdUntil = Date.now() + AFTER_LOCK_MS;
@@ -456,7 +486,7 @@ function applyControl(me, room, action) {
   if (action === 'answer' && s.phase === 'reveal' && !s.answerShown) {
     updateState(me, { answerShown: true });
   } else if (action === 'next' && s.phase === 'reveal' && s.answerShown) {
-    const words = me.topics.find((t) => t.id === room.maps?.[s.mainUid]?.topicId)?.words.length ?? 5;
+    const words = findTopic(me, room, room.maps?.[s.mainUid]?.topicId)?.words.length ?? 5;
     if ((s.wordIndex ?? 0) < words - 1) updateState(me, { wordIndex: (s.wordIndex ?? 0) + 1, answerShown: false });
     else updateState(me, { phase: 'summary' });
   } else if (action === 'next' && s.phase === 'summary') {
@@ -478,7 +508,12 @@ function direct(me, room) {
     me.timers.push(window.setTimeout(() => me.room && !me.closed && direct(me, me.room), s.deadline + GRACE_MS - now + 100));
   };
 
-  if (s.phase === 'make') {
+  if (s.phase === 'create') {
+    const order = s.order ?? [];
+    // 全員が作り終えたか、締め切りを過ぎたら、お題を配ってゲームを始める
+    if (order.every((uid) => room.custom?.[uid]) || late) hostFinishCreate(me);
+    else later();
+  } else if (s.phase === 'make') {
     if (room.maps?.[s.mainUid]?.done) hostStartGuess(me);
     else if (late) hostSkipMain(me); // 主役が締め切りを過ぎてもロックしない（いなくなった）ときは、とばす
     else later();
@@ -545,29 +580,140 @@ function unusedTopic(me, used) {
 
 function newGameUpdate(me, room, order) {
   const s = room.state ?? {};
-  const first = unusedTopic(me, []);
+  const mode = room.meta.topicMode ?? 'standard';
   const values = {
     'meta/status': 'playing',
     state: {
-      phase: 'make',
+      phase: mode === 'make' ? 'create' : 'make',
       order,
       gameNo: (s.gameNo ?? 0) + 1,
       roundIndex: 0,
       mainUid: order[0],
       wordIndex: 0,
       answerShown: false,
-      deadline: deadlineFrom(me, room),
+      deadline: mode === 'make' ? createDeadline(me, room) : deadlineFrom(me, room),
     },
   };
-  // 前のゲームのお題・マップ・予想・お願いを消す
+  // 前のゲームのお題・マップ・予想・お願い・オリジナルのお題を消す
   for (const uid of Object.keys(room.topics ?? {})) values[`topics/${uid}`] = null;
   for (const uid of Object.keys(room.maps ?? {})) values[`maps/${uid}`] = null;
   for (const uid of Object.keys(room.requests ?? {})) values[`requests/${uid}`] = null;
+  for (const id of Object.keys(room.custom ?? {})) values[`custom/${id}`] = null;
   for (const [mainUid, byGuesser] of Object.entries(room.guesses ?? {})) {
     for (const uid of Object.keys(byGuesser ?? {})) values[`guesses/${mainUid}/${uid}`] = null;
   }
-  values[`topics/${order[0]}`] = first.id;
+  if (mode === 'mine') {
+    // ホストのマイお題：まぜて、主役の順に配る（足りない分は、いつものお題）
+    const mine = shuffle(chosenMyTopics());
+    const used = [];
+    order.forEach((uid, i) => {
+      const topic = mine[i];
+      if (topic) {
+        values[`custom/${topic.id}`] = topic;
+        values[`topics/${uid}`] = topic.id;
+      } else {
+        const t = unusedTopic(me, used);
+        used.push(t.id);
+        values[`topics/${uid}`] = t.id;
+      }
+    });
+  } else if (mode === 'standard') {
+    values[`topics/${order[0]}`] = unusedTopic(me, []).id;
+  }
   return values;
+}
+
+function createDeadline(me, room) {
+  return room.meta.timeLimit ? me.net.now() + CREATE_SECONDS * 1000 + START_BUFFER_MS : null;
+}
+
+// みんなで作ったお題を配って、最初の主役のマップ作りへ。自分のお題は自分に配らない。足りない分は、いつものお題
+function hostFinishCreate(me) {
+  const room = me.room;
+  const s = room.state;
+  if (s?.phase !== 'create' || !once(me, `create:${stateKey(room)}`)) return;
+  const order = s.order ?? [];
+  const made = {};
+  for (const uid of order) {
+    const topic = room.custom?.[uid];
+    if (isCustomTopic(topic)) made[uid] = topic;
+  }
+  const assigned = assignMadeTopics(order, made);
+  const values = {};
+  const used = [];
+  for (const uid of order) {
+    const topic = assigned[uid];
+    if (topic) {
+      values[`topics/${uid}`] = topic.id;
+    } else {
+      const t = unusedTopic(me, used);
+      used.push(t.id);
+      values[`topics/${uid}`] = t.id;
+    }
+  }
+  values.state = { ...s, phase: 'make', roundIndex: 0, mainUid: order[0], wordIndex: 0, answerShown: false, deadline: deadlineFrom(me, room) };
+  me.net.update(`rooms/${me.code}`, values).catch((err) => {
+    console.error(err);
+    me.advanced = null;
+    showToast('うまく進められませんでした');
+  });
+}
+
+// お題づくりの画面：まだ作っていなければ作る別窓、作ったらみんなを待つ
+function renderCreate(me, room, isHost, game, order) {
+  const s = room.state ?? {};
+  const mine = room.custom?.[me.uid];
+  if (!mine && !me.sentCustom?.[game]) {
+    if (enterView(me, `create:${game}`)) {
+      const remaining = remainingSeconds(me, s.deadline);
+      editTopic({
+        heading: 'お題づくり',
+        canCancel: false,
+        timeLimit: remaining === null ? 0 : Math.max(0.2, remaining),
+        timeTotal: CREATE_SECONDS,
+      }).then((topic) => {
+        if (me.closed || me.room?.state?.gameNo !== game || me.room?.state?.phase !== 'create') return;
+        me.sentCustom = { ...me.sentCustom, [game]: true };
+        const name = me.room.players?.[me.uid]?.name ?? '';
+        // 作れなかったとき（時間切れ）は「作らなかった」と書く（いつものお題で補う）
+        const value = topic ? { ...topic, author: name } : { none: true };
+        me.net.set(`rooms/${me.code}/custom/${me.uid}`, value).catch((err) => {
+          console.error(err);
+          me.sentCustom[game] = false;
+          showToast('お題を送れませんでした。通信を確かめてね');
+        });
+        if (me.room) render(me, me.room, me.room.meta?.hostUid === me.uid);
+      });
+    }
+    return;
+  }
+  enterView(me, `wait:create:${game}`);
+  showWait({
+    step: 'お題づくり',
+    title: 'みんなを待っています',
+    text: 'お題を作りました。全員がそろうとゲームがはじまります（自分のお題は、ほかの人に出ます）',
+    members: statusList(me, room, order, (uid) => room.custom?.[uid]),
+    remaining: remainingSeconds(me, s.deadline),
+    deadline: s.deadline ?? null,
+    total: CREATE_SECONDS,
+    canSkip: isHost,
+    handlers: { skip: () => hostFinishCreate(me) },
+  });
+}
+
+// お題のえらび方を変える（ホストだけ）。マイお題は、このスマホに保存したもの
+function hostChooseTopicMode(me) {
+  const room = me.room;
+  if (!room || room.meta.hostUid !== me.uid) return;
+  openTopicMode({
+    mode: room.meta.topicMode ?? 'standard',
+    mineLabel: 'ホストのマイお題',
+    onPick: async (mode) => {
+      if (mode === 'mine' && !chosenMyTopics().length) await openMyTopics();
+      const next = mode === 'mine' && !chosenMyTopics().length ? 'standard' : mode;
+      me.net.update(`rooms/${me.code}/meta`, { topicMode: next }).catch((err) => console.error(err));
+    },
+  });
 }
 
 function hostStartGame(me) {
@@ -606,9 +752,9 @@ function hostNextRound(me) {
     return;
   }
   const mainUid = order[next];
-  const topic = unusedTopic(me, Object.values(room.topics ?? {}));
+  const topicId = room.topics?.[mainUid] ?? unusedTopic(me, Object.values(room.topics ?? {})).id;
   me.net.update(`rooms/${me.code}`, {
-    [`topics/${mainUid}`]: topic.id,
+    [`topics/${mainUid}`]: topicId,
     state: { ...s, phase: 'make', roundIndex: next, mainUid, wordIndex: 0, answerShown: false, deadline: deadlineFrom(me, room) },
   }).catch((err) => {
     console.error(err);
@@ -650,6 +796,7 @@ async function leave(me, { silent = false } = {}) {
   stopWait();
   stopReveal();
   stopMaking();
+  closeEditor();
   closeSheet('quit');
   closeSheet('share');
   rememberRoom('');

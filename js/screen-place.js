@@ -36,7 +36,7 @@ let timer = null;
  * @param {number} [options.timeLimit] 制限時間（秒）。0 なら制限なし
  * @param {number} [options.timeTotal] 円のまわりの長さの元になる、制限時間の全体（秒）。部屋で遊ぶとき、途中から入っても円の減り方がそろうように
  * @param {boolean} [options.pausable] 別窓が開いているあいだ時間を止めるか（部屋で遊ぶときは、みんなで時間をそろえるので止めない）
- * @param {boolean} [options.intro] はじめにお題を大きく出すか（部屋で遊ぶときの主役。1台のときはスマホを渡す画面で出している）
+ * @param {string|false} [options.intro] はじめにお題を大きく出すときの札の文字（部屋で遊ぶときの主役。1台のときはスマホを渡す画面で出している）
  * @returns {Promise<{ topicId: number, placements: object[], rerolled: boolean, timeUp: boolean }>}
  */
 export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0, timeTotal = timeLimit, pausable = true, intro = false }) {
@@ -54,7 +54,7 @@ export function runPlace({ mode, player, main = null, topic, reroll = null, time
   renderReroll();
   showScreen('place');
   startTimer(timeLimit, timeTotal, pausable);
-  if (intro) showIntro(topic);
+  if (intro) showIntro(topic, intro);
 
   return new Promise((resolve) => {
     current.resolve = resolve;
@@ -62,9 +62,9 @@ export function runPlace({ mode, player, main = null, topic, reroll = null, time
 }
 
 // お題を大きく出す（2.4秒たつか、さわると閉じる）
-function showIntro(topic) {
+function showIntro(topic, label) {
   const card = el('div', 'topic-card');
-  fillTopicCard(card, topic, 'あなたのお題');
+  fillTopicCard(card, topic, typeof label === 'string' ? label : 'あなたのお題');
   const overlay = el('div', 'topic-intro');
   overlay.append(card);
   const close = () => overlay.remove();

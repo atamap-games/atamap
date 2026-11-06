@@ -1,6 +1,8 @@
 // 遊ぶ人の名前を入れる画面（1台のスマホを回して遊ぶとき）
 import { showScreen, el } from './ui.js';
 import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX, TIME_LIMIT } from './game.js';
+import { openTopicMode, openMyTopics, TOPIC_MODES } from './screen-mytopics.js';
+import { chosenMyTopics } from './custom.js';
 
 const screen = document.querySelector('[data-screen="players"]');
 const part = (name) => screen.querySelector(`[data-players="${name}"]`);
@@ -8,15 +10,17 @@ const part = (name) => screen.querySelector(`[data-players="${name}"]`);
 // 前に入れた名前を、このブラウザにだけ覚えておく（次に遊ぶときに便利なように）
 const STORAGE_KEY = 'atamap.players';
 const TIME_KEY = 'atamap.timeLimit';
+const MODE_KEY = 'atamap.topicMode';
 
 let count = 4;
 let names = [];
 let timeOn = true;
+let topicMode = 'standard';
 let resolveCurrent = null;
 
 /**
  * 名前と制限時間を決めてもらう。
- * @returns {Promise<{ names: string[], timeLimit: number }>} 遊ぶ人の名前（入れていない人は「プレイヤー1」のような名前にする）と、制限時間（秒。0 は制限なし）
+ * @returns {Promise<{ names: string[], timeLimit: number, topicMode: string }>} 遊ぶ人の名前（入れていない人は「プレイヤー1」のような名前にする）と、制限時間（秒。0 は制限なし）
  */
 export function askPlayers() {
   const saved = load();
@@ -25,6 +29,7 @@ export function askPlayers() {
     count = saved.length;
   }
   timeOn = loadTimeOn();
+  topicMode = loadMode();
   render();
   showScreen('players');
   return new Promise((resolve) => {
@@ -34,6 +39,7 @@ export function askPlayers() {
 
 function render() {
   part('count').textContent = count;
+  part('topic').textContent = TOPIC_MODES[topicMode];
   for (const [key, on] of [['time-on', true], ['time-off', false]]) {
     const button = part(key);
     button.classList.toggle('is-on', timeOn === on);
@@ -97,6 +103,23 @@ function save(list) {
   }
 }
 
+function loadMode() {
+  try {
+    const mode = localStorage.getItem(MODE_KEY);
+    return mode in TOPIC_MODES ? mode : 'standard';
+  } catch {
+    return 'standard';
+  }
+}
+
+function saveMode() {
+  try {
+    localStorage.setItem(MODE_KEY, topicMode);
+  } catch {
+    // 覚えられなくても遊べる
+  }
+}
+
 function loadTimeOn() {
   try {
     return localStorage.getItem(TIME_KEY) !== 'off';
@@ -124,6 +147,19 @@ export const playersActions = {
     timeOn = false;
     render();
   },
+  // お題のえらび方（いつものお題／みんなで作る／マイお題）
+  'players-topic': () => {
+    openTopicMode({
+      mode: topicMode,
+      onPick: async (mode) => {
+        // マイお題をまだえらんでいなければ、一覧を開いて作ってもらう
+        if (mode === 'mine' && !chosenMyTopics().length) await openMyTopics();
+        topicMode = mode === 'mine' && !chosenMyTopics().length ? 'standard' : mode;
+        saveMode();
+        render();
+      },
+    });
+  },
   'players-start': () => {
     if (!resolveCurrent) return;
     document.activeElement?.blur?.();
@@ -131,6 +167,6 @@ export const playersActions = {
     save(result);
     const resolve = resolveCurrent;
     resolveCurrent = null;
-    resolve({ names: result, timeLimit: timeOn ? TIME_LIMIT : 0 });
+    resolve({ names: result, timeLimit: timeOn ? TIME_LIMIT : 0, topicMode });
   },
 };

@@ -10,6 +10,8 @@ import { showReveal, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
 import { connect } from './net.js';
 import { recordMaps } from './stats.js';
+import { editTopic, closeEditor } from './screen-maketopic.js';
+import { assignMadeTopics, chosenMyTopics, shuffle } from './custom.js';
 
 // ロックしたあと、次の画面へ移るまで少し待つ（「ロックしました！」が見えるように）
 const AFTER_LOCK_MS = 700;
@@ -61,37 +63,43 @@ export async function startSoloGame({ onExit }) {
   } finally {
     stopPlace();
     stopReveal();
+    closeEditor();
     running = null;
   }
   onExit('home');
 }
 
-async function playOneGame({ names, timeLimit }, topics, step) {
+async function playOneGame({ names, timeLimit, topicMode = 'standard' }, topics, step) {
   const game = createGame(names, { timeLimit });
   const count = game.players.length;
+  // オリジナルのお題：主役ごとに、先に決めておく（決まっていない主役には、いつものお題を配る）
+  const planned = await step(planCustomTopics(game, topicMode, step));
+  const allTopics = [...topics, ...Object.values(planned).filter(Boolean)];
 
   // 主役を順番に回す：主役がマップを作ってロック → ほかの人が順に予想 → 答え合わせ
   for (const [index, main] of game.players.entries()) {
     // 主役のお題を先に決めて、スマホを渡す画面で大きく発表する
-    const dealt = dealTopic(game, topics);
+    const custom = planned[main.id];
+    const dealt = custom ?? dealTopic(game, topics);
     await step(showPass({
       player: main,
       step: `ラウンド ${index + 1}/${count}・主役`,
       text: 'あなたが主役！自分のマップを作る番です',
       note: 'ほかの人は画面を見ないでね',
       topic: dealt,
-      topicLabel: '今回のお題',
+      topicLabel: topicLabel(dealt),
     }));
     const made = await step(runPlace({
       mode: 'make',
       player: main,
       timeLimit: game.timeLimit,
       topic: dealt,
-      reroll: (now) => dealTopic(game, topics, [now.id]),
+      // オリジナルのお題は引き直さない（作った人の気持ちがこもっているので）
+      reroll: custom ? null : (now) => dealTopic(game, topics, [now.id]),
     }));
     setMap(game, main.id, made);
     await step(wait(made.timeUp ? AFTER_TIMEUP_MS : AFTER_LOCK_MS));
-    const topic = topics.find((t) => t.id === made.topicId);
+    const topic = allTopics.find((t) => t.id === made.topicId);
 
     const guessers = guessersFor(game, main.id);
     for (const [g, guesser] of guessers.entries()) {
@@ -112,7 +120,43 @@ async function playOneGame({ names, timeLimit }, topics, step) {
   }
 
   recordSoloMaps(game, topics);
-  return step(showEnd({ game, topics }));
+  return step(showEnd({ game, topics: allTopics }));
+}
+
+/**
+ * オリジナルのお題を、主役ごとに決める。
+ * ・みんなで作る：スマホを順に回して1人1つ作り、自分のお題が自分に当たらないように配る
+ * ・マイお題：えらんであるマイお題を、まぜて順に配る
+ * @returns {Promise<Record<string, object|null>>} 主役の id → お題（いつものお題を配るときは null）
+ */
+async function planCustomTopics(game, topicMode, step) {
+  const planned = {};
+  if (topicMode === 'make') {
+    const made = {};
+    for (const [i, player] of game.players.entries()) {
+      await step(showPass({
+        player,
+        step: `お題づくり ${i + 1}/${game.players.length}`,
+        text: 'お題を1つ作ってね',
+        note: 'ほかの人のお題になります。作っているところは見ないでね',
+      }));
+      const topic = await step(editTopic({ heading: `${player.name}さんのお題づくり`, canCancel: false }));
+      if (topic) made[player.id] = { ...topic, author: player.name };
+    }
+    Object.assign(planned, assignMadeTopics(game.players.map((p) => p.id), made));
+  } else if (topicMode === 'mine') {
+    const mine = shuffle(chosenMyTopics());
+    game.players.forEach((player, i) => {
+      planned[player.id] = mine[i] ?? null;
+    });
+  }
+  return planned;
+}
+
+// お題の札の文字（だれが作ったお題か）
+function topicLabel(topic) {
+  if (!topic.custom) return '今回のお題';
+  return topic.author ? `${topic.author}さんが作ったお題` : 'マイお題から';
 }
 
 // ワードごとの置き場所を記録する（お題の見直しに使う）。つながらなくても、遊ぶのには困らないので何もしない

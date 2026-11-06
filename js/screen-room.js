@@ -123,7 +123,7 @@ let lobbyCode = '';
  * @param {boolean} options.timeOn 制限時間があるか
  * @param {object} options.handlers { start, setTime }
  */
-export function showLobby({ code, url, members, uid, isHost, timeOn, handlers }) {
+export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode = 'いつものお題', handlers }) {
   lobbyHandlers = handlers;
   lobbyPart('code').textContent = code;
   lobbyPart('url').textContent = url;
@@ -159,6 +159,10 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, handlers })
     button.setAttribute('aria-checked', String(timeOn === on));
     button.disabled = !isHost;
   }
+
+  // お題のえらび方：ホストだけが変えられる
+  lobbyPart('topic').textContent = topicMode;
+  lobbyPart('topic').disabled = !isHost;
 
   const start = lobbyPart('start');
   if (!isHost) {
@@ -283,6 +287,7 @@ export const roomActions = {
   'lobby-start': () => lobbyHandlers.start?.(),
   'lobby-time-on': () => lobbyHandlers.setTime?.(true),
   'lobby-time-off': () => lobbyHandlers.setTime?.(false),
+  'lobby-topic': () => lobbyHandlers.topic?.(),
   'wait-skip': () => waitHandlers.skip?.(),
 };
 
