@@ -1,6 +1,19 @@
 // 画面の切り替えや、お知らせの表示など、どの画面でも使う部品
 
 /**
+ * 要素を作る小さな手伝い。
+ * @param {string} tag タグ名
+ * @param {string} [className] クラス
+ * @param {string} [text] 中の文字
+ */
+export function el(tag, className = '', text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+/**
  * 指定した画面だけを表示する。
  * 画面は index.html の <section data-screen="名前"> で用意する。
  * @param {string} name 表示する画面の名前（例：'top'）

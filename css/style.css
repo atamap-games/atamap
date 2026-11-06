@@ -564,7 +564,7 @@ button {
   height: 16px;
   border: 3px solid var(--surface);
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--pin-color, var(--primary));
   box-shadow: 0 0 0 1px rgba(43, 42, 58, 0.3), 0 2px 4px rgba(43, 42, 58, 0.3);
   cursor: grab;
 }
@@ -583,7 +583,7 @@ button {
   bottom: 12px;
   transform: translateX(calc(-50% + var(--shift, 0px)));
   padding: 3px 10px;
-  border: 2px solid var(--primary);
+  border: 2px solid var(--pin-color, var(--primary));
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
@@ -720,6 +720,495 @@ button {
   flex: none;
 }
 
+/* ---------- 画面の上の部分（共通） ---------- */
+.head__title {
+  font-family: var(--font-round);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.head__step,
+.head__count {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.head__count {
+  font-family: var(--font-round);
+  font-size: 1rem;
+}
+
+.head__space {
+  width: 44px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -6px;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.who__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--player-color, var(--primary));
+}
+
+.note {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* マップを、残りの高さいっぱいに出す場所（見るだけのマップ用） */
+.stage {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.stage > .map {
+  width: min(100%, 45vh);
+  width: min(100cqw, 100cqh);
+}
+
+.map--static {
+  overflow: visible;
+}
+
+/* マップが小さいときは、軸の言葉も小さくする */
+@container (max-height: 220px) {
+  .map .map__label {
+    font-size: 0.6875rem;
+  }
+}
+
+/* 主役の発表のマップは見本なので、とても狭いときは出さない */
+@container (max-height: 130px) {
+  .map--preview {
+    display: none;
+  }
+}
+
+.map--static .map__label {
+  z-index: 1;
+  font-size: 0.8125rem;
+}
+
+/* ---------- 遊ぶ人の名前 ---------- */
+.count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.count__num {
+  min-width: 4em;
+  font-family: var(--font-round);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.count__num span {
+  font-size: 2rem;
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.names {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 8px;
+}
+
+.name-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: clamp(42px, 8vh, 48px);
+  padding: 0 10px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.name-field:focus-within {
+  border-color: var(--accent);
+}
+
+.name-field__num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.name-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px; /* 16px より小さいと、iPhone で拡大されてしまう */
+  font-weight: 700;
+}
+
+.name-input::placeholder {
+  color: var(--axis);
+}
+
+/* ---------- スマホを渡す・主役の発表 ---------- */
+.pass,
+.announce {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.pass {
+  flex: 1 1 0;
+  min-height: 0;
+  justify-content: safe center;
+}
+
+.pass__lead,
+.announce__lead {
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.pass__name,
+.announce__name {
+  color: var(--player-color, var(--primary));
+  font-family: var(--font-round);
+  font-size: clamp(2rem, 7vh, 2.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.pass__name small,
+.announce__name small {
+  margin-left: 4px;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.announce__name {
+  font-size: clamp(1.625rem, 5.5vh, 2.25rem);
+}
+
+.pass__text {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.pass__note {
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pass__note:empty {
+  display: none;
+}
+
+.announce__topic {
+  font-family: var(--font-round);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.wordlist {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.chip.chip--static {
+  min-height: 32px;
+  padding: 2px 12px;
+  font-size: 0.875rem;
+  box-shadow: none;
+  cursor: default;
+  touch-action: auto;
+}
+
+/* ---------- 答え合わせ ---------- */
+.reveal__word {
+  font-family: var(--font-round);
+  font-size: clamp(1.25rem, 4.2vh, 1.625rem);
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* 3点・1点の範囲の輪。マップの外にはみ出す部分は切る */
+.map__rings {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ring--close {
+  border: 1.5px dashed rgba(224, 70, 42, 0.5);
+  background: rgba(224, 70, 42, 0.07);
+}
+
+.ring--near {
+  border: 1.5px solid rgba(224, 70, 42, 0.65);
+  background: rgba(224, 70, 42, 0.14);
+}
+
+.pin--answer {
+  z-index: 4;
+}
+
+.pin--answer .pin__dot {
+  left: -11px;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+}
+
+.pin--answer .pin__label {
+  bottom: 15px;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-color);
+}
+
+.pin--answer.pin--below .pin__label {
+  top: 15px;
+  bottom: auto;
+}
+
+.pin--guess .pin__dot {
+  left: -7px;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.pin--guess .pin__label {
+  bottom: 10px;
+  padding: 0 7px;
+  font-size: 0.75rem;
+}
+
+.pin--guess.pin--below .pin__label {
+  top: 10px;
+  bottom: auto;
+}
+
+.map--static .pin,
+.map--static .pin__dot,
+.map--static .pin__label {
+  cursor: default;
+}
+
+.pin__shout {
+  position: absolute;
+  left: 0;
+  bottom: 34px;
+  z-index: 1;
+  padding: 1px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translateX(calc(-50% + var(--shift, 0px))) rotate(-5deg);
+}
+
+.pin--below .pin__shout {
+  bottom: 12px;
+}
+
+.scores {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.score-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 2px solid var(--player-color);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.score-chip b {
+  color: var(--player-color);
+}
+
+.score-chip--p3 {
+  background: #FFF3C4;
+}
+
+/* 人数が多いときは、名前と点数だけの短い札にする */
+.scores--compact .score-chip {
+  gap: 4px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+}
+
+.score-chip--p0 {
+  border-style: dashed;
+  color: var(--ink-soft);
+}
+
+.summary,
+.end {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  gap: 10px;
+}
+
+/* 人数が多いときは2列にして、画面に収める */
+.summary__list--two,
+.ranking--two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.summary__list--two .summary__row,
+.ranking--two .rank-row {
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+}
+
+.summary__list--two .summary__points,
+.ranking--two .rank-row__points {
+  font-size: 1rem;
+}
+
+.ranking--two .rank-row__rank {
+  width: 2.2em;
+  font-size: 0.75rem;
+}
+
+.summary__list,
+.ranking {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary__row,
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-left: 6px solid var(--player-color);
+  border-radius: 12px;
+  background: var(--surface);
+  font-weight: 700;
+}
+
+.summary__name,
+.rank-row__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.summary__points,
+.rank-row__points {
+  font-family: var(--font-round);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.summary__miss {
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #FFF3C4;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.rank-row__rank {
+  width: 2.6em;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.rank-row--top {
+  background: #FFF3C4;
+}
+
+.rank-row--top .rank-row__rank {
+  color: var(--primary);
+}
+
 /* ---------- 別窓（遊び方など） ---------- */
 .sheet {
   width: min(100% - 24px, 440px);
@@ -745,6 +1234,16 @@ button {
   flex-direction: column;
   gap: 10px;
   padding: 18px 16px 16px;
+}
+
+.sheet--small {
+  width: min(100% - 24px, 360px);
+}
+
+.sheet__text {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 .sheet__title {

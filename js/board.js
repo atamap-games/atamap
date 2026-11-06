@@ -7,6 +7,8 @@
 // 置いたワードも同じように動かせる。マップの外へドラッグすると、下の列に戻る。
 //
 // 座標は x：左 0 → 右 100、y：上 0 → 下 100（マップの見たままの向き）。
+import { el } from './ui.js';
+import { createMap, createPin, fitLabel } from './mapview.js';
 
 // 指で隠れないよう、ドラッグ中のピンは指より少し上に出す（px）
 const TOUCH_LIFT = 56;
@@ -14,8 +16,6 @@ const TOUCH_LIFT = 56;
 const TAP_SLOP = 8;
 // マップの外に少しはみ出して離しても、端に置いたことにする幅（px）
 const EDGE_SNAP = 16;
-// ピンの名札と点のすきま（px）
-const LABEL_GAP = 12;
 
 /**
  * マップと、置くワードの列を作る。
@@ -27,11 +27,7 @@ const LABEL_GAP = 12;
 export function createBoard(root, topic, { onChange } = {}) {
   root.replaceChildren();
 
-  const map = el('div', 'map map--board');
-  map.append(el('span', 'map__axis map__axis--v'), el('span', 'map__axis map__axis--h'));
-  for (const side of ['top', 'bottom', 'left', 'right']) {
-    map.append(el('span', `map__label map__label--${side}`, topic.axes[side]));
-  }
+  const map = createMap(topic, 'map--board');
 
   const tray = el('div', 'tray');
   const trayDone = el('p', 'tray__done', '5つ全部置けました！');
@@ -197,15 +193,13 @@ export function createBoard(root, topic, { onChange } = {}) {
   // ---------- 見た目 ----------
 
   function makePin(word) {
-    const pin = el('div', 'pin');
-    pin.append(el('span', 'pin__label', word.text), el('span', 'pin__dot'));
+    const pin = createPin(word.text);
     pin.addEventListener('pointerdown', (event) => startPointer(event, word));
     return pin;
   }
 
   function makeGhost(word) {
-    const ghost = el('div', 'pin pin--ghost');
-    ghost.append(el('span', 'pin__label', word.text), el('span', 'pin__dot'));
+    const ghost = createPin(word.text, { className: 'pin--ghost' });
     ghost.setAttribute('aria-hidden', 'true');
     document.body.append(ghost);
     return ghost;
@@ -223,17 +217,6 @@ export function createBoard(root, topic, { onChange } = {}) {
     const width = map.clientWidth;
     const height = map.clientHeight;
     fitLabel(word.pin, (word.pos.x / 100) * width, (word.pos.y / 100) * height, width);
-  }
-
-  // 名札を左右にずらして枠の中に収め、上が狭いときは点の下に出す
-  function fitLabel(pin, x, y, areaWidth) {
-    const label = pin.querySelector('.pin__label');
-    const labelWidth = label.offsetWidth;
-    const margin = 4;
-    const left = x - labelWidth / 2;
-    const fitted = Math.min(Math.max(left, margin), areaWidth - labelWidth - margin);
-    pin.style.setProperty('--shift', `${Math.round(fitted - left)}px`);
-    pin.classList.toggle('pin--below', y < label.offsetHeight + LABEL_GAP + 2);
   }
 
   // 画面上の点を、マップの座標（0〜100）にする。マップから離れすぎていれば null
@@ -286,13 +269,6 @@ export function createBoard(root, topic, { onChange } = {}) {
       document.querySelectorAll('.pin--ghost').forEach((ghost) => ghost.remove());
     },
   };
-}
-
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 function distance(a, b) {
