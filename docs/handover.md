@@ -50,7 +50,7 @@
 - スマホ同士をつなぐのは Firebase（Realtime Database と匿名ログイン）。部品は公式の CDN（www.gstatic.com、版は js/firebase-config.js の FIREBASE_VERSION）から読み込む。QRコードの部品は cdn.jsdelivr.net の qrcode-generator。
 - 公開は GitHub Pages（main ブランチ）。まだ設定していない。
 - 開発は自動では動かさない。ユーザーが会話で「アタマップの開発を次に進めて」のように頼んだときに、CLAUDE.md の「毎回の作業の進め方」で1つずつ進める（2026-11-06 に決定。2つのアカウントで自動に引き継ぐ形は、規約の面で危ないのでやめた）。
-- 開発の変更は `dev` ブランチに積み上げる。`dev` → `main` の取り込み依頼は #2（https://github.com/atamap-games/atamap/pull/2）。公開してよい状態になったら、ユーザーが「Merge pull request」を押す。
+- 開発の変更は `dev` ブランチに積み上げる。`dev` → `main` の取り込み依頼は、ユーザーが「Merge pull request」を押すと閉じるので、次の変更のときに新しく作る（#2 は 2026-11-06 に取り込み済み。今は #3：https://github.com/atamap-games/atamap/pull/3）。
 
 ### アカウントと置き場所
 | もの | 状態 |
@@ -172,7 +172,7 @@
 - 試作版のアーティファクト（1台で遊ぶ形を試せる）：https://claude.ai/artifact/TKmgVM2kDVxfrgs3QuZ8mq 。アーティファクトの中では、部屋で遊ぶこと（Firebase）と、画像の保存・共有は動かない。
 - ユーザーにお願いしていること：
   - Firebase の画面で、database.rules.json の中身を「Realtime Database」→「ルール」に貼って「公開」する（これをしないと、部屋も記録も動かない）。「Authentication」の「匿名」がオンになっているか確かめる。
-  - GitHub Pages で公開：取り込み依頼 #2 の「Merge pull request」と、「Settings」→「Pages」で main ブランチの「/(root)」を選ぶ設定。公開のアドレスは https://atamap-games.github.io/atamap/ になる予定。
+  - GitHub Pages：2026-11-06 に公開した（https://atamap-games.github.io/atamap/ ）。dev の変更は、取り込み依頼をユーザーが取り込むと公開される。
   - 公開したら、本物のスマホ3台以上で部屋を作って遊んでみる（指の操作、QRコードの読み取り、つながり方）。
   - ドメインと商標の確認、X のアイコン・ヘッダー画像（Claude が作れる）。
 - X の下書きの自動タスク（5-1）は、2026-11-06 の時点で、このアカウントには作られていない。作るかどうかはユーザーに確かめる。
