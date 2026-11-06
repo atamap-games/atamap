@@ -3,24 +3,39 @@
    空いている高さに合わせて、マップの大きさを変える。収まらないものは別窓（.sheet）に出す。 */
 
 :root {
-  --bg: #FFF7EC;
+  /* ポップな見た目：印刷の4色（シアン・マゼンタ・イエロー・黒）と白。くわしくは下の「見た目（ポップ）」 */
+  --bg: #FFD60A;
   --surface: #FFFFFF;
-  --ink: #2B2A3A;
-  --ink-soft: #5E5A6B;
-  --line: #E6DCCD;
-  --axis: #CFC4B4;
-  --primary: #E0462A;
-  --primary-dark: #A93017;
-  --accent: #127A70;
-  --accent-soft: #DDF2EE;
-  --yellow: #FFD54A;
+  --ink: #161616;
+  --ink-soft: #4F4B45;
+  --line: #E4E4E4;
+  --grid: #E6EAF2;
+  --axis: #161616;
+  /* マゼンタ：大きなボタン・答え・残りわずか・まちがい */
+  --primary: #E5007F;
+  --primary-deep: #9E0058;
+  --primary-dark: #161616;
+  /* シアン（水色）：えらんだもの・ロックしたもの・立体の影。上に乗せる文字は黒 */
+  --accent: #19B4F0;
+  --accent-deep: #0A7FB0;
+  --accent-soft: #D7F2FF;
+  --yellow: #FFD60A;
+  --mint: #00B26A;
+  --pink: #E5007F;
+  --sky: #19B4F0;
+  --purple: #6E36E0;
   --on-color: #FFFFFF;
-  --shade: rgba(43, 42, 58, 0.15);
+  --shade: rgba(22, 22, 22, 0.18);
+  /* 黄色の地に置いた白い紙の、下にのぞくふち */
+  --paper-lip: #CC9600;
   --radius: 16px;
   /* 画面の高さに合わせて変わる大きさ */
   --btn-h: clamp(46px, 8.5vh, 56px);
-  --font: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
-  --font-round: "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+  --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
+  --font-round: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+  /* 見出し・ボタン・大きな文字に使う、太いゴシック */
+  --font-display: "Dela Gothic One", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  --font-pop: var(--font-display);
   color-scheme: light;
 }
 
@@ -397,9 +412,27 @@ button {
 }
 
 .sample__caption {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--ink-soft);
   font-size: 0.8125rem;
   line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* トップの答え合わせのデモ：名札と「ドキドキ…」を少し小さく */
+.map--demo .suspense-text {
+  font-size: 0.9375rem;
+  -webkit-text-stroke-width: 4px;
+}
+
+.map--demo .pin__label {
+  font-size: 0.6875rem;
+}
+
+.map--demo .pin--answer .pin__label {
+  font-size: 0.75rem;
 }
 
 /* 見本が小さいときは、中の文字も小さくする */
@@ -411,6 +444,12 @@ button {
   }
 
   .sample .map__label {
+    font-size: 0.625rem;
+  }
+
+  .map--demo .pin__label,
+  .map--demo .pin--answer .pin__label {
+    padding: 0 6px 1px;
     font-size: 0.625rem;
   }
 }
@@ -446,6 +485,8 @@ button {
 .topic {
   min-width: 0;
   text-align: center;
+  /* お題の名前を、この幅に合わせて小さくする（11文字のお題まで切れずに出す） */
+  container-type: inline-size;
 }
 
 .topic__genre {
@@ -462,7 +503,7 @@ button {
 .topic__title {
   overflow: hidden;
   font-family: var(--font-round);
-  font-size: min(1.375rem, 5.6vw);
+  font-size: min(1.375rem, 5.6vw, 100cqi / 11.2);
   font-weight: 800;
   line-height: 1.3;
   white-space: nowrap;
@@ -1883,5 +1924,1208 @@ button {
   .map--board {
     transition: none;
     animation: none;
+  }
+}
+
+/* =====================================================================
+   見た目（ポップ）
+   参考：株式会社SPC「ポップな印象のデザインの作り方」
+     1. トーンのはっきりした色を複数使う … 印刷の4色（シアン・マゼンタ・イエロー・黒）。
+        記事の「POP ART」の作例と同じ組み合わせ。黄色を地にして、マゼンタと水色を差す
+     2. フォントは太めゴシックでインパクト … ロゴ・見出し・ボタン・大きな文字は Dela Gothic One
+     3. 文字自体に装飾をつける … 大きな文字は黒く縁取り、水色の立体の影をつける。
+        札は少し斜めに貼り、吹き出しや丸でくくる
+     4. 丸みをプラス … 角の丸い札とボタン、ふつうの文字は丸ゴシック（M PLUS Rounded 1c）、
+        ふにゃっとした形（流体のシェイプ）と波線
+   ボタンや札などの囲みには黒い線を引かず、下にのぞく濃い色のふち（--lip）で立体にする。
+   大きさや並べ方は上のままにして、見た目だけをここで上書きする。
+   ===================================================================== */
+
+body {
+  background: var(--yellow);
+  font-weight: 700;
+}
+
+/* 画面のすみに、印刷のあみ点（ポップアートの水玉） */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, rgba(229, 0, 127, 0.16) 1.6px, transparent 2px);
+  background-size: 11px 11px;
+  -webkit-mask-image: linear-gradient(155deg, #000 0, transparent 28%, transparent 74%, #000 100%);
+  mask-image: linear-gradient(155deg, #000 0, transparent 28%, transparent 74%, #000 100%);
+  pointer-events: none;
+}
+
+/* 集中線（トップ・スマホを渡す）。画面の上のほうから放射状に広がる */
+.screen--top,
+.screen--pass {
+  position: relative;
+  isolation: isolate;
+}
+
+.screen--top::before,
+.screen--pass::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: var(--burst-y, 15%);
+  z-index: -2;
+  width: 260vmax;
+  height: 260vmax;
+  background: repeating-conic-gradient(rgba(255, 255, 255, 0.38) 0 5deg, transparent 5deg 13deg);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.screen--pass {
+  --burst-y: 40%;
+}
+
+/* ふにゃっとした形（流体のシェイプ）を、うしろに置く */
+.sample__stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.sample__stage::before {
+  content: "";
+  position: absolute;
+  inset: 16% 22% 4% -7%;
+  z-index: -1;
+  border-radius: 62% 38% 54% 46% / 45% 58% 42% 55%;
+  background: var(--accent);
+  rotate: -10deg;
+  pointer-events: none;
+}
+
+/* 右上にも、小さなマゼンタの形 */
+.sample__stage::after {
+  content: "";
+  position: absolute;
+  top: -5%;
+  right: -6%;
+  z-index: -1;
+  width: 34%;
+  aspect-ratio: 1.15 / 1;
+  border-radius: 48% 52% 60% 40% / 55% 45% 55% 45%;
+  background: var(--primary);
+  rotate: 14deg;
+  pointer-events: none;
+}
+
+/* スマホを渡す画面：名前のまわりを、ふにゃっとした水色の形でくくる */
+.pass__card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 24px 22px 26px;
+}
+
+.pass__card::before {
+  content: "";
+  position: absolute;
+  inset: 0 -2%;
+  z-index: -1;
+  border-radius: 58% 42% 50% 50% / 52% 46% 54% 48%;
+  background: var(--accent);
+  rotate: -4deg;
+  pointer-events: none;
+}
+
+.pass__lead {
+  color: var(--ink);
+}
+
+.pass__card .pass__note {
+  background: var(--ink);
+  color: var(--on-color);
+}
+
+/* 名前は1行に収める（--name-len は名前の文字数。js/screen-pass.js・js/screen-round.js で入れる） */
+.pass__name {
+  font-size: min(clamp(2rem, 7vh, 2.75rem), (100vw - 140px) / var(--name-len, 4));
+}
+
+.announce__name {
+  font-size: min(clamp(1.625rem, 5.5vh, 2.25rem), (100vw - 124px) / var(--name-len, 4));
+}
+
+/* ---------- 大きな文字：黒い縁取り＋水色の立体の影（記事の「POP ART」のように） ---------- */
+.hero__title-ja,
+.pass__name,
+.announce__name,
+.reveal__word {
+  font-family: var(--font-display);
+  font-weight: 400;
+  -webkit-text-stroke: var(--stroke, 5px) var(--ink);
+  paint-order: stroke fill;
+  text-shadow: none;
+}
+
+/* ロゴ：マゼンタの文字、水色の立体、白いふち */
+.hero__title-ja {
+  --stroke: 8px;
+  display: inline-flex;
+  color: var(--primary);
+  letter-spacing: 0.01em;
+  filter:
+    drop-shadow(1px 1px 0 var(--accent)) drop-shadow(1px 1px 0 var(--accent))
+    drop-shadow(1px 1px 0 var(--accent)) drop-shadow(1px 1px 0 var(--accent))
+    drop-shadow(1.5px 1.5px 0 var(--ink))
+    drop-shadow(3px 3px 0 var(--surface)) drop-shadow(1.5px 1.5px 0 var(--ink));
+}
+
+.hero__title-ja > span {
+  display: inline-block;
+}
+
+/* 「ッ」は小さい字なので、少し下げる（translate は動きに使うので、top で下げる） */
+.hero__title-ja > span:nth-child(4) {
+  position: relative;
+  top: 0.04em;
+}
+
+/* 名前と答え合わせのワード：白い文字、水色の立体（スマホを渡す画面は、水色の形の上なのでマゼンタ） */
+.pass__name,
+.announce__name,
+.reveal__word {
+  color: var(--surface);
+  filter:
+    drop-shadow(1px 1px 0 var(--extrude, var(--accent))) drop-shadow(1px 1px 0 var(--extrude, var(--accent)))
+    drop-shadow(1px 1px 0 var(--extrude, var(--accent))) drop-shadow(1.5px 1.5px 0 var(--ink));
+}
+
+.pass__name,
+.announce__name {
+  --stroke: 7px;
+}
+
+.pass__name {
+  --extrude: var(--primary);
+}
+
+/* 「さん」：名前と同じ白い文字に、細い縁取り。2つに分かれて折り返さないようにする */
+.pass__name small,
+.announce__name small {
+  display: inline-block;
+  color: var(--surface);
+  white-space: nowrap;
+  -webkit-text-stroke: 4px var(--ink);
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  --lip: var(--paper-lip);
+  border: 0;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+}
+
+.btn--primary {
+  --lip: var(--primary-deep);
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn--secondary {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--lip);
+}
+
+/* 文字だけのボタン：波線を引く */
+.btn--text {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-weight: 900;
+  letter-spacing: 0;
+  text-decoration: underline wavy var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  box-shadow: none;
+}
+
+.btn--text:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 押せないボタンは「待っています」などの知らせなので、ふつうの丸ゴシックで1行に収める */
+.btn:disabled,
+.btn:disabled:active {
+  border: 0;
+  background: rgba(255, 255, 255, 0.5);
+  color: rgba(22, 22, 22, 0.5);
+  font-family: var(--font-round);
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn.btn--sub small {
+  font-family: var(--font-round);
+  font-weight: 800;
+}
+
+.btn--sub.is-confirm {
+  --lip: var(--primary-deep);
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn.btn--small {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--lip);
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.icon-btn {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--paper-lip);
+  font-family: var(--font-display);
+  font-weight: 400;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.icon-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--paper-lip);
+}
+
+.icon-btn:disabled {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+}
+
+/* ---------- タイトルまわり ---------- */
+/* 白い吹き出しでくくる */
+.hero__catch {
+  position: relative;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  rotate: -2deg;
+}
+
+.hero__catch::after {
+  content: "";
+  position: absolute;
+  left: 46%;
+  bottom: -8px;
+  border: 9px solid transparent;
+  border-top-color: var(--surface);
+  border-bottom: 0;
+  border-left-width: 4px;
+}
+
+.hero__title-en {
+  margin-top: 14px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  rotate: 2deg;
+}
+
+.sample__caption,
+.facts {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* 太いゴシックの文字 */
+.head__title,
+.topic__title,
+.sheet__title,
+.waiting__title,
+.announce__topic,
+.count__num,
+.room-code,
+.tray__done,
+.pass__lead,
+.announce__lead {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+/* 小さな札（ジャンル・主役・部屋の番号）：水色の札を少し斜めに貼る */
+.topic__genre,
+.pass__note {
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 900;
+  rotate: -3deg;
+}
+
+.guide,
+.who {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* 右上の「1/5」などは、丸でくくる */
+.head__count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--yellow);
+  font-weight: 900;
+}
+
+/* ---------- マップ（方眼紙。1マスが10。3点はとなりのマスまで） ---------- */
+.map {
+  border: 0;
+  border-radius: 16px;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-position: -1px -1px;
+  background-size: 10% 10%;
+  box-shadow: 0 6px 0 var(--paper-lip);
+}
+
+/* 縦の軸は水色、横の軸はマゼンタ。軸の言葉の札も同じ色 */
+.map__axis--v {
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--accent);
+}
+
+.map__axis--h {
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--primary);
+}
+
+.map__label {
+  padding: 1px 7px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 900;
+  box-shadow: none;
+}
+
+.map__label--left,
+.map__label--right {
+  background: var(--primary);
+  color: var(--on-color);
+}
+
+.map__label--top { top: 7px; }
+.map__label--bottom { bottom: 7px; }
+.map__label--left { left: 7px; }
+.map__label--right { right: 7px; }
+
+/* トップの見本のワード */
+.map__pin {
+  border: 0;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.map--board.is-waiting {
+  box-shadow: 0 6px 0 var(--paper-lip), 0 0 0 4px var(--accent);
+}
+
+.map--board.is-over {
+  box-shadow: 0 6px 0 var(--paper-lip), 0 0 0 4px var(--primary);
+}
+
+.map--board.is-locked {
+  border: 0;
+}
+
+.map--board.is-locked::after {
+  border: 0;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+/* ピン：自分のワードは黒い札。答え合わせの予想は、その人の色の札 */
+.pin__dot {
+  border: 3px solid var(--surface);
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.pin__label {
+  padding: 2px 10px 3px;
+  border: 0;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
+  box-shadow: 0 2px 0 rgba(22, 22, 22, 0.25);
+}
+
+.pin.is-selected .pin__label {
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.pin.is-selected .pin__dot {
+  background: var(--accent);
+}
+
+.map--board.is-locked .pin__label {
+  border: 0;
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 2px 0 var(--accent-deep);
+}
+
+.map--board.is-locked .pin__dot {
+  background: var(--accent);
+}
+
+.pin--answer .pin__label {
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
+  font-weight: 400;
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 0 2px var(--ink);
+}
+
+.pin--answer .pin__dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 2px var(--ink), 0 0 0 7px rgba(229, 0, 127, 0.2);
+}
+
+.pin--guess .pin__label {
+  padding: 1px 8px 2px;
+  border: 0;
+  background: var(--pin-color);
+  color: var(--on-color);
+  box-shadow: 0 2px 0 rgba(22, 22, 22, 0.3);
+}
+
+.pin--guess .pin__dot {
+  background: var(--pin-color);
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.pin__shout {
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 400;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+/* 答え合わせのマップ：名札が重ならないように、置き場所を js/labels.js で決める（left・top は JS で入れる） */
+.pin.pin--free .pin__label {
+  bottom: auto;
+  transform: none;
+}
+
+.pin.pin--free .pin__shout {
+  bottom: auto;
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+/* 名札を点から離したときに、点と名札をつなぐ線（すべてのピンの下の層） */
+.map__lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.map__line {
+  position: absolute;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+}
+
+.ring--close {
+  border: 2px dashed rgba(229, 0, 127, 0.7);
+  background: rgba(255, 214, 10, 0.2);
+}
+
+.ring--near {
+  border: 2.5px solid var(--primary);
+  background: rgba(229, 0, 127, 0.14);
+}
+
+/* ---------- ワードの列 ---------- */
+.chip {
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 0 4px 0 var(--paper-lip);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
+}
+
+/* 下のふちのぶん、列の下に少しすきまを足す */
+.tray {
+  padding-block: 2px 5px;
+}
+
+.chip:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--paper-lip);
+}
+
+.chip.is-selected {
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--accent-deep);
+}
+
+.chip.is-placed {
+  border: 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px rgba(22, 22, 22, 0.22);
+}
+
+.chip.chip--static {
+  border: 0;
+  box-shadow: 0 3px 0 var(--paper-lip);
+}
+
+.tray__done {
+  color: var(--ink);
+}
+
+/* ---------- カード（賞・順位・まとめ・一覧など）：白い紙に、下の濃いふち ---------- */
+.award,
+.summary__row,
+.rank-row,
+.stats-row,
+.invite,
+.name-field,
+.field__input,
+.member,
+.score-chip,
+.segmented {
+  border: 0;
+  background-color: var(--surface);
+  box-shadow: 0 4px 0 var(--paper-lip);
+}
+
+/* 左のはしに、その人の色の帯 */
+.summary__row,
+.rank-row,
+.stats-row {
+  padding-left: 16px;
+  box-shadow: inset 8px 0 0 var(--player-color, var(--primary)), 0 4px 0 var(--paper-lip);
+}
+
+.stats-row {
+  --player-color: var(--accent);
+}
+
+.award {
+  box-shadow: inset 0 6px 0 var(--award-color, var(--primary)), 0 4px 0 var(--paper-lip);
+}
+
+.award--telepathy { --award-color: var(--primary); }
+.award--mysterious { --award-color: #6E36E0; }
+.award--pair { --award-color: var(--accent); }
+.award--zure { --award-color: var(--ink); }
+
+.award__winner,
+.summary__points,
+.rank-row__points,
+.stats-row__word {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+/* 1位：マゼンタの札に白い文字 */
+.rank-row--top {
+  background-color: var(--primary);
+  color: var(--on-color);
+  box-shadow: inset 8px 0 0 var(--yellow), 0 4px 0 var(--primary-deep);
+}
+
+.rank-row--top .rank-row__name,
+.rank-row--top .rank-row__points,
+.rank-row--top .rank-row__rank {
+  color: var(--on-color);
+}
+
+.rank-row--top .rank-row__rank::before {
+  content: "★";
+  margin-right: 2px;
+  color: var(--yellow);
+}
+
+.summary__miss {
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
+}
+
+/* 点数の札：その人の色に白い文字。0点と、まだのものは白 */
+.score-chip {
+  background-color: var(--player-color);
+  color: var(--on-color);
+  box-shadow: 0 3px 0 rgba(22, 22, 22, 0.3);
+}
+
+.score-chip b {
+  color: inherit;
+}
+
+.score-chip--p0,
+.score-chip--pending {
+  background-color: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--player-color);
+}
+
+.score-chip--p0 {
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.score-chip--p3 {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 5px 0 2px var(--ink);
+}
+
+.member {
+  box-shadow: 0 3px 0 var(--paper-lip);
+}
+
+.member.is-done {
+  background-color: #DDF4FF;
+}
+
+.member.is-offline {
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 0 2px rgba(22, 22, 22, 0.2);
+}
+
+.name-field,
+.field__input {
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--paper-lip);
+}
+
+.name-field:focus-within,
+.field__input:focus {
+  border: 0;
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--ink), 0 3px 0 3px var(--ink);
+}
+
+.name-field__num,
+.steps > li::before {
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.segmented {
+  box-shadow: 0 3px 0 var(--paper-lip);
+}
+
+.segmented__item {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.segmented__item.is-on {
+  background: var(--ink);
+  color: var(--yellow);
+}
+
+/* 残り時間の円 */
+.timer {
+  --ring: var(--accent);
+  box-shadow: 0 3px 0 var(--paper-lip);
+}
+
+.timer span {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.timer.is-hurry {
+  --ring: var(--primary);
+}
+
+/* QRコード */
+.qr svg {
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--paper-lip);
+}
+
+/* 別窓 */
+.sheet {
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 0 rgba(22, 22, 22, 0.25);
+}
+
+.sheet::backdrop {
+  background: rgba(22, 22, 22, 0.6);
+}
+
+.share__frame {
+  border: 0;
+  box-shadow: 0 0 0 2px var(--line);
+}
+
+/* お知らせ */
+.toast {
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
+  box-shadow: 0 4px 0 rgba(22, 22, 22, 0.3);
+}
+
+/* =====================================================================
+   演出（動き）。スマホが「動きを減らす」設定のときは出さない。
+   ===================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* 画面の切りかえ：ぽんっと出てくる */
+  .screen.is-entering {
+    animation: screen-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  }
+
+  /* ロゴの文字が1文字ずつはねて出てきて、そのあとは
+     ・波のようにゆっくり上下しつづける
+     ・ときどき1文字ずつ順番に、画面の奥に向かってくるっと1回転する（時計回り） */
+  .hero__title-ja > span {
+    --i: 0;
+    animation:
+      letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) calc(var(--i) * 0.07s) both,
+      logo-wave 3.2s ease-in-out calc(1.2s + var(--i) * 0.16s) infinite,
+      logo-spin 4s linear calc(1.4s + var(--i) * 0.14s) infinite;
+  }
+
+  .hero__title-ja > span:nth-child(2) { --i: 1; }
+  .hero__title-ja > span:nth-child(3) { --i: 2; }
+  .hero__title-ja > span:nth-child(4) { --i: 3; }
+  .hero__title-ja > span:nth-child(5) { --i: 4; }
+
+  .hero__catch {
+    animation: catch-in 0.6s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  }
+
+
+  /* 選んだワードが、ぷるぷるゆれる */
+  .chip.is-selected,
+  .pin.is-selected .pin__label {
+    animation: wiggle 0.45s ease-in-out infinite alternate;
+  }
+
+  /* 「そこ置く!?」が、どきどきする */
+  .pin__shout {
+    animation: shout 0.8s ease-in-out infinite;
+  }
+
+  /* 残りわずか：画面のふちが赤く光る */
+  .screen.is-final {
+    animation: final-glow 1s ease-in-out infinite;
+  }
+
+  .toast {
+    animation: toast-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+  }
+
+  .btn--primary:not(:disabled) {
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+  }
+
+  .btn--primary:not(:disabled):hover {
+    filter: brightness(1.05);
+  }
+}
+
+/* 少し小さい所から大きくなる（下にずらすと、画面の外にはみ出してしまうため） */
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes letter-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.6) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.08) rotate(3deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes catch-in {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.6);
+  }
+}
+
+/* ロゴの文字が、波のようにゆっくり上下する */
+@keyframes logo-wave {
+  0%, 60%, 100% {
+    translate: 0 0;
+  }
+  20% {
+    translate: 0 -6px;
+  }
+  40% {
+    translate: 0 1px;
+  }
+}
+
+/* ロゴの文字が、縦の軸のまわりに1回転する（上から見て時計回り）。回っているあいだは少し大きく。
+   どのブラウザでも同じに回るように、transform に奥行き（perspective）と角度を全部書き、途中の角度もはさむ */
+@keyframes logo-spin {
+  0% {
+    transform: perspective(360px) rotateY(0deg) scale(1);
+  }
+  5% {
+    transform: perspective(360px) rotateY(-120deg) scale(1.2);
+  }
+  10% {
+    transform: perspective(360px) rotateY(-240deg) scale(1.2);
+  }
+  16%,
+  100% {
+    transform: perspective(360px) rotateY(-360deg) scale(1);
+  }
+}
+
+@keyframes wiggle {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes shout {
+  0%, 100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.14;
+  }
+}
+
+@keyframes final-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 0 0 rgba(229, 0, 127, 0);
+  }
+  50% {
+    box-shadow: inset 0 0 0 6px rgba(229, 0, 127, 0.55);
+  }
+}
+
+@keyframes toast-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.7);
+  }
+}
+
+/* 演出の部品（js/fx.js）が使うもの */
+.fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fx-bit {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+}
+
+.fx-bit--star {
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.fx-ripple {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.fx-stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  padding: 4px 18px;
+  border: 4px solid var(--surface);
+  border-radius: 14px;
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 7vw, 2rem);
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  pointer-events: none;
+  box-shadow: 0 0 0 3px var(--primary), 0 6px 0 3px var(--primary-deep);
+}
+
+.fx-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 縦がとても短い画面では、ポップな見た目のふちや文字を少しつめる */
+@media (max-height: 520px) {
+  .end {
+    gap: 8px;
+  }
+
+  .awards {
+    gap: 6px;
+  }
+
+  .award {
+    padding: 4px 8px 5px;
+    box-shadow: inset 0 5px 0 var(--award-color, var(--primary)), 0 3px 0 var(--paper-lip);
+  }
+
+  .award__title {
+    font-size: 0.6875rem;
+  }
+
+  .award__winner {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .award__note {
+    font-size: 0.625rem;
+  }
+
+  .rank-row,
+  .summary__row {
+    padding-left: 13px;
+    box-shadow: inset 6px 0 0 var(--player-color, var(--primary)), 0 3px 0 var(--paper-lip);
+  }
+
+  .rank-row--top {
+    box-shadow: inset 6px 0 0 var(--yellow), 0 3px 0 var(--accent-deep);
+  }
+
+  .ranking--two .rank-row,
+  .summary__list--two .summary__row {
+    padding: 2px 8px 2px 13px;
+  }
+
+  .sheet__title {
+    font-size: 1rem;
+  }
+
+  .sheet .btn {
+    box-shadow: 0 3px 0 var(--lip);
+  }
+}
+
+@media (max-height: 520px) {
+  .steps h3 {
+    font-size: 0.8125rem;
+  }
+
+  .steps p {
+    font-size: 0.6875rem;
+  }
+
+  .sheet__note {
+    font-size: 0.6875rem;
+  }
+}
+
+/* 順位（★1位）と、右上の数（1/5・まとめ）は折り返さない */
+.rank-row__rank,
+.head__count {
+  white-space: nowrap;
+}
+
+.rank-row__rank {
+  width: auto;
+  min-width: 3.4em;
+}
+
+.head__count {
+  font-size: clamp(0.75rem, 3.4vw, 1rem);
+  letter-spacing: -0.02em;
+}
+
+/* 横幅がせまいスマホでは、ワードの札を少しつめて、列を2行に収める（そのぶんマップが大きくなる） */
+@media (max-width: 340px) {
+  .tray {
+    gap: 6px;
+  }
+
+  .chip {
+    padding-inline: 10px;
+  }
+}
+
+/* マップがとても小さいときは、名札の文字を一回り小さくして、マップの中に収める */
+@container (max-height: 210px) {
+  .map--board .pin__label {
+    padding: 2px 7px 4px;
+    font-size: 0.75rem;
+  }
+}
+
+/* =====================================================================
+   答え合わせのドキドキ（スポットライト）
+   ===================================================================== */
+.map__spot-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+/* まるい光の外側を暗くして、スポットライトに見せる */
+.reveal-spot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  aspect-ratio: 1 / 1;
+  border: 4px solid var(--yellow);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 212, 0, 0) 55%, rgba(255, 212, 0, 0.35));
+  box-shadow: 0 0 0 999px rgba(22, 22, 22, 0.55), 0 0 18px 4px rgba(255, 212, 0, 0.8);
+  transform: translate(-50%, -50%);
+  transition: left 0.16s cubic-bezier(0.3, 0.7, 0.4, 1), top 0.16s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.suspense-text {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  z-index: 6;
+  color: var(--yellow);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 6vw, 1.75rem);
+  white-space: nowrap;
+  -webkit-text-stroke: 5px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--ink);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* 「答えを見る！」は、黒地に黄色の文字にして目立たせる */
+.btn.is-answer {
+  --lip: #000000;
+  background: var(--ink);
+  color: var(--yellow);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .suspense-text {
+    animation: heartbeat 0.55s ease-in-out infinite;
+  }
+
+  .btn.is-answer {
+    animation: answer-call 0.9s ease-in-out infinite;
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  30% {
+    transform: translateX(-50%) scale(1.18);
+  }
+  45% {
+    transform: translateX(-50%) scale(1.04);
+  }
+  60% {
+    transform: translateX(-50%) scale(1.14);
+  }
+}
+
+@keyframes answer-call {
+  0%, 100% {
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 0 rgba(229, 0, 127, 0.7);
+  }
+  50% {
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 9px rgba(229, 0, 127, 0);
   }
 }

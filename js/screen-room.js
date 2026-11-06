@@ -2,6 +2,7 @@
 import { showScreen, showToast, el } from './ui.js';
 import { createQrSvg } from './qr.js';
 import { createTimer } from './timer.js';
+import { popIn, burstAt, bump } from './fx.js';
 import { NAME_MAX } from './game.js';
 import { normalizeCode, CODE_LENGTH, MIN_PLAYERS, MAX_PLAYERS } from './room.js';
 
@@ -108,6 +109,8 @@ const lobby = document.querySelector('[data-screen="lobby"]');
 const lobbyPart = (name) => lobby.querySelector(`[data-lobby="${name}"]`);
 let qrFor = '';
 let lobbyHandlers = {};
+let lobbySeen = new Set(); // 待合室で、もう出した人（新しく入った人だけ、ぽんっと出す）
+let lobbyCode = '';
 
 /**
  * 待合室を出す（中身が変わるたびに呼んでよい）。
@@ -136,7 +139,18 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, handlers })
       });
   }
   lobbyPart('count').textContent = members.length;
-  lobbyPart('members').replaceChildren(...members.map((m) => memberChip(m, { isMe: m.uid === uid, isHost: m.isHost })));
+  if (lobbyCode !== code) {
+    lobbyCode = code;
+    lobbySeen = new Set();
+  }
+  const chips = members.map((m) => memberChip(m, { isMe: m.uid === uid, isHost: m.isHost }));
+  lobbyPart('members').replaceChildren(...chips);
+  members.forEach((m, i) => {
+    if (lobbySeen.has(m.uid)) return;
+    lobbySeen.add(m.uid);
+    popIn(chips[i], { from: 'scale(0.2) rotate(-12deg)' });
+    if (m.uid !== uid) window.setTimeout(() => burstAt(chips[i], { count: 8, spread: 36 }), 250);
+  });
 
   // 制限時間：ホストだけが変えられる
   for (const [key, on] of [['time-on', true], ['time-off', false]]) {
@@ -193,6 +207,8 @@ const waitPart = (name) => wait.querySelector(`[data-wait="${name}"]`);
 let waitTimer = null;
 let waitDeadline = null;
 let waitHandlers = {};
+let waitDone = new Set(); // もうロックした人（新しくロックした人だけ、ぽんっと出す）
+let waitKey = '';
 
 /**
  * みんなを待つ画面を出す（中身が変わるたびに呼んでよい）。
@@ -212,7 +228,20 @@ export function showWait({ step, title, text, members, remaining, deadline = nul
   waitPart('step').textContent = step;
   waitPart('title').textContent = title;
   waitPart('text').textContent = text;
-  waitPart('members').replaceChildren(...members.map((m) => memberChip(m, { isMe: m.isMe, isHost: false })));
+  const chips = members.map((m) => memberChip(m, { isMe: m.isMe, isHost: false }));
+  waitPart('members').replaceChildren(...chips);
+  if (waitKey !== `${step}:${title}`) {
+    waitKey = `${step}:${title}`;
+    waitDone = new Set(members.filter((m) => m.done).map((m) => m.name));
+    chips.forEach((chip, i) => popIn(chip, { delay: i * 60 }));
+  } else {
+    members.forEach((m, i) => {
+      if (!m.done || waitDone.has(m.name)) return;
+      waitDone.add(m.name);
+      popIn(chips[i], { from: 'scale(0.4) rotate(8deg)' });
+      window.setTimeout(() => burstAt(chips[i], { count: 8, spread: 34 }), 200);
+    });
+  }
   waitPart('skip').hidden = !canSkip;
 
   if (deadline !== waitDeadline) {
@@ -229,6 +258,7 @@ export function showWait({ step, title, text, members, remaining, deadline = nul
           waitPart('seconds').textContent = left;
           box.style.setProperty('--left', String(Math.min(1, left / (total || 90))));
           box.classList.toggle('is-hurry', left <= 10);
+          if (left <= 10) bump(waitPart('seconds'));
         },
         onEnd: () => {},
       });
@@ -242,6 +272,7 @@ export function stopWait() {
   waitTimer?.stop();
   waitTimer = null;
   waitDeadline = null;
+  waitKey = '';
 }
 
 export { memberChip };

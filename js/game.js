@@ -8,7 +8,7 @@ export const NAME_MAX = 8;
 export const TIME_LIMIT = 90;
 
 // プレイヤーごとの色（白い地の上で見分けやすいもの）
-export const PLAYER_COLORS = ['#2F6FDB', '#1E8F55', '#C2410C', '#7C3AED', '#DB2777', '#0E7490', '#A16207', '#4B5563'];
+export const PLAYER_COLORS = ['#2050E0', '#0E7F45', '#C4470A', '#6E36E0', '#C81D6B', '#0B7285', '#946000', '#4B5563'];
 
 /**
  * 新しいゲームを作る。

@@ -1,12 +1,11 @@
 // 1台のスマホを順番に回して遊ぶゲームの流れ。
-// 名前を入れる → 1人ずつ自分のマップを作る → 主役を順番に回して、ほかの人が予想 → 1ワードずつ答え合わせ → 最終結果
+// 名前を入れる → 主役を順番に回す（主役がマップを作ってロック → ほかの人が順に予想 → 1ワードずつ答え合わせ）→ 最終結果
 import { showToast } from './ui.js';
 import { loadTopics } from './topics.js';
 import { createGame, setMap, setGuess, guessersFor, dealTopic } from './game.js';
 import { askPlayers } from './screen-players.js';
 import { showPass } from './screen-pass.js';
 import { runPlace, stopPlace } from './screen-place.js';
-import { showRound } from './screen-round.js';
 import { showReveal, stopReveal } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
 import { connect } from './net.js';
@@ -71,35 +70,30 @@ async function playOneGame({ names, timeLimit }, topics, step) {
   const game = createGame(names, { timeLimit });
   const count = game.players.length;
 
-  // 1人ずつ、自分のマップを作る
-  for (const [index, player] of game.players.entries()) {
+  // 主役を順番に回す：主役がマップを作ってロック → ほかの人が順に予想 → 答え合わせ
+  for (const [index, main] of game.players.entries()) {
     await step(showPass({
-      player,
-      step: `マップ作り ${index + 1}/${count}`,
-      text: '自分のマップを作る番です',
+      player: main,
+      step: `ラウンド ${index + 1}/${count}・主役`,
+      text: 'あなたが主役！自分のマップを作る番です',
       note: 'ほかの人は画面を見ないでね',
     }));
-    const result = await step(runPlace({
+    const made = await step(runPlace({
       mode: 'make',
-      player,
+      player: main,
       timeLimit: game.timeLimit,
       topic: dealTopic(game, topics),
       reroll: (now) => dealTopic(game, topics, [now.id]),
     }));
-    setMap(game, player.id, result);
-    await step(wait(result.timeUp ? AFTER_TIMEUP_MS : AFTER_LOCK_MS));
-  }
-
-  // 主役を順番に回す
-  for (const [index, main] of game.players.entries()) {
-    const topic = topics.find((t) => t.id === game.maps[main.id].topicId);
-    await step(showRound({ main, topic, round: index + 1, rounds: count }));
+    setMap(game, main.id, made);
+    await step(wait(made.timeUp ? AFTER_TIMEUP_MS : AFTER_LOCK_MS));
+    const topic = topics.find((t) => t.id === made.topicId);
 
     const guessers = guessersFor(game, main.id);
     for (const [g, guesser] of guessers.entries()) {
       await step(showPass({
         player: guesser,
-        step: `ラウンド ${index + 1}・予想 ${g + 1}/${guessers.length}`,
+        step: `ラウンド ${index + 1}/${count}・予想 ${g + 1}/${guessers.length}`,
         text: `${main.name}さんのマップを予想する番です`,
         note: 'ほかの人の予想は見ないでね',
       }));

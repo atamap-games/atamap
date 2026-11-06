@@ -77,21 +77,7 @@ export function toGame(room) {
   return { players, maps, guesses, timeLimit: room?.meta?.timeLimit ?? 0, mains };
 }
 
-/**
- * ゲームのはじめに、全員にちがうお題を配る。
- * @returns {Record<string, number>} uid → お題の id
- */
-export function dealTopics(uids, topics, random = Math.random) {
-  const pool = [...topics];
-  const result = {};
-  for (const uid of uids) {
-    const index = Math.floor(random() * pool.length);
-    result[uid] = pool.splice(index, 1)[0].id;
-  }
-  return result;
-}
-
-/** 引き直しで選ぶお題（ほかの人のお題と、今のお題は選ばない） */
+/** 引き直しで選ぶお題（このゲームで使ったお題と、今のお題は選ばない） */
 export function pickRerollTopic(room, uid, topics, random = Math.random) {
   const used = new Set(Object.values(room?.topics ?? {}));
   const candidates = topics.filter((t) => !used.has(t.id));

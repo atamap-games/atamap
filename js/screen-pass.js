@@ -1,5 +1,6 @@
 // スマホを次の人に渡す画面。前の人の画面を見せないために、あいだにはさむ。
 import { showScreen } from './ui.js';
+import { popIn } from './fx.js';
 
 const screen = document.querySelector('[data-screen="pass"]');
 const part = (name) => screen.querySelector(`[data-pass="${name}"]`);
@@ -17,10 +18,13 @@ let resolveCurrent = null;
 export function showPass({ player, step, text, note = '' }) {
   part('step').textContent = step;
   part('name').textContent = player.name;
+  // 名前が長いときは、1行に収まるように文字を小さくする（css/style.css の --name-len）
+  part('name').parentElement.style.setProperty('--name-len', String(Math.max(3, [...player.name].length)));
   screen.style.setProperty('--player-color', player.color);
   part('text').textContent = text;
   part('note').textContent = note;
   showScreen('pass');
+  popIn(part('name').parentElement, { delay: 120, from: 'scale(0.3) rotate(-10deg)' });
   return new Promise((resolve) => {
     resolveCurrent = resolve;
   });

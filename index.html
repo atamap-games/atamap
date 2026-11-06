@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>アタマップ（ATAMAP）｜友だちの頭の中の地図を当てるパーティーゲーム</title>
   <meta name="description" content="お題の5つのワードを縦×横のマップに置いて、友だちの置き場所を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
-  <meta name="theme-color" content="#FFF7EC">
+  <meta name="theme-color" content="#FFD60A">
   <meta property="og:title" content="アタマップ（ATAMAP）">
   <meta property="og:description" content="友だちの「頭の中の地図」を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
   <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0462A'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22.5' cy='9.5' r='3.5' fill='%23FFD54A'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFD60A'/%3E%3Cpath d='M16 5v22' stroke='%2319B4F0' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M5 16h22' stroke='%23E5007F' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='10' r='4' fill='%23fff' stroke='%23161616' stroke-width='2.5'/%3E%3C/svg%3E">
+  <!-- 文字（Google Fonts）：見出しは太いゴシック、ふつうの文字は丸ゴシック。読み込めないときは、スマホの文字で表示する -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -21,7 +25,7 @@
       <header class="hero">
         <p class="hero__catch">友だちの「頭の中の地図」を当てる</p>
         <h1 class="hero__title">
-          <span class="hero__title-ja">アタマップ</span>
+          <span class="hero__title-ja" aria-label="アタマップ"><span aria-hidden="true">ア</span><span aria-hidden="true">タ</span><span aria-hidden="true">マ</span><span aria-hidden="true">ッ</span><span aria-hidden="true">プ</span></span>
           <span class="hero__title-en">ATAMAP</span>
         </h1>
       </header>
@@ -167,10 +171,12 @@
         <span class="head__space"></span>
       </header>
       <div class="pass">
-        <p class="pass__lead">スマホを渡してね</p>
-        <p class="pass__name"><span data-pass="name"></span><small>さん</small></p>
-        <p class="pass__text" data-pass="text"></p>
-        <p class="pass__note" data-pass="note"></p>
+        <div class="pass__card">
+          <p class="pass__lead">スマホを渡してね</p>
+          <p class="pass__name"><span data-pass="name"></span><small>さん</small></p>
+          <p class="pass__text" data-pass="text"></p>
+          <p class="pass__note" data-pass="note"></p>
+        </div>
       </div>
       <div class="foot">
         <button type="button" class="btn btn--primary" data-action="pass-go">はじめる</button>
@@ -204,12 +210,14 @@
       </div>
     </section>
 
-    <!-- 主役の発表（ラウンドのはじめ） -->
+    <!-- 主役がマップを作っているあいだ（部屋で遊ぶときの、ほかの人の画面） -->
     <section class="screen screen--round" data-screen="round" hidden>
       <header class="head">
-        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
         <p class="head__step" data-round="step"></p>
-        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+        <div class="head__right">
+          <p class="timer" data-round="timer" role="timer" aria-label="残り時間" hidden><span data-round="seconds"></span></p>
+        </div>
       </header>
       <div class="announce">
         <p class="announce__lead">主役は</p>
@@ -218,9 +226,9 @@
       </div>
       <div class="stage" data-round="map"></div>
       <div class="wordlist" data-round="words"></div>
-      <p class="guide">主役の頭の中を、みんなで当てよう！</p>
+      <p class="guide" data-round="guide">ロックしたら、みんなで予想スタート！</p>
       <div class="foot">
-        <button type="button" class="btn btn--primary" data-action="round-go" data-round="go">予想をはじめる</button>
+        <button type="button" class="btn btn--secondary" data-action="round-go" data-round="go" disabled>主役のロックを待っています</button>
       </div>
     </section>
 
@@ -288,16 +296,16 @@
           <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから参加（3〜8人）。</p>
         </li>
         <li>
-          <h3>自分のマップを作る</h3>
-          <p>配られたお題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
+          <h3>主役がマップを作る</h3>
+          <p>順番に交代。お題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
         </li>
         <li>
-          <h3>主役の頭の中を当てる</h3>
-          <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
+          <h3>みんなで予想する</h3>
+          <p>ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
         </li>
         <li>
           <h3>答え合わせ</h3>
-          <p>主役のピンに近いほど高得点。ど真ん中3点、近い1点。「そこ置く!?」</p>
+          <p>予想が出そろったら、主役が答えを発表。ど真ん中3点、近い1点。</p>
         </li>
         <li>
           <h3>表彰</h3>
