@@ -12,7 +12,7 @@ import { endActions } from './screen-end.js';
 import { roomActions } from './screen-room.js';
 import { showStats, statsActions } from './screen-stats.js';
 import { startDemo, stopDemo } from './demo.js';
-import { unlockSound, startBgm, sfx, soundOn, setSoundOn } from './sound.js';
+import { unlockSound, soundReady, startBgm, sfx, soundOn, setSoundOn } from './sound.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
 // ブラウザの「戻る」も効く。ゲームの中の画面の切り替えは flow.js と online.js が受け持つ。
@@ -115,9 +115,15 @@ const actions = {
 };
 
 // 音：スマホは画面を一度さわるまで音を出せないので、最初にさわったときに準備して BGM を流しはじめる
+// スマホによって、音を出してよいと認める操作がちがう（指をはなしたとき・タップしたとき など）ので、
+// 音が出せるようになるまで、どの操作でも準備をためす
 startBgm();
-document.addEventListener('pointerdown', unlockSound, { capture: true });
-document.addEventListener('keydown', unlockSound, { capture: true });
+const UNLOCK_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
+function tryUnlock() {
+  unlockSound();
+  if (soundReady()) UNLOCK_EVENTS.forEach((type) => document.removeEventListener(type, tryUnlock, true));
+}
+UNLOCK_EVENTS.forEach((type) => document.addEventListener(type, tryUnlock, true));
 
 // 「音 オン／オフ」のボタンの見た目を、今の設定に合わせる
 function showSoundState() {

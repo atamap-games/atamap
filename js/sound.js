@@ -57,6 +57,12 @@ export function unlockSound() {
   if (!ctx) {
     const Context = window.AudioContext || window.webkitAudioContext;
     if (!Context) return;
+    // iPhone：ゲームの音として鳴らす（マナーモードのスイッチが入っていても鳴る。消したいときは「音 オフ」）
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch {
+      // 使えないブラウザでは、ふつうに鳴らす
+    }
     try {
       ctx = new Context();
     } catch {
@@ -78,8 +84,24 @@ export function unlockSound() {
       else ctx.resume?.();
     });
   }
-  if (ctx.state === 'suspended') ctx.resume?.();
+  if (ctx.state !== 'running') {
+    // iPhone は、さわったその場で音を一度鳴らさないと、音が出せるようにならないことがある（無音を一瞬だけ鳴らす）
+    try {
+      const silent = ctx.createBufferSource();
+      silent.buffer = ctx.createBuffer(1, 1, 22050);
+      silent.connect(ctx.destination);
+      silent.start(0);
+    } catch {
+      // 鳴らせなくても、つぎにさわったときにもう一度ためす
+    }
+    ctx.resume?.().then(() => bgmWanted && startScheduler()).catch(() => {});
+  }
   if (bgmWanted) startScheduler();
+}
+
+/** 音が出せる状態か（まだなら、つぎにさわったときにもう一度準備する） */
+export function soundReady() {
+  return Boolean(ctx && ctx.state === 'running');
 }
 
 /** BGM を流す（流れていれば、そのまま） */
