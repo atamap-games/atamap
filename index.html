@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>アタマップ（ATAMAP）｜友だちの頭の中の地図を当てるパーティーゲーム</title>
+  <meta name="description" content="お題の5つのワードを縦×横のマップに置いて、友だちの置き場所を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
+  <meta name="theme-color" content="#FFF7EC">
+  <meta property="og:title" content="アタマップ（ATAMAP）">
+  <meta property="og:description" content="友だちの「頭の中の地図」を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0462A'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22.5' cy='9.5' r='3.5' fill='%23FFD54A'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <!-- どの画面も、スマホの画面1枚に収める（スクロールさせない） -->
+  <main id="app">
+    <!-- トップ画面 -->
+    <section class="screen screen--top" data-screen="top">
+      <header class="hero">
+        <p class="hero__catch">友だちの「頭の中の地図」を当てる</p>
+        <h1 class="hero__title">
+          <span class="hero__title-ja">アタマップ</span>
+          <span class="hero__title-en">ATAMAP</span>
+        </h1>
+      </header>
+
+      <!-- マップの見本（お題1「コンビニおにぎり」）。空いている場所に合わせて大きさが変わる -->
+      <figure class="sample">
+        <div class="sample__stage">
+          <div class="map" aria-hidden="true">
+            <span class="map__axis map__axis--v"></span>
+            <span class="map__axis map__axis--h"></span>
+            <span class="map__label map__label--top">好き</span>
+            <span class="map__label map__label--bottom">苦手</span>
+            <span class="map__label map__label--left">最近<br>食べた</span>
+            <span class="map__label map__label--right">食べて<br>ない</span>
+            <span class="map__pin" style="--x: 25; --y: 23;">ツナマヨ</span>
+            <span class="map__pin" style="--x: 42; --y: 40;">鮭</span>
+            <span class="map__pin" style="--x: 72; --y: 24;">明太子</span>
+            <span class="map__pin" style="--x: 30; --y: 72;">梅</span>
+            <span class="map__pin" style="--x: 72; --y: 78;">昆布</span>
+          </div>
+        </div>
+        <figcaption class="sample__caption">例：お題「コンビニおにぎり」</figcaption>
+      </figure>
+
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-action="create-room">部屋を作る</button>
+        <button type="button" class="btn btn--secondary" data-action="join-room">部屋に入る</button>
+      </div>
+
+      <div class="links">
+        <button type="button" class="btn btn--text" data-action="help">遊び方</button>
+        <!-- 部屋の機能ができるまでの、1台のスマホを回して遊ぶ入り口 -->
+        <button type="button" class="btn btn--text" data-action="play-solo">1台で遊ぶ →</button>
+      </div>
+
+      <p class="facts">3〜8人・1ラウンド約3分・インストール不要</p>
+    </section>
+
+    <!-- 部屋を作る・部屋に入るときに、名前（と部屋の番号）を入れる画面 -->
+    <section class="screen screen--entry" data-screen="entry" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <h2 class="head__title" data-entry="title">部屋を作る</h2>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <p class="guide" data-entry="guide">あなたの名前を入れてね</p>
+      <form class="entry" data-entry="form" novalidate>
+        <label class="field" data-entry="code-field">
+          <span class="field__label">部屋の番号（5文字）</span>
+          <input class="field__input field__input--code" id="room-code" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next" placeholder="例：AB3CD">
+        </label>
+        <label class="field">
+          <span class="field__label">名前（8文字まで）</span>
+          <input class="field__input" id="room-name" type="text" maxlength="8" autocomplete="nickname" enterkeyhint="go" placeholder="例：あおい">
+        </label>
+        <p class="entry__error" data-entry="error" role="alert"></p>
+      </form>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="entry-go" data-entry="go">部屋を作る</button>
+      </div>
+    </section>
+
+    <!-- 待合室（QRコードとURLで呼んで、そろったらはじめる） -->
+    <section class="screen screen--lobby" data-screen="lobby" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
+        <div class="topic">
+          <p class="topic__genre">部屋の番号</p>
+          <h2 class="topic__title room-code" data-lobby="code"></h2>
+        </div>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <div class="qr" data-lobby="qr"></div>
+      <div class="invite">
+        <p class="invite__url" data-lobby="url"></p>
+        <button type="button" class="btn btn--secondary btn--small" data-action="lobby-copy">コピー</button>
+      </div>
+      <p class="members-count"><span data-lobby="count">1</span>人（3〜8人で遊べます）</p>
+      <ul class="members" data-lobby="members"></ul>
+      <div class="setting" data-lobby="setting">
+        <p class="setting__label">制限時間</p>
+        <div class="segmented" role="radiogroup" aria-label="制限時間" data-lobby="time">
+          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-on" data-lobby="time-on">90秒</button>
+          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-off" data-lobby="time-off">なし</button>
+        </div>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="lobby-start" data-lobby="start">はじめる</button>
+      </div>
+    </section>
+
+    <!-- みんなを待つ画面（マップ作り・予想のあいだ） -->
+    <section class="screen screen--wait" data-screen="wait" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
+        <p class="head__step" data-wait="step"></p>
+        <div class="head__right">
+          <p class="timer" data-wait="timer" role="timer" aria-label="残り時間" hidden><span data-wait="seconds"></span></p>
+        </div>
+      </header>
+      <div class="waiting">
+        <p class="waiting__title" data-wait="title"></p>
+        <p class="waiting__text" data-wait="text"></p>
+        <ul class="members members--status" data-wait="members"></ul>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn btn--secondary" data-action="wait-skip" data-wait="skip" hidden>待たずに進める</button>
+      </div>
+    </section>
+
+    <!-- 遊ぶ人の名前を入れる画面 -->
+    <section class="screen screen--players" data-screen="players" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <h2 class="head__title">遊ぶ人</h2>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <p class="guide">1台のスマホを、順番に回して遊びます</p>
+      <div class="count">
+        <button type="button" class="icon-btn" data-action="players-minus" aria-label="1人へらす">−</button>
+        <p class="count__num"><span data-players="count">4</span>人</p>
+        <button type="button" class="icon-btn" data-action="players-plus" aria-label="1人ふやす">＋</button>
+      </div>
+      <div class="names" data-players="names"></div>
+      <div class="setting">
+        <p class="setting__label">制限時間</p>
+        <div class="segmented" role="radiogroup" aria-label="制限時間">
+          <button type="button" class="segmented__item" role="radio" data-action="time-on" data-players="time-on">90秒</button>
+          <button type="button" class="segmented__item" role="radio" data-action="time-off" data-players="time-off">なし</button>
+        </div>
+      </div>
+      <p class="note">この順番で主役になります（名前は8文字まで）</p>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="players-start">はじめる</button>
+      </div>
+    </section>
+
+    <!-- スマホを次の人に渡す画面 -->
+    <section class="screen screen--pass" data-screen="pass" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <p class="head__step" data-pass="step"></p>
+        <span class="head__space"></span>
+      </header>
+      <div class="pass">
+        <p class="pass__lead">スマホを渡してね</p>
+        <p class="pass__name"><span data-pass="name"></span><small>さん</small></p>
+        <p class="pass__text" data-pass="text"></p>
+        <p class="pass__note" data-pass="note"></p>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="pass-go">はじめる</button>
+      </div>
+    </section>
+
+    <!-- ワードを置く画面（自分のマップを作る・主役のマップを予想する） -->
+    <section class="screen screen--place" data-screen="place" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <div class="topic">
+          <p class="topic__genre" data-place="genre"></p>
+          <h2 class="topic__title" data-place="title"></h2>
+        </div>
+        <div class="head__right">
+          <p class="timer" data-place="timer" role="timer" aria-label="残り時間" hidden><span data-place="seconds">90</span></p>
+          <button type="button" class="icon-btn" data-action="help" data-place="help" aria-label="遊び方">?</button>
+        </div>
+      </header>
+
+      <p class="who" data-place="who"></p>
+      <p class="guide" data-place="guide" aria-live="polite"></p>
+
+      <div class="board" data-place="board"></div>
+
+      <div class="foot">
+        <div class="actions actions--split" data-place="actions">
+          <button type="button" class="btn btn--secondary btn--sub" data-action="reroll">引き直す<small>あと1回</small></button>
+          <button type="button" class="btn btn--primary" data-action="lock" disabled>あと5つ置いてね</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 主役の発表（ラウンドのはじめ） -->
+    <section class="screen screen--round" data-screen="round" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <p class="head__step" data-round="step"></p>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <div class="announce">
+        <p class="announce__lead">主役は</p>
+        <p class="announce__name"><span data-round="name"></span><small>さん</small></p>
+        <p class="announce__topic"><span class="topic__genre" data-round="genre"></span> <span data-round="title"></span></p>
+      </div>
+      <div class="stage" data-round="map"></div>
+      <div class="wordlist" data-round="words"></div>
+      <p class="guide">主役の頭の中を、みんなで当てよう！</p>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="round-go" data-round="go">予想をはじめる</button>
+      </div>
+    </section>
+
+    <!-- 答え合わせ（1ワードずつ） -->
+    <section class="screen screen--reveal" data-screen="reveal" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="ゲームを終わる">←</button>
+        <div class="topic">
+          <p class="topic__genre" data-reveal="who"></p>
+          <h2 class="topic__title" data-reveal="title"></h2>
+        </div>
+        <p class="head__count" data-reveal="count"></p>
+      </header>
+      <p class="reveal__word" data-reveal="word"></p>
+      <div class="stage" data-reveal="map"></div>
+      <div class="scores" data-reveal="scores"></div>
+      <div class="summary" data-reveal="summary" hidden></div>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="reveal-next">次のワード</button>
+      </div>
+    </section>
+
+    <!-- 最終結果 -->
+    <section class="screen screen--end" data-screen="end" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="end-home" aria-label="トップへ">←</button>
+        <h2 class="head__title">最終結果</h2>
+        <span class="head__space"></span>
+      </header>
+      <div class="end" data-end="body"></div>
+      <div class="foot">
+        <div class="actions actions--split">
+          <button type="button" class="btn btn--secondary" data-action="end-again" data-end="again">もう一度</button>
+          <button type="button" class="btn btn--primary" data-action="end-share">結果画像</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- お題の見直し（作る人向け。アドレスの最後に #stats を付けて開く） -->
+    <section class="screen screen--stats" data-screen="stats" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <h2 class="head__title">お題の見直し</h2>
+        <span class="head__space"></span>
+      </header>
+      <p class="stats__summary" data-stats="summary">読み込んでいます…</p>
+      <p class="note" data-stats="note"></p>
+      <ol class="stats__list" data-stats="list"></ol>
+      <div class="foot">
+        <div class="actions actions--row">
+          <button type="button" class="btn btn--secondary" data-action="stats-prev">前へ</button>
+          <button type="button" class="btn btn--secondary" data-action="stats-next">次へ</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 遊び方（別窓） -->
+  <dialog class="sheet" id="howto" aria-labelledby="howto-title">
+    <div class="sheet__body">
+      <h2 id="howto-title" class="sheet__title">遊び方</h2>
+      <ol class="steps">
+        <li>
+          <h3>部屋に集まる</h3>
+          <p>ひとりが「部屋を作る」。ほかの人は<span class="nowrap">QRコード</span>かURLから参加（3〜8人）。</p>
+        </li>
+        <li>
+          <h3>自分のマップを作る</h3>
+          <p>配られたお題の5つのワードを、自分の感覚でマップに置く（90秒）。</p>
+        </li>
+        <li>
+          <h3>主役の頭の中を当てる</h3>
+          <p>順番にひとりが主役。ほかの全員が「主役ならココらへん」とピンを置く（90秒）。</p>
+        </li>
+        <li>
+          <h3>答え合わせ</h3>
+          <p>主役のピンに近いほど高得点。ど真ん中3点、近い1点。「そこ置く!?」</p>
+        </li>
+        <li>
+          <h3>表彰</h3>
+          <p>全員が主役をしたら、合計点と賞を発表。結果の画像を投稿できる。</p>
+        </li>
+      </ol>
+      <p class="sheet__note">最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
+      <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- 結果画像（別窓） -->
+  <dialog class="sheet" id="share" aria-labelledby="share-title">
+    <div class="sheet__body">
+      <h2 id="share-title" class="sheet__title">結果画像</h2>
+      <div class="share__frame">
+        <img class="share__image" data-share="image" alt="今日のズレ大賞のマップと、みんなの賞をまとめた画像">
+      </div>
+      <p class="sheet__text" data-share="note"></p>
+      <button type="button" class="btn btn--primary" data-action="share-image" data-share="save">画像を保存</button>
+      <a class="btn btn--secondary btn--link" data-share="x" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener">Xに投稿する</a>
+      <button type="button" class="btn btn--text" data-action="close-share">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- ゲームを終わるか確かめる別窓 -->
+  <dialog class="sheet sheet--small" id="quit" aria-labelledby="quit-title">
+    <div class="sheet__body">
+      <h2 id="quit-title" class="sheet__title" data-quit="title">ゲームを終わりますか？</h2>
+      <p class="sheet__text" data-quit="text">ここまでの結果は消えます。</p>
+      <div class="actions actions--row">
+        <button type="button" class="btn btn--primary" data-action="quit-confirm" data-quit="ok">終わる</button>
+        <button type="button" class="btn btn--secondary" data-action="quit-cancel">続ける</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript>
+    <p class="noscript">このゲームで遊ぶには、ブラウザの JavaScript をオンにしてください。</p>
+  </noscript>
+</body>
+</html>

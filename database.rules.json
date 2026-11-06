@@ -1,0 +1,49 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        "meta": {
+          ".write": "auth != null && (data.exists() ? data.child('hostUid').val() === auth.uid : newData.child('hostUid').val() === auth.uid)",
+          ".validate": "$code.matches(/^[A-Z2-9]{5}$/) && newData.hasChildren(['hostUid', 'createdAt', 'status'])"
+        },
+        "state": {
+          ".write": "auth != null && root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid"
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 8"
+          }
+        },
+        "topics": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "maps": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)"
+          }
+        },
+        "guesses": {
+          "$main": {
+            "$uid": {
+              ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)"
+            }
+          }
+        }
+      }
+    },
+    "stats": {
+      ".read": "auth != null",
+      "$topicId": {
+        "$entry": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "$topicId.matches(/^[0-9]{1,3}$/) && newData.hasChildren(['p', 'at']) && newData.child('p').hasChildren(['0', '1', '2', '3', '4'])"
+        }
+      }
+    }
+  }
+}
