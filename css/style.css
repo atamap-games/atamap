@@ -3,39 +3,39 @@
    空いている高さに合わせて、マップの大きさを変える。収まらないものは別窓（.sheet）に出す。 */
 
 :root {
-  /* ポップな見た目：明るい地に、太いふちどりとずらした影（シールのような形） */
-  --bg: #FFF3D1;
-  --bg-dot: #FFE6A3;
+  /* ポップな見た目：印刷の4色（シアン・マゼンタ・イエロー・黒）と白。くわしくは下の「見た目（ポップ）」 */
+  --bg: #FFD60A;
   --surface: #FFFFFF;
-  --ink: #22203A;
-  --ink-soft: #57536B;
-  --line: #E9DABA;
-  --axis: #C9B994;
-  --primary: #F24E2E;
-  --primary-dark: #22203A;
-  --accent: #0E7F6A;
-  --accent-soft: #D3F5EC;
-  --yellow: #FFD23F;
-  --mint: #3DDBB0;
-  --pink: #FF7EB6;
-  --sky: #59B7FF;
-  --purple: #8B6CFF;
+  --ink: #161616;
+  --ink-soft: #4F4B45;
+  --line: #E4E4E4;
+  --grid: #E6EAF2;
+  --axis: #161616;
+  /* マゼンタ：大きなボタン・答え・残りわずか・まちがい */
+  --primary: #E5007F;
+  --primary-deep: #9E0058;
+  --primary-dark: #161616;
+  /* シアン（水色）：えらんだもの・ロックしたもの・立体の影。上に乗せる文字は黒 */
+  --accent: #19B4F0;
+  --accent-deep: #0A7FB0;
+  --accent-soft: #D7F2FF;
+  --yellow: #FFD60A;
+  --mint: #00B26A;
+  --pink: #E5007F;
+  --sky: #19B4F0;
+  --purple: #6E36E0;
   --on-color: #FFFFFF;
-  --shade: rgba(34, 32, 58, 0.18);
-  --outline: 3px solid var(--ink);
-  --pop-shadow: 0 4px 0 var(--ink);
-  --radius: 18px;
-  /* マップの4つの角のうすい色（左上・右上・左下・右下） */
-  --q-tl: #FFF6D6;
-  --q-tr: #FFEAF3;
-  --q-bl: #E6FAF3;
-  --q-br: #E8F4FF;
+  --shade: rgba(22, 22, 22, 0.18);
+  /* 黄色の地に置いた白い紙の、下にのぞくふち */
+  --paper-lip: #CC9600;
+  --radius: 16px;
   /* 画面の高さに合わせて変わる大きさ */
   --btn-h: clamp(46px, 8.5vh, 56px);
   --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic", "Meiryo", sans-serif;
   --font-round: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
-  /* タイトルやボタンに使う、ポップな文字 */
-  --font-pop: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  /* 見出し・ボタン・大きな文字に使う、太いゴシック */
+  --font-display: "Dela Gothic One", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  --font-pop: var(--font-display);
   color-scheme: light;
 }
 
@@ -1904,282 +1904,529 @@ button {
 }
 
 /* =====================================================================
-   ポップな見た目（色・ふちどり・影・文字）
+   見た目（ポップ）
+   参考：株式会社SPC「ポップな印象のデザインの作り方」
+     1. トーンのはっきりした色を複数使う … 印刷の4色（シアン・マゼンタ・イエロー・黒）。
+        記事の「POP ART」の作例と同じ組み合わせ。黄色を地にして、マゼンタと水色を差す
+     2. フォントは太めゴシックでインパクト … ロゴ・見出し・ボタン・大きな文字は Dela Gothic One
+     3. 文字自体に装飾をつける … 大きな文字は黒く縁取り、水色の立体の影をつける。
+        札は少し斜めに貼り、吹き出しや丸でくくる
+     4. 丸みをプラス … 角の丸い札とボタン、ふつうの文字は丸ゴシック（M PLUS Rounded 1c）、
+        ふにゃっとした形（流体のシェイプ）と波線
+   ボタンや札などの囲みには黒い線を引かず、下にのぞく濃い色のふち（--lip）で立体にする。
    大きさや並べ方は上のままにして、見た目だけをここで上書きする。
    ===================================================================== */
 
-/* 水玉もようの背景 */
 body {
-  background-color: var(--bg);
-  background-image: radial-gradient(var(--bg-dot) 2.2px, transparent 2.6px);
-  background-size: 22px 22px;
-  font-weight: 500;
-}
-
-/* ---------- ボタン ---------- */
-.btn {
-  border: var(--outline);
-  font-family: var(--font-pop);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
-}
-
-.btn--primary {
-  border: var(--outline);
-  background: var(--primary);
-  color: var(--on-color);
-  box-shadow: 0 5px 0 var(--ink);
-  text-shadow: 0 2px 0 rgba(34, 32, 58, 0.25);
-}
-
-.btn--secondary {
-  border: var(--outline);
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 5px 0 var(--ink);
-}
-
-.btn:active,
-.btn--secondary:active {
-  transform: translateY(4px) scale(0.98);
-  box-shadow: 0 1px 0 var(--ink);
-}
-
-.btn--text {
-  border: 0;
-  font-family: var(--font-round);
-  font-weight: 800;
-  text-decoration-style: wavy;
-  text-decoration-thickness: 2px;
-  box-shadow: none;
-}
-
-.btn:disabled {
-  border: 3px solid #D9C9A6;
-  background: #F1E6CC;
-  color: var(--ink-soft);
-  text-shadow: none;
-  box-shadow: none;
-}
-
-.btn.btn--sub small {
-  font-family: var(--font-round);
-}
-
-.btn--sub.is-confirm {
-  border-color: var(--ink);
   background: var(--yellow);
-  box-shadow: 0 5px 0 var(--ink);
+  font-weight: 700;
 }
 
-.btn.btn--small {
-  border: var(--outline);
-  box-shadow: 0 3px 0 var(--ink);
-  font-family: var(--font-pop);
-  font-weight: 400;
+/* 画面のすみに、印刷のあみ点（ポップアートの水玉） */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, rgba(229, 0, 127, 0.16) 1.6px, transparent 2px);
+  background-size: 11px 11px;
+  -webkit-mask-image: linear-gradient(155deg, #000 0, transparent 28%, transparent 74%, #000 100%);
+  mask-image: linear-gradient(155deg, #000 0, transparent 28%, transparent 74%, #000 100%);
+  pointer-events: none;
 }
 
-.icon-btn {
-  border: var(--outline);
-  background: var(--surface);
+/* 集中線（トップ・スマホを渡す）。画面の上のほうから放射状に広がる */
+.screen--top,
+.screen--pass {
+  position: relative;
+  isolation: isolate;
+}
+
+.screen--top::before,
+.screen--pass::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: var(--burst-y, 15%);
+  z-index: -2;
+  width: 260vmax;
+  height: 260vmax;
+  background: repeating-conic-gradient(rgba(255, 255, 255, 0.38) 0 5deg, transparent 5deg 13deg);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.screen--pass {
+  --burst-y: 40%;
+}
+
+/* ふにゃっとした形（流体のシェイプ）を、うしろに置く */
+.sample__stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.sample__stage::before {
+  content: "";
+  position: absolute;
+  inset: 16% 22% 4% -7%;
+  z-index: -1;
+  border-radius: 62% 38% 54% 46% / 45% 58% 42% 55%;
+  background: var(--accent);
+  rotate: -10deg;
+  pointer-events: none;
+}
+
+/* 右上にも、小さなマゼンタの形 */
+.sample__stage::after {
+  content: "";
+  position: absolute;
+  top: -5%;
+  right: -6%;
+  z-index: -1;
+  width: 34%;
+  aspect-ratio: 1.15 / 1;
+  border-radius: 48% 52% 60% 40% / 55% 45% 55% 45%;
+  background: var(--primary);
+  rotate: 14deg;
+  pointer-events: none;
+}
+
+/* スマホを渡す画面：名前のまわりを、ふにゃっとした水色の形でくくる */
+.pass__card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 24px 22px 26px;
+}
+
+.pass__card::before {
+  content: "";
+  position: absolute;
+  inset: 0 -2%;
+  z-index: -1;
+  border-radius: 58% 42% 50% 50% / 52% 46% 54% 48%;
+  background: var(--accent);
+  rotate: -4deg;
+  pointer-events: none;
+}
+
+.pass__lead {
   color: var(--ink);
-  box-shadow: 0 3px 0 var(--ink);
-  font-family: var(--font-pop);
-  font-weight: 400;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
-.icon-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--ink);
-}
-
-.icon-btn:disabled {
-  border-color: #D9C9A6;
-  box-shadow: none;
-}
-
-/* ---------- タイトルまわり ---------- */
-.hero__catch {
-  padding: 3px 14px;
-  border: 2px solid var(--ink);
+.pass__card .pass__note {
   background: var(--ink);
-  color: var(--yellow);
-  font-weight: 800;
-  transform: rotate(-2deg);
+  color: var(--on-color);
 }
 
-/* ロゴ：1文字ずつ色を変え、太いふちと影をつける */
-.hero__title-ja {
-  display: inline-flex;
-  font-family: var(--font-pop);
+/* 名前は1行に収める（--name-len は名前の文字数。js/screen-pass.js・js/screen-round.js で入れる） */
+.pass__name {
+  font-size: min(clamp(2rem, 7vh, 2.75rem), (100vw - 140px) / var(--name-len, 4));
+}
+
+.announce__name {
+  font-size: min(clamp(1.625rem, 5.5vh, 2.25rem), (100vw - 124px) / var(--name-len, 4));
+}
+
+/* ---------- 大きな文字：黒い縁取り＋水色の立体の影（記事の「POP ART」のように） ---------- */
+.hero__title-ja,
+.pass__name,
+.announce__name,
+.reveal__word {
+  font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--primary);
-  -webkit-text-stroke: 3px var(--ink);
+  -webkit-text-stroke: var(--stroke, 5px) var(--ink);
   paint-order: stroke fill;
-  text-shadow: 0 5px 0 var(--ink);
+  text-shadow: none;
+}
+
+/* ロゴ：マゼンタの文字、水色の立体、白いふち */
+.hero__title-ja {
+  --stroke: 8px;
+  display: inline-flex;
+  color: var(--primary);
+  letter-spacing: 0.01em;
+  filter:
+    drop-shadow(1px 1px 0 var(--accent)) drop-shadow(1px 1px 0 var(--accent))
+    drop-shadow(1px 1px 0 var(--accent)) drop-shadow(1px 1px 0 var(--accent))
+    drop-shadow(1.5px 1.5px 0 var(--ink))
+    drop-shadow(3px 3px 0 var(--surface)) drop-shadow(1.5px 1.5px 0 var(--ink));
 }
 
 .hero__title-ja > span {
   display: inline-block;
 }
 
-.hero__title-ja > span:nth-child(1) { color: var(--primary); }
-.hero__title-ja > span:nth-child(2) { color: var(--yellow); }
-.hero__title-ja > span:nth-child(3) { color: var(--sky); }
-.hero__title-ja > span:nth-child(4) { color: var(--mint); }
-.hero__title-ja > span:nth-child(5) { color: var(--pink); }
-
-.hero__title-en {
-  margin-top: 6px;
-  font-family: var(--font-pop);
-  font-weight: 400;
-  color: var(--ink);
+/* 「ッ」は小さい字なので、少し下げる */
+.hero__title-ja > span:nth-child(4) {
+  translate: 0 0.04em;
 }
 
+/* 名前と答え合わせのワード：白い文字、水色の立体（スマホを渡す画面は、水色の形の上なのでマゼンタ） */
+.pass__name,
+.announce__name,
+.reveal__word {
+  color: var(--surface);
+  filter:
+    drop-shadow(1px 1px 0 var(--extrude, var(--accent))) drop-shadow(1px 1px 0 var(--extrude, var(--accent)))
+    drop-shadow(1px 1px 0 var(--extrude, var(--accent))) drop-shadow(1.5px 1.5px 0 var(--ink));
+}
+
+.pass__name,
+.announce__name {
+  --stroke: 7px;
+}
+
+.pass__name {
+  --extrude: var(--primary);
+}
+
+/* 「さん」：名前と同じ白い文字に、細い縁取り。2つに分かれて折り返さないようにする */
+.pass__name small,
+.announce__name small {
+  display: inline-block;
+  color: var(--surface);
+  white-space: nowrap;
+  -webkit-text-stroke: 4px var(--ink);
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  --lip: var(--paper-lip);
+  border: 0;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+}
+
+.btn--primary {
+  --lip: var(--primary-deep);
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn--secondary {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--lip);
+}
+
+/* 文字だけのボタン：波線を引く */
+.btn--text {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-weight: 900;
+  letter-spacing: 0;
+  text-decoration: underline wavy var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  box-shadow: none;
+}
+
+.btn--text:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 押せないボタンは「待っています」などの知らせなので、ふつうの丸ゴシックで1行に収める */
+.btn:disabled,
+.btn:disabled:active {
+  border: 0;
+  background: rgba(255, 255, 255, 0.5);
+  color: rgba(22, 22, 22, 0.5);
+  font-family: var(--font-round);
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn.btn--sub small {
+  font-family: var(--font-round);
+  font-weight: 800;
+}
+
+.btn--sub.is-confirm {
+  --lip: var(--primary-deep);
+  background: var(--primary);
+  color: var(--on-color);
+  box-shadow: 0 5px 0 var(--lip);
+}
+
+.btn.btn--small {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--lip);
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.icon-btn {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--paper-lip);
+  font-family: var(--font-display);
+  font-weight: 400;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.icon-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--paper-lip);
+}
+
+.icon-btn:disabled {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+}
+
+/* ---------- タイトルまわり ---------- */
+/* 白い吹き出しでくくる */
+.hero__catch {
+  position: relative;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  rotate: -2deg;
+}
+
+.hero__catch::after {
+  content: "";
+  position: absolute;
+  left: 46%;
+  bottom: -8px;
+  border: 9px solid transparent;
+  border-top-color: var(--surface);
+  border-bottom: 0;
+  border-left-width: 4px;
+}
+
+.hero__title-en {
+  margin-top: 14px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  rotate: 2deg;
+}
+
+.sample__caption,
+.facts {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* 太いゴシックの文字 */
 .head__title,
 .topic__title,
 .sheet__title,
-.reveal__word,
 .waiting__title,
-.done__title,
 .announce__topic,
 .count__num,
-.room-code {
-  font-family: var(--font-pop);
+.room-code,
+.tray__done,
+.pass__lead,
+.announce__lead {
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
+/* 小さな札（ジャンル・主役・部屋の番号）：水色の札を少し斜めに貼る */
 .topic__genre,
 .pass__note {
-  border: 2px solid var(--ink);
-  background: var(--mint);
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 900;
+  rotate: -3deg;
+}
+
+.guide,
+.who {
   color: var(--ink);
   font-weight: 800;
 }
 
-.guide {
-  font-weight: 800;
+/* 右上の「1/5」などは、丸でくくる */
+.head__count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--yellow);
+  font-weight: 900;
 }
 
-/* ---------- マップ ---------- */
+/* ---------- マップ（方眼紙。1マスが10。3点はとなりのマスまで） ---------- */
 .map {
-  border: var(--outline);
-  border-radius: 22px;
-  background: conic-gradient(var(--q-tr) 0 25%, var(--q-br) 0 50%, var(--q-bl) 0 75%, var(--q-tl) 0);
-  box-shadow: 0 6px 0 var(--ink);
+  border: 0;
+  border-radius: 16px;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-position: -1px -1px;
+  background-size: 10% 10%;
+  box-shadow: 0 6px 0 var(--paper-lip);
 }
 
+/* 縦の軸は水色、横の軸はマゼンタ。軸の言葉の札も同じ色 */
 .map__axis--v {
   width: 3px;
   margin-left: -1.5px;
-  background: repeating-linear-gradient(to bottom, var(--axis) 0 9px, transparent 9px 15px);
+  background: var(--accent);
 }
 
 .map__axis--h {
   height: 3px;
   margin-top: -1.5px;
-  background: repeating-linear-gradient(to right, var(--axis) 0 9px, transparent 9px 15px);
+  background: var(--primary);
 }
 
 .map__label {
   padding: 1px 7px;
-  border-radius: 999px;
-  background: var(--surface);
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
   color: var(--ink);
-  font-weight: 800;
-  box-shadow: 0 0 0 2px var(--ink);
+  font-weight: 900;
+  box-shadow: none;
 }
 
-.map__label--top { top: 8px; }
-.map__label--bottom { bottom: 8px; }
-.map__label--left { left: 8px; }
-.map__label--right { right: 8px; }
+.map__label--left,
+.map__label--right {
+  background: var(--primary);
+  color: var(--on-color);
+}
 
+.map__label--top { top: 7px; }
+.map__label--bottom { bottom: 7px; }
+.map__label--left { left: 7px; }
+.map__label--right { right: 7px; }
+
+/* トップの見本のワード */
 .map__pin {
-  border: 2.5px solid var(--ink);
+  border: 0;
+  background: var(--ink);
+  color: var(--on-color);
   font-weight: 800;
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: none;
 }
-
-.sample .map__pin:nth-of-type(odd) { background: #FFF1B8; }
-.sample .map__pin:nth-of-type(even) { background: #FFE0EE; }
 
 .map--board.is-waiting {
-  box-shadow: 0 6px 0 var(--ink), 0 0 0 5px var(--yellow);
+  box-shadow: 0 6px 0 var(--paper-lip), 0 0 0 4px var(--accent);
 }
 
 .map--board.is-over {
-  border-color: var(--ink);
-  box-shadow: 0 6px 0 var(--ink), 0 0 0 5px var(--mint);
+  box-shadow: 0 6px 0 var(--paper-lip), 0 0 0 4px var(--primary);
 }
 
 .map--board.is-locked {
-  border-color: var(--ink);
+  border: 0;
 }
 
 .map--board.is-locked::after {
-  border: 2px solid var(--ink);
-  background: var(--mint);
+  border: 0;
+  background: var(--accent);
   color: var(--ink);
-  font-weight: 800;
+  font-weight: 900;
 }
 
-/* ピン：白い名札に太いふち。点は白いふちと黒い線で目立たせる */
+/* ピン：自分のワードは黒い札。答え合わせの予想は、その人の色の札 */
 .pin__dot {
   border: 3px solid var(--surface);
-  box-shadow: 0 0 0 2.5px var(--ink), 0 3px 0 2px var(--ink);
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 
 .pin__label {
-  border: 2.5px solid var(--ink);
-  background: var(--surface);
+  padding: 2px 10px 3px;
+  border: 0;
+  background: var(--ink);
+  color: var(--on-color);
   font-weight: 800;
-  box-shadow: inset 0 -4px 0 var(--pin-color, var(--primary)), 0 3px 0 var(--ink);
-  padding-bottom: 5px;
+  box-shadow: 0 2px 0 rgba(22, 22, 22, 0.25);
 }
 
 .pin.is-selected .pin__label {
-  background: var(--yellow);
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.pin.is-selected .pin__dot {
+  background: var(--accent);
 }
 
 .map--board.is-locked .pin__label {
-  border-color: var(--ink);
-  box-shadow: inset 0 -4px 0 var(--mint), 0 3px 0 var(--ink);
+  border: 0;
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 2px 0 var(--accent-deep);
 }
 
 .map--board.is-locked .pin__dot {
-  background: var(--mint);
+  background: var(--accent);
 }
 
 .pin--answer .pin__label {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--yellow);
-  box-shadow: 0 3px 0 var(--primary);
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
+  font-weight: 400;
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 0 2px var(--ink);
 }
 
 .pin--answer .pin__dot {
   background: var(--primary);
-  box-shadow: 0 0 0 3px var(--ink), 0 0 0 7px rgba(242, 78, 46, 0.25);
+  box-shadow: 0 0 0 2px var(--ink), 0 0 0 7px rgba(229, 0, 127, 0.2);
 }
 
 .pin--guess .pin__label {
-  border-width: 2px;
-  padding-bottom: 3px;
-  box-shadow: inset 0 -3px 0 var(--pin-color), 0 2px 0 var(--ink);
+  padding: 1px 8px 2px;
+  border: 0;
+  background: var(--pin-color);
+  color: var(--on-color);
+  box-shadow: 0 2px 0 rgba(22, 22, 22, 0.3);
 }
 
 .pin--guess .pin__dot {
-  box-shadow: 0 0 0 2px var(--ink);
+  background: var(--pin-color);
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 
 .pin__shout {
-  border: 2.5px solid var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
   background: var(--yellow);
-  font-family: var(--font-pop);
+  color: var(--ink);
+  font-family: var(--font-display);
   font-weight: 400;
   box-shadow: 0 3px 0 var(--ink);
 }
@@ -2213,63 +2460,58 @@ body {
 }
 
 .ring--close {
-  border: 2px dashed rgba(242, 78, 46, 0.6);
-  background: rgba(255, 210, 63, 0.22);
+  border: 2px dashed rgba(229, 0, 127, 0.7);
+  background: rgba(255, 214, 10, 0.2);
 }
 
 .ring--near {
-  border: 2.5px solid rgba(242, 78, 46, 0.8);
-  background: rgba(242, 78, 46, 0.18);
+  border: 2.5px solid var(--primary);
+  background: rgba(229, 0, 127, 0.14);
 }
 
 /* ---------- ワードの列 ---------- */
 .chip {
-  border: var(--outline);
+  border: 0;
+  border-radius: 12px;
   background: var(--surface);
+  color: var(--ink);
   font-weight: 800;
-  box-shadow: 0 4px 0 var(--ink);
+  box-shadow: 0 4px 0 var(--paper-lip);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
 }
 
-/* かたむけたぶん、列の上下に少しすきまを足す */
+/* 下のふちのぶん、列の下に少しすきまを足す */
 .tray {
-  padding-block: 3px 5px;
+  padding-block: 2px 5px;
 }
 
-/* 少しずつかたむけて、カードを並べたように見せる */
-.tray .chip:nth-of-type(4n + 1) { rotate: -2deg; }
-.tray .chip:nth-of-type(4n + 2) { rotate: 1.5deg; }
-.tray .chip:nth-of-type(4n + 3) { rotate: -1deg; }
-.tray .chip:nth-of-type(4n) { rotate: 2deg; }
-
 .chip:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 var(--ink);
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--paper-lip);
 }
 
 .chip.is-selected {
-  background: var(--yellow);
-  box-shadow: 0 4px 0 var(--ink), 0 0 0 4px rgba(255, 210, 63, 0.5);
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--accent-deep);
 }
 
 .chip.is-placed {
-  border: 3px dashed #D9C9A6;
+  border: 0;
   background: transparent;
-  box-shadow: none;
-  rotate: 0deg;
+  box-shadow: inset 0 0 0 2px rgba(22, 22, 22, 0.22);
 }
 
 .chip.chip--static {
-  border-width: 2.5px;
-  box-shadow: 0 3px 0 var(--ink);
+  border: 0;
+  box-shadow: 0 3px 0 var(--paper-lip);
 }
 
 .tray__done {
-  font-family: var(--font-pop);
-  font-weight: 400;
+  color: var(--ink);
 }
 
-/* ---------- カード（賞・順位・まとめ・一覧など） ---------- */
+/* ---------- カード（賞・順位・まとめ・一覧など）：白い紙に、下の濃いふち ---------- */
 .award,
 .summary__row,
 .rank-row,
@@ -2278,103 +2520,137 @@ body {
 .name-field,
 .field__input,
 .member,
-.score-chip {
-  border: var(--outline);
-  box-shadow: 0 4px 0 var(--ink);
+.score-chip,
+.segmented {
+  border: 0;
+  background-color: var(--surface);
+  box-shadow: 0 4px 0 var(--paper-lip);
 }
 
+/* 左のはしに、その人の色の帯 */
 .summary__row,
 .rank-row,
 .stats-row {
-  border-left-width: 10px;
-  border-left-color: var(--player-color, var(--primary));
+  padding-left: 16px;
+  box-shadow: inset 8px 0 0 var(--player-color, var(--primary)), 0 4px 0 var(--paper-lip);
 }
 
 .stats-row {
-  border-left-color: var(--primary);
+  --player-color: var(--accent);
 }
 
 .award {
-  border-top-width: 8px;
-  border-top-color: var(--award-color, var(--primary));
+  box-shadow: inset 0 6px 0 var(--award-color, var(--primary)), 0 4px 0 var(--paper-lip);
 }
+
+.award--telepathy { --award-color: var(--primary); }
+.award--mysterious { --award-color: #6E36E0; }
+.award--pair { --award-color: var(--accent); }
+.award--zure { --award-color: var(--ink); }
 
 .award__winner,
 .summary__points,
 .rank-row__points,
 .stats-row__word {
-  font-family: var(--font-pop);
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
-.rank-row--top,
-.score-chip--p3,
-.summary__miss {
-  background: #FFF1B8;
+/* 1位：マゼンタの札に白い文字 */
+.rank-row--top {
+  background-color: var(--primary);
+  color: var(--on-color);
+  box-shadow: inset 8px 0 0 var(--yellow), 0 4px 0 var(--primary-deep);
+}
+
+.rank-row--top .rank-row__name,
+.rank-row--top .rank-row__points,
+.rank-row--top .rank-row__rank {
+  color: var(--on-color);
 }
 
 .rank-row--top .rank-row__rank::before {
   content: "★";
   margin-right: 2px;
   color: var(--yellow);
-  -webkit-text-stroke: 1.5px var(--ink);
-  paint-order: stroke fill;
 }
 
 .summary__miss {
-  border: 2.5px dashed var(--ink);
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--on-color);
+  font-weight: 800;
 }
 
+/* 点数の札：その人の色に白い文字。0点と、まだのものは白 */
 .score-chip {
-  border-color: var(--player-color);
-  box-shadow: 0 3px 0 var(--ink);
+  background-color: var(--player-color);
+  color: var(--on-color);
+  box-shadow: 0 3px 0 rgba(22, 22, 22, 0.3);
+}
+
+.score-chip b {
+  color: inherit;
+}
+
+.score-chip--p0,
+.score-chip--pending {
+  background-color: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--player-color);
 }
 
 .score-chip--p0 {
-  border-style: dashed;
-  box-shadow: none;
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.score-chip--p3 {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 5px 0 2px var(--ink);
 }
 
 .member {
-  border-color: var(--player-color, var(--ink));
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--paper-lip);
 }
 
 .member.is-done {
-  background: var(--accent-soft);
+  background-color: #DDF4FF;
 }
 
 .member.is-offline {
-  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 0 2px rgba(22, 22, 22, 0.2);
 }
 
 .name-field,
 .field__input {
-  box-shadow: 0 3px 0 var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--paper-lip);
 }
 
 .name-field:focus-within,
 .field__input:focus {
-  border-color: var(--ink);
-  box-shadow: 0 3px 0 var(--ink), 0 0 0 4px var(--yellow);
+  border: 0;
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--ink), 0 3px 0 3px var(--ink);
 }
 
 .name-field__num,
 .steps > li::before {
-  border: 2px solid var(--ink);
-  background: var(--yellow);
-  color: var(--ink);
-  font-family: var(--font-pop);
+  border: 0;
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
 .segmented {
-  border: var(--outline);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--paper-lip);
 }
 
 .segmented__item {
-  font-family: var(--font-pop);
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
@@ -2385,12 +2661,12 @@ body {
 
 /* 残り時間の円 */
 .timer {
-  --ring: var(--mint);
-  box-shadow: 0 0 0 3px var(--ink);
+  --ring: var(--accent);
+  box-shadow: 0 3px 0 var(--paper-lip);
 }
 
 .timer span {
-  font-family: var(--font-pop);
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
@@ -2400,43 +2676,35 @@ body {
 
 /* QRコード */
 .qr svg {
-  border: var(--outline);
+  border: 0;
   border-radius: 16px;
-  box-shadow: 0 5px 0 var(--ink);
-}
-
-/* 名前（スマホを渡す・主役の発表） */
-.pass__name,
-.announce__name {
-  font-family: var(--font-pop);
-  font-weight: 400;
-  -webkit-text-stroke: 2px var(--ink);
-  paint-order: stroke fill;
-  text-shadow: 0 4px 0 var(--ink);
+  box-shadow: 0 5px 0 var(--paper-lip);
 }
 
 /* 別窓 */
 .sheet {
-  border: var(--outline);
-  box-shadow: 0 8px 0 var(--ink);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 0 rgba(22, 22, 22, 0.25);
 }
 
 .sheet::backdrop {
-  background: rgba(34, 32, 58, 0.55);
+  background: rgba(22, 22, 22, 0.6);
 }
 
 .share__frame {
-  border: var(--outline);
+  border: 0;
+  box-shadow: 0 0 0 2px var(--line);
 }
 
 /* お知らせ */
 .toast {
-  border: 3px solid var(--yellow);
-  border-radius: 999px;
+  border: 0;
+  border-radius: 12px;
   background: var(--ink);
   color: var(--on-color);
   font-weight: 800;
-  box-shadow: 0 5px 0 rgba(34, 32, 58, 0.35);
+  box-shadow: 0 4px 0 rgba(22, 22, 22, 0.3);
 }
 
 /* =====================================================================
@@ -2559,10 +2827,10 @@ body {
 
 @keyframes final-glow {
   0%, 100% {
-    box-shadow: inset 0 0 0 0 rgba(242, 78, 46, 0);
+    box-shadow: inset 0 0 0 0 rgba(229, 0, 127, 0);
   }
   50% {
-    box-shadow: inset 0 0 0 6px rgba(242, 78, 46, 0.55);
+    box-shadow: inset 0 0 0 6px rgba(229, 0, 127, 0.55);
   }
 }
 
@@ -2587,7 +2855,6 @@ body {
   width: 10px;
   height: 10px;
   margin: -5px 0 0 -5px;
-  border: 2px solid var(--ink);
   border-radius: 50%;
 }
 
@@ -2601,7 +2868,7 @@ body {
   position: absolute;
   width: 0;
   height: 0;
-  border: 3px solid var(--ink);
+  border: 3px solid var(--accent);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -2612,16 +2879,16 @@ body {
   top: 50%;
   z-index: 6;
   padding: 4px 18px;
-  border: 4px solid var(--primary);
+  border: 4px solid var(--surface);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--primary);
-  font-family: var(--font-pop);
+  background: var(--primary);
+  color: var(--on-color);
+  font-family: var(--font-display);
   font-size: clamp(1.25rem, 7vw, 2rem);
   white-space: nowrap;
   transform: translate(-50%, -50%) rotate(-12deg);
   pointer-events: none;
-  box-shadow: 0 4px 0 var(--ink);
+  box-shadow: 0 0 0 3px var(--primary), 0 6px 0 3px var(--primary-deep);
 }
 
 .fx-confetti {
@@ -2644,9 +2911,8 @@ body {
   }
 
   .award {
-    padding: 2px 8px 5px;
-    border-top-width: 6px;
-    box-shadow: 0 3px 0 var(--ink);
+    padding: 4px 8px 5px;
+    box-shadow: inset 0 5px 0 var(--award-color, var(--primary)), 0 3px 0 var(--paper-lip);
   }
 
   .award__title {
@@ -2664,26 +2930,25 @@ body {
 
   .rank-row,
   .summary__row {
-    border-width: 2px;
-    border-left-width: 8px;
-    box-shadow: 0 2px 0 var(--ink);
+    padding-left: 13px;
+    box-shadow: inset 6px 0 0 var(--player-color, var(--primary)), 0 3px 0 var(--paper-lip);
+  }
+
+  .rank-row--top {
+    box-shadow: inset 6px 0 0 var(--yellow), 0 3px 0 var(--accent-deep);
   }
 
   .ranking--two .rank-row,
   .summary__list--two .summary__row {
-    padding: 2px 8px;
+    padding: 2px 8px 2px 13px;
   }
 
   .sheet__title {
     font-size: 1rem;
   }
 
-  .steps > li::before {
-    border-width: 1.5px;
-  }
-
   .sheet .btn {
-    box-shadow: 0 3px 0 var(--ink);
+    box-shadow: 0 3px 0 var(--lip);
   }
 }
 
@@ -2744,7 +3009,7 @@ body {
   inset: 0;
   z-index: 5;
   overflow: hidden;
-  border-radius: 19px;
+  border-radius: 16px;
   pointer-events: none;
 }
 
@@ -2757,8 +3022,8 @@ body {
   aspect-ratio: 1 / 1;
   border: 4px solid var(--yellow);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 210, 63, 0) 55%, rgba(255, 210, 63, 0.35));
-  box-shadow: 0 0 0 999px rgba(34, 32, 58, 0.5), 0 0 18px 4px rgba(255, 210, 63, 0.8);
+  background: radial-gradient(circle, rgba(255, 212, 0, 0) 55%, rgba(255, 212, 0, 0.35));
+  box-shadow: 0 0 0 999px rgba(22, 22, 22, 0.55), 0 0 18px 4px rgba(255, 212, 0, 0.8);
   transform: translate(-50%, -50%);
   transition: left 0.16s cubic-bezier(0.3, 0.7, 0.4, 1), top 0.16s cubic-bezier(0.3, 0.7, 0.4, 1);
 }
@@ -2769,27 +3034,22 @@ body {
   top: 8%;
   z-index: 6;
   color: var(--yellow);
-  font-family: var(--font-pop);
+  font-family: var(--font-display);
   font-size: clamp(1.25rem, 6vw, 1.75rem);
   white-space: nowrap;
-  -webkit-text-stroke: 3px var(--ink);
+  -webkit-text-stroke: 5px var(--ink);
   paint-order: stroke fill;
   text-shadow: 0 3px 0 var(--ink);
   transform: translateX(-50%);
   pointer-events: none;
 }
 
-/* まだ点数が出ていない札 */
-.score-chip--pending {
-  border-style: dashed;
-  box-shadow: none;
-}
-
-/* 「答えを見る！」は、目立たせる */
+/* 「答えを見る！」は、黒地に黄色の文字にして目立たせる */
 .btn.is-answer {
-  background: var(--yellow);
-  color: var(--ink);
-  text-shadow: none;
+  --lip: #000000;
+  background: var(--ink);
+  color: var(--yellow);
+  box-shadow: 0 5px 0 var(--lip);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -2819,9 +3079,9 @@ body {
 
 @keyframes answer-call {
   0%, 100% {
-    box-shadow: 0 5px 0 var(--ink), 0 0 0 0 rgba(255, 210, 63, 0.7);
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 0 rgba(229, 0, 127, 0.7);
   }
   50% {
-    box-shadow: 0 5px 0 var(--ink), 0 0 0 8px rgba(255, 210, 63, 0);
+    box-shadow: 0 5px 0 var(--lip), 0 0 0 9px rgba(229, 0, 127, 0);
   }
 }

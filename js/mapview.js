@@ -97,7 +97,8 @@ export function placePinsApart(map, entries) {
       h: label.offsetHeight + 3, // 下の影の分
       gap: answer ? 15 : 10,
       dot: answer ? 13 : 9,
-      top: shout ? shout.offsetHeight - 2 : 0,
+      // 少しかたむけているので、そのぶん上下にもはみ出す
+      top: shout ? shout.offsetHeight - 2 + Math.ceil(shout.offsetWidth * 0.05) : 0,
       topW: shout ? shout.offsetWidth + 6 : 0, // 少しかたむけている分
     };
   });
@@ -120,7 +121,7 @@ export function placePinsApart(map, entries) {
     const shout = pin.querySelector('.pin__shout');
     if (shout) {
       shout.style.left = `${lx + it.w / 2}px`;
-      shout.style.top = `${ly - it.top - 2}px`;
+      shout.style.top = `${ly - shout.offsetHeight}px`;
     }
     if (!spot.far) return;
     // 名札が点から離れたら、点から名札のいちばん近いところまで線を引く

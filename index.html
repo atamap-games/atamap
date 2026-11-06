@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>アタマップ（ATAMAP）｜友だちの頭の中の地図を当てるパーティーゲーム</title>
   <meta name="description" content="お題の5つのワードを縦×横のマップに置いて、友だちの置き場所を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
-  <meta name="theme-color" content="#FFF3D1">
+  <meta name="theme-color" content="#FFD60A">
   <meta property="og:title" content="アタマップ（ATAMAP）">
   <meta property="og:description" content="友だちの「頭の中の地図」を当てるパーティーゲーム。3〜8人、スマホのブラウザで遊べます。">
   <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0462A'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22.5' cy='9.5' r='3.5' fill='%23FFD54A'/%3E%3C/svg%3E">
-  <!-- ポップな文字（Google Fonts）。読み込めないときは、スマホの丸い文字で表示する -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFD60A'/%3E%3Cpath d='M16 5v22' stroke='%2319B4F0' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M5 16h22' stroke='%23E5007F' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='10' r='4' fill='%23fff' stroke='%23161616' stroke-width='2.5'/%3E%3C/svg%3E">
+  <!-- 文字（Google Fonts）：見出しは太いゴシック、ふつうの文字は丸ゴシック。読み込めないときは、スマホの文字で表示する -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Mochiy+Pop+One&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -171,10 +171,12 @@
         <span class="head__space"></span>
       </header>
       <div class="pass">
-        <p class="pass__lead">スマホを渡してね</p>
-        <p class="pass__name"><span data-pass="name"></span><small>さん</small></p>
-        <p class="pass__text" data-pass="text"></p>
-        <p class="pass__note" data-pass="note"></p>
+        <div class="pass__card">
+          <p class="pass__lead">スマホを渡してね</p>
+          <p class="pass__name"><span data-pass="name"></span><small>さん</small></p>
+          <p class="pass__text" data-pass="text"></p>
+          <p class="pass__note" data-pass="note"></p>
+        </div>
       </div>
       <div class="foot">
         <button type="button" class="btn btn--primary" data-action="pass-go">はじめる</button>
@@ -224,7 +226,7 @@
       </div>
       <div class="stage" data-round="map"></div>
       <div class="wordlist" data-round="words"></div>
-      <p class="guide" data-round="guide">主役がマップを作っています。ロックしたら予想スタート！</p>
+      <p class="guide" data-round="guide">ロックしたら、みんなで予想スタート！</p>
       <div class="foot">
         <button type="button" class="btn btn--secondary" data-action="round-go" data-round="go" disabled>主役のロックを待っています</button>
       </div>

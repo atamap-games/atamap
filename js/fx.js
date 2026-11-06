@@ -2,7 +2,7 @@
 // スマホが「動きを減らす」設定のときは、何もしない。
 // どれも画面のじゃまをしない（指の操作をさえぎらない）ように作る。
 
-const COLORS = ['#F24E2E', '#FFD23F', '#3DDBB0', '#FF7EB6', '#59B7FF', '#8B6CFF'];
+const COLORS = ['#E5007F', '#19B4F0', '#FFFFFF', '#161616', '#FFD60A'];
 
 /** 動きを減らす設定になっているか */
 export function reduced() {
@@ -220,7 +220,7 @@ export function confetti({ duration = 2600, count = 110 } = {}) {
       ctx.rotate(p.angle);
       ctx.fillStyle = p.color;
       ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      ctx.strokeStyle = '#22203A';
+      ctx.strokeStyle = '#161616';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(-p.w / 2, -p.h / 2, p.w, p.h);
       ctx.restore();

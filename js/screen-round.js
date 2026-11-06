@@ -34,6 +34,8 @@ export function showMaking({ key, main, topic, round, rounds, remaining, deadlin
   skipHandler = onSkip;
   part('step').textContent = `ラウンド ${round}/${rounds}`;
   part('name').textContent = main.name;
+  // 名前が長いときは、1行に収まるように文字を小さくする（css/style.css の --name-len）
+  part('name').parentElement.style.setProperty('--name-len', String(Math.max(3, [...main.name].length)));
   screen.style.setProperty('--player-color', main.color);
 
   // お題（主役が引き直すと変わる）
