@@ -6,7 +6,7 @@ import { loadTopics } from './topics.js';
 import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { PLAYER_COLORS } from './game.js';
 import { NEAR, CLOSE } from './score.js';
-import { popIn, dropIn, burstAt, shake, reduced } from './fx.js';
+import { popIn, dropIn, burstAt, shake, reduced, spotlightTour } from './fx.js';
 
 const stage = document.querySelector('[data-screen="top"] .sample__stage');
 const caption = document.querySelector('[data-screen="top"] .sample__caption');
@@ -20,7 +20,7 @@ const PLAYERS = [
 // 1つのお題の流れ（ミリ秒）
 const FIRST_PIN = 700;
 const PIN_INTERVAL = 500;
-const SPOT_STEPS = [120, 140, 170, 220, 300];
+const SPOT_MS = 5000;
 const HOLD = 2600;
 const FADE = 350;
 
@@ -50,7 +50,7 @@ export function stopDemo() {
   timers.forEach((t) => window.clearTimeout(t));
   timers = [];
   // とちゅうで止めたときは、スポットライトを片づける
-  stage?.querySelectorAll('.map__spot-layer').forEach((layer) => layer.remove());
+  stage?.querySelectorAll('.map__spot-layer, .suspense-text').forEach((part) => part.remove());
 }
 
 // 画面が見えていないあいだ（ほかのアプリを開いたときなど）は止めておき、もどったら続ける
@@ -138,23 +138,25 @@ function play(topic, word) {
       popIn(pin, { from: 'scale(0)' });
     });
   });
-  // スポットライトが予想の上をめぐって、答えの場所で止まる
+  // スポットライトが予想とランダムな場所を5秒めぐる（本番と同じく、答えの場所とは関係ない）
   let time = FIRST_PIN + guessPins.length * PIN_INTERVAL + 300;
   const layer = el('span', 'map__spot-layer');
   const spot = el('span', 'reveal-spot');
   layer.append(spot);
-  later(time, () => map.append(layer));
-  const stops = [...guesses.map((g) => g.pos), { x: rand(15, 85), y: rand(15, 85) }, answer];
-  stops.forEach((pos, i) => {
-    later(time, () => {
+  const text = el('span', 'suspense-text', 'ドキドキ…');
+  later(time, () => map.append(layer, text));
+  for (const { pos, at } of spotlightTour(guesses.map((g) => g.pos), SPOT_MS)) {
+    later(time + at, () => {
       spot.style.left = `${pos.x}%`;
       spot.style.top = `${pos.y}%`;
     });
-    time += SPOT_STEPS[i] ?? 0;
-  });
+  }
+  time += SPOT_MS;
+  later(time, () => layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }));
   // 答えが落ちてくる
   later(time + 250, () => {
     layer.remove();
+    text.remove();
     rings.hidden = false;
     answerPin.hidden = false;
     shout.hidden = false;

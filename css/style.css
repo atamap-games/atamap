@@ -421,7 +421,12 @@ button {
   text-overflow: ellipsis;
 }
 
-/* トップの答え合わせのデモ：名札を少し小さく */
+/* トップの答え合わせのデモ：名札と「ドキドキ…」を少し小さく */
+.map--demo .suspense-text {
+  font-size: 0.9375rem;
+  -webkit-text-stroke-width: 4px;
+}
+
 .map--demo .pin__label {
   font-size: 0.6875rem;
 }
@@ -2739,16 +2744,12 @@ body::before {
   /* ロゴの文字が1文字ずつはねて出てきて、そのあとは
      ・波のようにゆっくり上下しつづける
      ・ときどき1文字ずつ順番に、画面の奥に向かってくるっと1回転する（時計回り） */
-  .hero__title-ja {
-    perspective: 420px;
-  }
-
   .hero__title-ja > span {
     --i: 0;
     animation:
       letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) calc(var(--i) * 0.07s) both,
       logo-wave 3.2s ease-in-out calc(1.2s + var(--i) * 0.16s) infinite,
-      logo-spin 4.8s cubic-bezier(0.5, 0, 0.3, 1) calc(1.6s + var(--i) * 0.13s) infinite;
+      logo-spin 4s linear calc(1.4s + var(--i) * 0.14s) infinite;
   }
 
   .hero__title-ja > span:nth-child(2) { --i: 1; }
@@ -2832,22 +2833,21 @@ body::before {
   }
 }
 
-/* ロゴの文字が、縦の軸のまわりに1回転する（上から見て時計回り）。回っているあいだは少し大きく */
+/* ロゴの文字が、縦の軸のまわりに1回転する（上から見て時計回り）。回っているあいだは少し大きく。
+   どのブラウザでも同じに回るように、transform に奥行き（perspective）と角度を全部書き、途中の角度もはさむ */
 @keyframes logo-spin {
   0% {
-    rotate: y 0deg;
-    scale: 1;
+    transform: perspective(360px) rotateY(0deg) scale(1);
   }
-  9% {
-    scale: 1.22;
+  5% {
+    transform: perspective(360px) rotateY(-120deg) scale(1.2);
   }
-  18% {
-    rotate: y -360deg;
-    scale: 1;
+  10% {
+    transform: perspective(360px) rotateY(-240deg) scale(1.2);
   }
+  16%,
   100% {
-    rotate: y -360deg;
-    scale: 1;
+    transform: perspective(360px) rotateY(-360deg) scale(1);
   }
 }
 

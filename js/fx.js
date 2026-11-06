@@ -239,3 +239,30 @@ export function haptic(pattern = 10) {
     // ふるえなくても困らない
   }
 }
+
+/**
+ * 答え合わせのスポットライトがめぐる道すじを作る。
+ * 答えの場所とは関係なく、みんなの予想とランダムな場所をめぐる（止まる場所で答えが先にわからないように）。
+ * はじめは速く、だんだんゆっくりになる。
+ * @param {{ x: number, y: number }[]} guesses みんなの予想の場所（0〜100）
+ * @param {number} [total] めぐる時間（ミリ秒）
+ * @returns {{ pos: { x: number, y: number }, at: number }[]} 動き出す時刻（ミリ秒）と場所
+ */
+export function spotlightTour(guesses, total = 5000) {
+  const tour = [];
+  let at = 0;
+  let last = null;
+  for (let i = 0; at < total; i++) {
+    let pos;
+    do {
+      pos = guesses.length && Math.random() < 0.45
+        ? guesses[Math.floor(Math.random() * guesses.length)]
+        : { x: 10 + Math.random() * 80, y: 10 + Math.random() * 80 };
+    } while (last && Math.hypot(pos.x - last.x, pos.y - last.y) < 15);
+    tour.push({ pos, at });
+    last = pos;
+    // 間かく：140ミリ秒から、終わりに近づくほど長く（最後は500ミリ秒くらい）
+    at += 140 + 360 * (at / total) ** 2;
+  }
+  return tour;
+}

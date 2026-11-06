@@ -8,7 +8,7 @@ import { showScreen, el } from './ui.js';
 import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { playerById } from './game.js';
 import { wordResult, roundPoints, biggestMiss, gradeName, NEAR, CLOSE } from './score.js';
-import { popIn, dropIn, slideIn, burstAt, shake, haptic, reduced } from './fx.js';
+import { popIn, dropIn, slideIn, burstAt, shake, haptic, reduced, spotlightTour } from './fx.js';
 
 const screen = document.querySelector('[data-screen="reveal"]');
 const part = (name) => screen.querySelector(`[data-reveal="${name}"]`);
@@ -18,8 +18,8 @@ const nextButton = () => screen.querySelector('[data-action="reveal-next"]');
 const PIN_INTERVAL = 500;
 // この距離より遠い予想には「そこ置く!?」と出す
 const SHOUT_DISTANCE = 35;
-// ドキドキの演出：スポットライトが動く間かく（だんだん長くなる＝ゆっくりになる）
-const SUSPENSE_STEPS = [110, 120, 140, 170, 210, 260, 320, 400, 480];
+// ドキドキの演出：スポットライトがめぐる時間（ミリ秒）
+const SUSPENSE_MS = 5000;
 
 // 今出している答え合わせ
 // stage：'pins'（予想を発表中）→ 'ready'（答えを見る前）→ 'suspense'（ドキドキ）→ 'answer'（答えを出した）／ 'summary'（まとめ）
@@ -259,7 +259,7 @@ function revealAnswer({ suspense }) {
     finishAnswer(Boolean(suspense));
     return;
   }
-  const { map, result, guessPins } = view;
+  const { map, guessPins } = view;
   map.classList.add('is-suspense');
   // スポットライトは、マップの中だけを暗くする（外にはみ出さない入れ物に入れる）
   const layer = el('span', 'map__spot-layer');
@@ -267,23 +267,19 @@ function revealAnswer({ suspense }) {
   layer.append(spot);
   const text = el('span', 'suspense-text', 'ドキドキ…');
   map.append(layer, text);
-  // スポットライトが、みんなの予想とランダムな場所をめぐって、最後に答えの場所で止まる
-  const stops = [];
-  const guessSpots = guessPins.map(([, r]) => r.pos);
-  for (let i = 0; i < SUSPENSE_STEPS.length; i++) {
-    stops.push(i % 2 === 0 && guessSpots.length ? guessSpots[(i / 2) % guessSpots.length] : { x: 12 + Math.random() * 76, y: 12 + Math.random() * 76 });
-  }
-  stops.push(result.answer);
-  let time = 0;
-  stops.forEach((pos, i) => {
-    later(time, () => {
+  // スポットライトが、みんなの予想とランダムな場所を5秒めぐる（答えの場所とは関係ない。止まる場所で答えがばれないように）
+  const tour = spotlightTour(guessPins.map(([, r]) => r.pos), SUSPENSE_MS);
+  tour.forEach(({ pos, at }) => {
+    later(at, () => {
       spot.style.left = `${pos.x}%`;
       spot.style.top = `${pos.y}%`;
-      haptic(i === stops.length - 1 ? 30 : 8);
+      haptic(8);
     });
-    time += SUSPENSE_STEPS[i] ?? 0;
   });
-  later(time + 450, () => {
+  // 最後はスポットライトがぱっと消えて、答えが落ちてくる
+  later(SUSPENSE_MS, () => layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }));
+  later(SUSPENSE_MS + 250, () => {
+    haptic(30);
     layer.remove();
     text.remove();
     map.classList.remove('is-suspense');
