@@ -1134,19 +1134,20 @@ button {
 
 .summary__list--two .summary__row,
 .ranking--two .rank-row {
-  gap: 6px;
+  gap: 4px;
   padding: 4px 8px;
   font-size: 0.875rem;
 }
 
 .summary__list--two .summary__points,
 .ranking--two .rank-row__points {
-  font-size: 1rem;
+  font-size: 0.9375rem;
 }
 
 .ranking--two .rank-row__rank {
-  width: 2.2em;
-  font-size: 0.75rem;
+  width: auto;
+  min-width: 1.9em;
+  font-size: 0.6875rem;
 }
 
 .summary__list,
@@ -1207,6 +1208,73 @@ button {
 
 .rank-row--top .rank-row__rank {
   color: var(--primary);
+}
+
+/* ---------- 最終結果の表彰 ---------- */
+.awards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.award {
+  min-width: 0;
+  padding: 6px 10px 8px;
+  border-top: 5px solid var(--award-color, var(--primary));
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: center;
+  box-shadow: 0 2px 0 var(--shade);
+}
+
+.award--telepathy { --award-color: var(--primary); }
+.award--mysterious { --award-color: #7C3AED; }
+.award--pair { --award-color: #DB2777; }
+.award--zure { --award-color: var(--yellow); }
+
+.award__title {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+/* 長いときは2行まで出して、それでも入らなければ「…」にする */
+.award__winner,
+.award__note {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.award__winner {
+  font-family: var(--font-round);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.award__note {
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+@media (max-height: 520px) {
+  .award {
+    padding: 4px 8px 6px;
+  }
+
+  .award__winner {
+    font-size: 0.9375rem;
+  }
 }
 
 /* ---------- 別窓（遊び方など） ---------- */

@@ -71,3 +71,56 @@ export function totalPoints(game) {
   }
   return totals;
 }
+
+/** 主役のとき、ほかの人がその人のマップで取れた点の合計（低いほど読まれにくい） */
+export function pointsGivenAsMain(game) {
+  const result = {};
+  for (const main of game.players) {
+    if (!game.maps[main.id] || !game.guesses[main.id]) continue;
+    result[main.id] = Object.values(roundPoints(game, main.id)).reduce((a, b) => a + b, 0);
+  }
+  return result;
+}
+
+/** A が B のマップを予想して取った点（B が主役のラウンドでの A の点） */
+export function pointsGuessing(game, guesserId, mainId) {
+  if (!game.maps[mainId] || !game.guesses[mainId]) return 0;
+  return roundPoints(game, mainId)[guesserId] ?? 0;
+}
+
+/**
+ * 最後の表彰。同じ点ならどちらも受賞。
+ * - 以心伝心王：予想の合計点がいちばん高い人
+ * - ミステリアス賞：主役のとき、みんなの点がいちばん低かった人（いちばん読めない人）
+ * - ベストペア：A が B を当てた点と B が A を当てた点の合計がいちばん高い2人
+ * - 今日のズレ大賞：主役の答えとみんなの予想がいちばん離れたワード（距離の平均）
+ */
+export function awards(game) {
+  const totals = totalPoints(game);
+  const topTotal = Math.max(...Object.values(totals));
+  const telepathy = { playerIds: Object.keys(totals).filter((id) => totals[id] === topTotal), points: topTotal };
+
+  const given = pointsGivenAsMain(game);
+  const lowGiven = Math.min(...Object.values(given));
+  const mysterious = { playerIds: Object.keys(given).filter((id) => given[id] === lowGiven), points: lowGiven };
+
+  const pairs = [];
+  for (let i = 0; i < game.players.length; i++) {
+    for (let j = i + 1; j < game.players.length; j++) {
+      const a = game.players[i].id;
+      const b = game.players[j].id;
+      pairs.push({ playerIds: [a, b], points: pointsGuessing(game, a, b) + pointsGuessing(game, b, a) });
+    }
+  }
+  const topPair = Math.max(...pairs.map((p) => p.points));
+  const bestPair = { pairs: pairs.filter((p) => p.points === topPair).map((p) => p.playerIds), points: topPair };
+
+  let zure = null;
+  for (const main of game.players) {
+    if (!game.maps[main.id] || !game.guesses[main.id]) continue;
+    const miss = biggestMiss(game, main.id);
+    if (miss && (!zure || miss.average > zure.average)) zure = { mainId: main.id, word: miss.word, average: miss.average };
+  }
+
+  return { telepathy, mysterious, bestPair, zure };
+}
