@@ -13,9 +13,15 @@ let resolveCurrent = null;
  * @param {object} options.topic 主役のお題
  * @param {number} options.round 何ラウンド目か
  * @param {number} options.rounds 全部で何ラウンドか
+ * @param {boolean} [options.canAdvance] このスマホで「予想をはじめる」を押せるか（部屋で遊ぶときはホストだけ）
+ * @param {boolean} [options.isMe] このスマホの人が主役か（部屋で遊ぶとき）
  */
-export function showRound({ main, topic, round, rounds }) {
+export function showRound({ main, topic, round, rounds, canAdvance = true, isMe = false }) {
   part('step').textContent = `ラウンド ${round}/${rounds}`;
+  const go = part('go');
+  go.disabled = !canAdvance;
+  go.textContent = canAdvance ? '予想をはじめる' : 'ホストがはじめます';
+  screen.querySelector('.guide').textContent = isMe ? 'あなたが主役！みんなの予想を待とう' : '主役の頭の中を、みんなで当てよう！';
   part('name').textContent = main.name;
   screen.style.setProperty('--player-color', main.color);
   part('genre').textContent = topic.genre;

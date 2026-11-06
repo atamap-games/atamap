@@ -18,11 +18,14 @@ let image = null; // { blob, url, file, summary }
  * @param {object} options
  * @param {object} options.game ゲーム
  * @param {object[]} options.topics お題の一覧（結果画像に使う）
+ * @param {boolean} [options.canRestart] 「もう一度」を出すか（部屋で遊ぶときはホストだけ）
  * @returns {Promise<'again'|'home'>} 次にすること
  */
-export function showEnd({ game, topics }) {
+export function showEnd({ game, topics, canRestart = true }) {
   ended = { game, topics };
   forgetImage();
+  part('again').hidden = !canRestart;
+  screen.querySelector('[data-action="end-share"]').parentElement.classList.toggle('actions--split', canRestart);
   const totals = totalPoints(game);
   const sorted = [...game.players].sort((a, b) => totals[b.id] - totals[a.id]);
   // 同じ点なら同じ順位

@@ -34,6 +34,23 @@ export function showReveal({ game, main, topic, isLast }) {
   });
 }
 
+/**
+ * 部屋で遊ぶとき：決まった場所（何番目のワードか、まとめか）を出す。進めるのはホストだけ。
+ * @param {object} options showReveal と同じものに加えて
+ * @param {number} options.index 何番目のワードか（0から。ワードの数と同じならまとめ）
+ * @param {boolean} options.canAdvance このスマホで「次へ」を押せるか（ホストだけ）
+ * @param {() => void} options.onNext 「次へ」を押したとき
+ */
+export function showRevealAt({ game, main, topic, isLast, index, canAdvance, onNext }) {
+  stopReveal();
+  state = { game, main, topic, isLast, index, controlled: true, canAdvance, onNext };
+  part('who').textContent = `主役：${main.name}さん`;
+  part('title').textContent = topic.title;
+  if (index < words().length) renderWord();
+  else renderSummary();
+  showScreen('reveal');
+}
+
 /** 画面を離れるときの後片づけ */
 export function stopReveal() {
   stopWatching();
@@ -109,6 +126,15 @@ function renderWord() {
   part('scores').replaceChildren(...chips);
 
   nextButton().textContent = state.index < list.length - 1 ? '次のワード' : 'このラウンドの結果';
+  applyControl();
+}
+
+// 部屋で遊ぶとき、ホスト以外は「次へ」を押せない
+function applyControl() {
+  const button = nextButton();
+  const waiting = state.controlled && !state.canAdvance;
+  button.disabled = waiting;
+  if (waiting) button.textContent = 'ホストが進めます';
 }
 
 function renderSummary() {
@@ -137,11 +163,16 @@ function renderSummary() {
   );
   stopWatching();
   nextButton().textContent = isLast ? '最終結果へ' : '次の主役へ';
+  applyControl();
 }
 
 export const revealActions = {
   'reveal-next': () => {
     if (!state) return;
+    if (state.controlled) {
+      if (state.canAdvance) state.onNext?.();
+      return;
+    }
     const count = words().length;
     if (state.index < count - 1) {
       state.index += 1;

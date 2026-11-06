@@ -896,9 +896,226 @@ button {
   color: var(--on-color);
 }
 
+/* ホスト以外は変えられない（今の設定だけを見せる） */
+.segmented__item:disabled {
+  cursor: default;
+}
+
+.segmented__item:disabled:not(.is-on) {
+  opacity: 0.4;
+}
+
 .segmented__item:focus-visible {
   outline: 3px solid var(--yellow);
   outline-offset: -3px;
+}
+
+/* ---------- 部屋に入る（名前と部屋の番号） ---------- */
+.entry {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field__label {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.field__input {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  outline: none;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.125rem; /* 16px より小さいと、iPhone で拡大されてしまう */
+  font-weight: 700;
+}
+
+.field__input:focus {
+  border-color: var(--accent);
+}
+
+.field__input::placeholder {
+  color: var(--axis);
+}
+
+.field__input--code {
+  font-family: var(--font-round);
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.entry__error {
+  min-height: 1.5em;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* ---------- 待合室 ---------- */
+.room-code {
+  font-family: var(--font-round);
+  letter-spacing: 0.18em;
+  margin-right: -0.18em;
+}
+
+/* QRコードは、空いている高さいっぱいに大きく出す */
+.qr {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.qr svg {
+  width: min(100cqw, 100cqh, 280px);
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 0 var(--shade);
+}
+
+.qr__loading {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.invite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 12px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.invite__url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.btn.btn--small {
+  width: auto;
+  min-height: 36px;
+  padding: 4px 14px;
+  border-width: 2px;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.members-count {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.members {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border: 2px solid var(--player-color, var(--line));
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.member__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--player-color, var(--primary));
+}
+
+.member__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.member__tag {
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+}
+
+.member__status {
+  color: var(--ink-soft);
+  font-weight: 800;
+}
+
+.member.is-done {
+  background: var(--accent-soft);
+}
+
+.member.is-done .member__status {
+  color: var(--accent);
+}
+
+.member.is-offline {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+/* ---------- みんなを待つ画面 ---------- */
+.waiting {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 10px;
+  text-align: center;
+}
+
+.waiting__title {
+  font-family: var(--font-round);
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.waiting__text {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 /* ---------- 遊ぶ人の名前 ---------- */

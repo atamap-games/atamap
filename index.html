@@ -60,6 +60,78 @@
       <p class="facts">3〜8人・1ラウンド約3分・インストール不要</p>
     </section>
 
+    <!-- 部屋を作る・部屋に入るときに、名前（と部屋の番号）を入れる画面 -->
+    <section class="screen screen--entry" data-screen="entry" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="home" aria-label="トップにもどる">←</button>
+        <h2 class="head__title" data-entry="title">部屋を作る</h2>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <p class="guide" data-entry="guide">あなたの名前を入れてね</p>
+      <form class="entry" data-entry="form" novalidate>
+        <label class="field" data-entry="code-field">
+          <span class="field__label">部屋の番号（5文字）</span>
+          <input class="field__input field__input--code" id="room-code" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next" placeholder="例：AB3CD">
+        </label>
+        <label class="field">
+          <span class="field__label">名前（8文字まで）</span>
+          <input class="field__input" id="room-name" type="text" maxlength="8" autocomplete="nickname" enterkeyhint="go" placeholder="例：あおい">
+        </label>
+        <p class="entry__error" data-entry="error" role="alert"></p>
+      </form>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="entry-go" data-entry="go">部屋を作る</button>
+      </div>
+    </section>
+
+    <!-- 待合室（QRコードとURLで呼んで、そろったらはじめる） -->
+    <section class="screen screen--lobby" data-screen="lobby" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
+        <div class="topic">
+          <p class="topic__genre">部屋の番号</p>
+          <h2 class="topic__title room-code" data-lobby="code"></h2>
+        </div>
+        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+      </header>
+      <div class="qr" data-lobby="qr"></div>
+      <div class="invite">
+        <p class="invite__url" data-lobby="url"></p>
+        <button type="button" class="btn btn--secondary btn--small" data-action="lobby-copy">コピー</button>
+      </div>
+      <p class="members-count"><span data-lobby="count">1</span>人（3〜8人で遊べます）</p>
+      <ul class="members" data-lobby="members"></ul>
+      <div class="setting" data-lobby="setting">
+        <p class="setting__label">制限時間</p>
+        <div class="segmented" role="radiogroup" aria-label="制限時間" data-lobby="time">
+          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-on" data-lobby="time-on">90秒</button>
+          <button type="button" class="segmented__item" role="radio" data-action="lobby-time-off" data-lobby="time-off">なし</button>
+        </div>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn btn--primary" data-action="lobby-start" data-lobby="start">はじめる</button>
+      </div>
+    </section>
+
+    <!-- みんなを待つ画面（マップ作り・予想のあいだ） -->
+    <section class="screen screen--wait" data-screen="wait" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
+        <p class="head__step" data-wait="step"></p>
+        <div class="head__right">
+          <p class="timer" data-wait="timer" role="timer" aria-label="残り時間" hidden><span data-wait="seconds"></span></p>
+        </div>
+      </header>
+      <div class="waiting">
+        <p class="waiting__title" data-wait="title"></p>
+        <p class="waiting__text" data-wait="text"></p>
+        <ul class="members members--status" data-wait="members"></ul>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn btn--secondary" data-action="wait-skip" data-wait="skip" hidden>待たずに進める</button>
+      </div>
+    </section>
+
     <!-- 遊ぶ人の名前を入れる画面 -->
     <section class="screen screen--players" data-screen="players" hidden>
       <header class="head">
@@ -148,7 +220,7 @@
       <div class="wordlist" data-round="words"></div>
       <p class="guide">主役の頭の中を、みんなで当てよう！</p>
       <div class="foot">
-        <button type="button" class="btn btn--primary" data-action="round-go">予想をはじめる</button>
+        <button type="button" class="btn btn--primary" data-action="round-go" data-round="go">予想をはじめる</button>
       </div>
     </section>
 
@@ -181,7 +253,7 @@
       <div class="end" data-end="body"></div>
       <div class="foot">
         <div class="actions actions--split">
-          <button type="button" class="btn btn--secondary" data-action="end-again">もう一度</button>
+          <button type="button" class="btn btn--secondary" data-action="end-again" data-end="again">もう一度</button>
           <button type="button" class="btn btn--primary" data-action="end-share">結果画像</button>
         </div>
       </div>
@@ -236,10 +308,10 @@
   <!-- ゲームを終わるか確かめる別窓 -->
   <dialog class="sheet sheet--small" id="quit" aria-labelledby="quit-title">
     <div class="sheet__body">
-      <h2 id="quit-title" class="sheet__title">ゲームを終わりますか？</h2>
-      <p class="sheet__text">ここまでの結果は消えます。</p>
+      <h2 id="quit-title" class="sheet__title" data-quit="title">ゲームを終わりますか？</h2>
+      <p class="sheet__text" data-quit="text">ここまでの結果は消えます。</p>
       <div class="actions actions--row">
-        <button type="button" class="btn btn--primary" data-action="quit-confirm">終わる</button>
+        <button type="button" class="btn btn--primary" data-action="quit-confirm" data-quit="ok">終わる</button>
         <button type="button" class="btn btn--secondary" data-action="quit-cancel">続ける</button>
       </div>
     </div>

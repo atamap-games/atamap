@@ -29,9 +29,11 @@ let timer = null;
  * @param {object} options.topic お題
  * @param {() => object} [options.reroll] 引き直したときの新しいお題を返す関数（自分のマップのときだけ）
  * @param {number} [options.timeLimit] 制限時間（秒）。0 なら制限なし
+ * @param {number} [options.timeTotal] 円のまわりの長さの元になる、制限時間の全体（秒）。部屋で遊ぶとき、途中から入っても円の減り方がそろうように
+ * @param {boolean} [options.pausable] 別窓が開いているあいだ時間を止めるか（部屋で遊ぶときは、みんなで時間をそろえるので止めない）
  * @returns {Promise<{ topicId: number, placements: object[], rerolled: boolean, timeUp: boolean }>}
  */
-export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0 }) {
+export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0, timeTotal = timeLimit, pausable = true }) {
   stopPlace();
   current = { mode, player, main, topic, reroll, rerolled: false, placed: 0, resolve: null };
 
@@ -45,7 +47,7 @@ export function runPlace({ mode, player, main = null, topic, reroll = null, time
   setTopic(topic);
   renderReroll();
   showScreen('place');
-  startTimer(timeLimit);
+  startTimer(timeLimit, timeTotal, pausable);
 
   return new Promise((resolve) => {
     current.resolve = resolve;
@@ -62,7 +64,7 @@ export function stopPlace() {
 }
 
 // 右上に残り時間を出す（制限時間がないときは「?」を出す）
-function startTimer(seconds) {
+function startTimer(seconds, total, pausable) {
   timer?.stop();
   timer = null;
   const box = part('timer');
@@ -71,9 +73,10 @@ function startTimer(seconds) {
   if (!seconds) return;
   timer = createTimer({
     seconds,
+    pausable,
     onTick: (left) => {
       part('seconds').textContent = left;
-      box.style.setProperty('--left', String(left / seconds));
+      box.style.setProperty('--left', String(Math.min(1, left / (total || seconds))));
       box.classList.toggle('is-hurry', left <= HURRY_SECONDS);
       box.setAttribute('aria-label', `残り${left}秒`);
     },
