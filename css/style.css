@@ -2184,6 +2184,34 @@ body {
   box-shadow: 0 3px 0 var(--ink);
 }
 
+/* 答え合わせのマップ：名札が重ならないように、置き場所を js/labels.js で決める（left・top は JS で入れる） */
+.pin.pin--free .pin__label {
+  bottom: auto;
+  transform: none;
+}
+
+.pin.pin--free .pin__shout {
+  bottom: auto;
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+/* 名札を点から離したときに、点と名札をつなぐ線（すべてのピンの下の層） */
+.map__lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.map__line {
+  position: absolute;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+}
+
 .ring--close {
   border: 2px dashed rgba(242, 78, 46, 0.6);
   background: rgba(255, 210, 63, 0.22);

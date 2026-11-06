@@ -2,6 +2,7 @@
 // 主役は「今日のズレ大賞」のワード。左にそのワードのマップ、右に賞を並べる。
 import { awards, wordResult, NEAR, CLOSE } from './score.js';
 import { playerById } from './game.js';
+import { arrangeLabels } from './labels.js';
 
 const W = 1200;
 const H = 675;
@@ -146,23 +147,47 @@ function drawMap(ctx, box, topic, result, game) {
     }
   }
 
-  // 軸の言葉
+  // 軸の言葉（名札は、なるべくここに重ねない）
   const label = (text, lx, ly, align, baseline) => drawText(ctx, text, lx, ly, { size: 20, weight: 700, color: COLOR.inkSoft, align, baseline, pad: COLOR.surface });
-  label(topic.axes.top, x + size / 2, y + 16, 'center', 'top');
-  label(topic.axes.bottom, x + size / 2, y + size - 16, 'center', 'bottom');
-  label(topic.axes.left, x + 12, y + size / 2, 'left', 'middle');
-  label(topic.axes.right, x + size - 12, y + size / 2, 'right', 'middle');
+  const axisBoxes = [
+    label(topic.axes.top, x + size / 2, y + 16, 'center', 'top'),
+    label(topic.axes.bottom, x + size / 2, y + size - 16, 'center', 'bottom'),
+    label(topic.axes.left, x + 12, y + size / 2, 'left', 'middle'),
+    label(topic.axes.right, x + size - 12, y + size / 2, 'right', 'middle'),
+  ].map((b) => ({ ...b, x: b.x - x, y: b.y - y }));
 
-  // みんなの予想
+  // 主役の答えとみんなの予想。名札がたがいに重ならないように、置き場所を先に決める（答えの名札がいちばん先）
+  const pins = [];
+  if (result.answer) pins.push({ pos: result.answer, text: '答え', color: COLOR.primary, radius: 14, dark: true });
   for (const r of result.results) {
     if (!r.pos) continue;
     const player = playerById(game, r.playerId);
-    drawPin(ctx, toX(r.pos.x), toY(r.pos.y), { text: player.name, color: player.color, radius: 9, box });
+    pins.push({ pos: r.pos, text: player.name, color: player.color, radius: 9, dark: false });
   }
-  // 主役の答え（いちばん上に）
-  if (result.answer) {
-    drawPin(ctx, toX(result.answer.x), toY(result.answer.y), { text: '答え', color: COLOR.primary, radius: 14, box, dark: true });
-  }
+  const items = pins.map((pin) => {
+    pin.px = toX(pin.pos.x);
+    pin.py = toY(pin.pos.y);
+    pin.font = pin.dark ? 22 : 18;
+    ctx.font = `800 ${pin.font}px ${FONT}`;
+    return { x: pin.px - x, y: pin.py - y, w: ctx.measureText(pin.text).width + 20, h: pin.font + 12, gap: pin.radius + 8, dot: pin.radius + 3 };
+  });
+  const spots = arrangeLabels(items, { width: size, height: size, margin: 6 }, axisBoxes);
+  // 名札を点から離したときは、点と名札を線でつなぐ（線 → 点 → 名札の順に重ねる）
+  ctx.strokeStyle = COLOR.ink;
+  ctx.lineWidth = 3;
+  pins.forEach((pin, i) => {
+    if (!spots[i].far) return;
+    const it = items[i];
+    const lx = x + spots[i].x;
+    const ly = y + spots[i].y;
+    ctx.beginPath();
+    ctx.moveTo(pin.px, pin.py);
+    ctx.lineTo(Math.min(Math.max(pin.px, lx), lx + it.w), Math.min(Math.max(pin.py, ly), ly + it.h));
+    ctx.stroke();
+  });
+  const drawOrder = [...pins.keys()].reverse(); // 予想が先、答えがいちばん上
+  for (const i of drawOrder) drawDot(ctx, pins[i]);
+  for (const i of drawOrder) drawLabel(ctx, pins[i], x + spots[i].x, y + spots[i].y, items[i]);
   ctx.restore();
 
   // 枠
@@ -172,8 +197,8 @@ function drawMap(ctx, box, topic, result, game) {
   ctx.stroke();
 }
 
-// 点と名札。名札は点の上（上が狭いときは下）に出し、マップからはみ出さないようにずらす
-function drawPin(ctx, px, py, { text, color, radius, box, dark = false }) {
+// 点
+function drawDot(ctx, { px, py, color, radius }) {
   ctx.beginPath();
   ctx.arc(px, py, radius + 3, 0, Math.PI * 2);
   ctx.fillStyle = '#FFFFFF';
@@ -182,15 +207,11 @@ function drawPin(ctx, px, py, { text, color, radius, box, dark = false }) {
   ctx.arc(px, py, radius, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
+}
 
-  const size = dark ? 22 : 18;
-  ctx.font = `800 ${size}px ${FONT}`;
-  const w = ctx.measureText(text).width + 20;
-  const h = size + 12;
-  const gap = radius + 8;
-  let lx = Math.min(Math.max(px - w / 2, box.x + 6), box.x + box.size - w - 6);
-  let ly = py - gap - h;
-  if (ly < box.y + 6) ly = py + gap;
+// 名札（置き場所は arrangeLabels で決めたもの）
+function drawLabel(ctx, { text, color, dark, font }, lx, ly, { w, h }) {
+  ctx.font = `800 ${font}px ${FONT}`;
   roundRect(ctx, lx, ly, w, h, h / 2);
   ctx.fillStyle = dark ? COLOR.ink : '#FFFFFF';
   ctx.fill();
@@ -220,9 +241,13 @@ function drawText(ctx, text, x, y, { size, weight = 700, font = FONT, color, ali
     const top = baseline === 'top' ? y - 3 : baseline === 'bottom' ? y - h + 3 : y - h / 2;
     ctx.fillStyle = pad;
     ctx.fillRect(left, top, w, h);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    return { x: left, y: top, w, h };
   }
   ctx.fillStyle = color;
   ctx.fillText(text, x, y);
+  return null;
 }
 
 function roundRect(ctx, x, y, w, h, r) {

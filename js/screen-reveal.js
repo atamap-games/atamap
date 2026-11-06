@@ -5,7 +5,7 @@
 //   4. 答えのピンが落ちてきて、3点・1点の輪が広がり、点数が出る
 // 5つ終わったら、そのラウンドのまとめを出す。
 import { showScreen, el } from './ui.js';
-import { createMap, createPin, placePin, watchResize } from './mapview.js';
+import { createMap, createPin, placePinsApart, watchResize } from './mapview.js';
 import { playerById } from './game.js';
 import { wordResult, roundPoints, biggestMiss, gradeName, NEAR, CLOSE } from './score.js';
 import { popIn, dropIn, slideIn, burstAt, shake, haptic, reduced } from './fx.js';
@@ -141,7 +141,6 @@ function renderWord() {
   part('scores').hidden = false;
 
   const map = createMap(topic, 'map--static map--reveal');
-  const pins = []; // [ピン, 場所]（名札の位置を整えるため）
 
   // 3点・1点の輪（答えを出すまで見せない）
   const rings = el('span', 'map__rings');
@@ -173,7 +172,6 @@ function renderWord() {
     }
     pin.hidden = true;
     map.append(pin);
-    pins.push([pin, r.pos]);
     guessPins.push([pin, r]);
   }
 
@@ -183,16 +181,22 @@ function renderWord() {
     answerPin = createPin('答え', { className: 'pin--answer' });
     answerPin.hidden = true;
     map.append(answerPin);
-    pins.push([answerPin, result.answer]);
   }
 
+  // 点数の札とピンを出す順（点の高い順）
+  const ordered = [...result.results].sort((a, b) => b.points - a.points || (a.distance ?? 999) - (b.distance ?? 999));
+
+  // 名札が重ならないように並べる。答えの名札がいちばん先に、点のすぐそばの場所を取る。予想は出した順
+  const layoutOrder = [
+    ...(answerPin ? [[answerPin, result.answer]] : []),
+    ...ordered.map((r) => guessPins.find(([, x]) => x === r)).filter(Boolean).map(([pin, r]) => [pin, r.pos]),
+  ];
+  const layout = () => placePinsApart(map, layoutOrder.filter(([pin]) => !pin.hidden).map(([pin, pos]) => ({ pin, pos })));
   part('map').replaceChildren(map);
-  const layout = () => pins.forEach(([pin, pos]) => !pin.hidden && placePin(pin, map, pos));
   stopWatching();
   stopWatching = watchResize(map, layout);
 
   // 点数の札：はじめは名前だけ。答えを出したら点数を入れる
-  const ordered = [...result.results].sort((a, b) => b.points - a.points || (a.distance ?? 999) - (b.distance ?? 999));
   const chips = ordered.map((r) => {
     const player = playerById(game, r.playerId);
     const chip = el('span', 'score-chip score-chip--pending');
@@ -292,10 +296,11 @@ function finishAnswer(animate) {
   const { map, rings, answerPin, chips, guessPins, result } = view;
   view.stage = 'answer';
   rings.hidden = false;
-  if (answerPin) {
-    answerPin.hidden = false;
-    view.layout();
-  }
+  // 「そこ置く!?」（名札を並べる前に出して、その大きさも入れて並べる）
+  const shout = map.querySelector('.pin__shout');
+  if (shout) shout.hidden = false;
+  if (answerPin) answerPin.hidden = false;
+  view.layout();
   // 点数を入れる
   for (const [chip, r] of chips) {
     chip.hidden = false;
@@ -304,9 +309,6 @@ function finishAnswer(animate) {
     const compact = result.results.length > 4;
     chip.lastElementChild.textContent = r.pos ? `${compact ? '' : `${gradeName(r.points)} `}+${r.points}` : `${compact ? '' : '置かず '}+0`;
   }
-  // 「そこ置く!?」
-  const shout = map.querySelector('.pin__shout');
-  if (shout) shout.hidden = false;
   applyButton();
   if (!animate) return;
 
