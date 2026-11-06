@@ -174,15 +174,15 @@
     <!-- 最終結果 -->
     <section class="screen screen--end" data-screen="end" hidden>
       <header class="head">
-        <span class="head__space"></span>
+        <button type="button" class="icon-btn" data-action="end-home" aria-label="トップへ">←</button>
         <h2 class="head__title">最終結果</h2>
         <span class="head__space"></span>
       </header>
       <div class="end" data-end="body"></div>
       <div class="foot">
-        <div class="actions actions--row">
-          <button type="button" class="btn btn--primary" data-action="end-again">もう一度</button>
-          <button type="button" class="btn btn--secondary" data-action="end-home">トップへ</button>
+        <div class="actions actions--split">
+          <button type="button" class="btn btn--secondary" data-action="end-again">もう一度</button>
+          <button type="button" class="btn btn--primary" data-action="end-share">結果画像</button>
         </div>
       </div>
     </section>
@@ -216,6 +216,20 @@
       </ol>
       <p class="sheet__note">最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
       <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- 結果画像（別窓） -->
+  <dialog class="sheet" id="share" aria-labelledby="share-title">
+    <div class="sheet__body">
+      <h2 id="share-title" class="sheet__title">結果画像</h2>
+      <div class="share__frame">
+        <img class="share__image" data-share="image" alt="今日のズレ大賞のマップと、みんなの賞をまとめた画像">
+      </div>
+      <p class="sheet__text" data-share="note"></p>
+      <button type="button" class="btn btn--primary" data-action="share-image" data-share="save">画像を保存</button>
+      <a class="btn btn--secondary btn--link" data-share="x" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener">Xに投稿する</a>
+      <button type="button" class="btn btn--text" data-action="close-share">閉じる</button>
     </div>
   </dialog>
 

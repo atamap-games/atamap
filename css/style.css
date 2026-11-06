@@ -1461,6 +1461,34 @@ button {
   text-align: center;
 }
 
+/* ---------- 結果画像（別窓） ---------- */
+.share__frame {
+  overflow: hidden;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  aspect-ratio: 1200 / 675;
+}
+
+.share__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.share__image:not([src]) {
+  visibility: hidden;
+}
+
+/* リンクだけれど、見た目はボタン */
+.btn--link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 /* ---------- お知らせ（画面の下に少しだけ出る） ---------- */
 /* 下の大きなボタンに重ならないよう、画面の上のほうに出す */
 .toast {

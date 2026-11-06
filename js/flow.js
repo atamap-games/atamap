@@ -109,7 +109,7 @@ async function playOneGame({ names, timeLimit }, topics, step) {
     await step(showReveal({ game, main, topic, isLast: index === count - 1 }));
   }
 
-  return step(showEnd({ game }));
+  return step(showEnd({ game, topics }));
 }
 
 function wait(ms) {

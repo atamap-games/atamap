@@ -1,19 +1,28 @@
 // 最終結果。4つの賞と、予想で取った点の合計の順位を出す。
-import { showScreen, el } from './ui.js';
+import { showScreen, showToast, el, openSheet, closeSheet } from './ui.js';
 import { totalPoints, awards } from './score.js';
 import { playerById } from './game.js';
+import { drawResultImage } from './result-image.js';
+
+const sheet = document.getElementById('share');
+const sheetPart = (name) => sheet.querySelector(`[data-share="${name}"]`);
 
 const screen = document.querySelector('[data-screen="end"]');
 const part = (name) => screen.querySelector(`[data-end="${name}"]`);
 
 let resolveCurrent = null;
+let ended = null; // { game, topics }
+let image = null; // { blob, url, file, summary }
 
 /**
  * @param {object} options
  * @param {object} options.game ゲーム
+ * @param {object[]} options.topics お題の一覧（結果画像に使う）
  * @returns {Promise<'again'|'home'>} 次にすること
  */
-export function showEnd({ game }) {
+export function showEnd({ game, topics }) {
+  ended = { game, topics };
+  forgetImage();
   const totals = totalPoints(game);
   const sorted = [...game.players].sort((a, b) => totals[b.id] - totals[a.id]);
   // 同じ点なら同じ順位
@@ -85,12 +94,92 @@ function renderAwards(game) {
 }
 
 function finish(value) {
+  closeSheet('share');
+  forgetImage();
   const resolve = resolveCurrent;
   resolveCurrent = null;
   resolve?.(value);
 }
 
+function forgetImage() {
+  if (image) URL.revokeObjectURL(image.url);
+  image = null;
+  sheetPart('image').removeAttribute('src');
+}
+
+// 公開しているページのアドレス（GitHub Pages で開いているときだけ、投稿の文に入れる）
+function siteUrl() {
+  return location.hostname.endsWith('github.io') ? `${location.origin}${location.pathname}` : '';
+}
+
+// Xの投稿画面を開くリンク（文と #アタマップ を入れておく）
+function postUrl(summary) {
+  const lines = ['アタマップで遊んだよ！'];
+  if (summary) lines.push(`今日のズレ大賞は「${summary.word}」（${summary.mainName}さんのお題「${summary.topicTitle}」）`);
+  lines.push('あなたならどこに置く？');
+  const params = new URLSearchParams({ text: lines.join('\n'), hashtags: 'アタマップ' });
+  const url = siteUrl();
+  if (url) params.set('url', url);
+  return `https://twitter.com/intent/tweet?${params}`;
+}
+
+// 画像をファイルのまま、ほかのアプリ（Xなど）に渡せるか
+function canShareFile(file) {
+  try {
+    return Boolean(navigator.canShare?.({ files: [file] }));
+  } catch {
+    return false;
+  }
+}
+
+async function openShare() {
+  if (!ended) return;
+  openSheet('share');
+  if (!image) {
+    sheetPart('note').textContent = '画像を作っています…';
+    try {
+      const { blob, summary } = await drawResultImage(ended.game, ended.topics);
+      const file = new File([blob], 'atamap.png', { type: 'image/png' });
+      image = { blob, file, summary, url: URL.createObjectURL(blob) };
+    } catch (error) {
+      console.error(error);
+      sheetPart('note').textContent = '画像を作れませんでした';
+      return;
+    }
+  }
+  sheetPart('image').src = image.url;
+  sheetPart('x').href = postUrl(image.summary);
+  const share = canShareFile(image.file);
+  sheetPart('save').textContent = share ? '画像を共有（Xなど）' : '画像を保存';
+  sheetPart('note').textContent = share
+    ? '共有から、Xなどに画像をそのまま送れます'
+    : '保存した画像を、Xの投稿につけてね';
+}
+
+async function saveImage() {
+  if (!image) return;
+  if (canShareFile(image.file)) {
+    try {
+      await navigator.share({ files: [image.file], text: '#アタマップ' });
+      return;
+    } catch (error) {
+      if (error?.name === 'AbortError') return; // 共有をやめたとき
+    }
+  }
+  // 共有できないときは、ファイルとして保存する
+  const link = el('a');
+  link.href = image.url;
+  link.download = 'atamap.png';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  showToast('画像を保存しました');
+}
+
 export const endActions = {
   'end-again': () => finish('again'),
   'end-home': () => finish('home'),
+  'end-share': () => openShare(),
+  'share-image': () => saveImage(),
+  'close-share': () => closeSheet('share'),
 };
