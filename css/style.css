@@ -412,9 +412,22 @@ button {
 }
 
 .sample__caption {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--ink-soft);
   font-size: 0.8125rem;
   line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* トップの答え合わせのデモ：名札を少し小さく */
+.map--demo .pin__label {
+  font-size: 0.6875rem;
+}
+
+.map--demo .pin--answer .pin__label {
+  font-size: 0.75rem;
 }
 
 /* 見本が小さいときは、中の文字も小さくする */
@@ -426,6 +439,12 @@ button {
   }
 
   .sample .map__label {
+    font-size: 0.625rem;
+  }
+
+  .map--demo .pin__label,
+  .map--demo .pin--answer .pin__label {
+    padding: 0 6px 1px;
     font-size: 0.625rem;
   }
 }
@@ -2062,9 +2081,10 @@ body::before {
   display: inline-block;
 }
 
-/* 「ッ」は小さい字なので、少し下げる */
+/* 「ッ」は小さい字なので、少し下げる（translate は動きに使うので、top で下げる） */
 .hero__title-ja > span:nth-child(4) {
-  translate: 0 0.04em;
+  position: relative;
+  top: 0.04em;
 }
 
 /* 名前と答え合わせのワード：白い文字、水色の立体（スマホを渡す画面は、水色の形の上なのでマゼンタ） */
@@ -2716,29 +2736,23 @@ body::before {
     animation: screen-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
   }
 
-  /* ロゴの文字が1文字ずつはねる */
+  /* ロゴの文字が1文字ずつはねて出てきて、そのあとは波のようにゆっくり上下しつづける */
   .hero__title-ja > span {
-    animation: letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+    --i: 0;
+    animation:
+      letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) calc(var(--i) * 0.07s) both,
+      logo-wave 3.2s ease-in-out calc(1.2s + var(--i) * 0.16s) infinite;
   }
 
-  .hero__title-ja > span:nth-child(2) { animation-delay: 0.07s; }
-  .hero__title-ja > span:nth-child(3) { animation-delay: 0.14s; }
-  .hero__title-ja > span:nth-child(4) { animation-delay: 0.21s; }
-  .hero__title-ja > span:nth-child(5) { animation-delay: 0.28s; }
+  .hero__title-ja > span:nth-child(2) { --i: 1; }
+  .hero__title-ja > span:nth-child(3) { --i: 2; }
+  .hero__title-ja > span:nth-child(4) { --i: 3; }
+  .hero__title-ja > span:nth-child(5) { --i: 4; }
 
   .hero__catch {
     animation: catch-in 0.6s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
   }
 
-  /* 見本のワードが、ふわふわ浮かぶ */
-  .sample .map__pin {
-    animation: bob 3.4s ease-in-out infinite;
-  }
-
-  .sample .map__pin:nth-of-type(2) { animation-delay: -0.6s; }
-  .sample .map__pin:nth-of-type(3) { animation-delay: -1.3s; }
-  .sample .map__pin:nth-of-type(4) { animation-delay: -2s; }
-  .sample .map__pin:nth-of-type(5) { animation-delay: -2.7s; }
 
   /* 選んだワードが、ぷるぷるゆれる */
   .chip.is-selected,
@@ -2798,12 +2812,19 @@ body::before {
   }
 }
 
-@keyframes bob {
-  0%, 100% {
-    transform: translate(-50%, -50%);
+/* ロゴの文字が、波のようにゆっくり上下する */
+@keyframes logo-wave {
+  0%, 60%, 100% {
+    translate: 0 0;
+    rotate: 0deg;
   }
-  50% {
-    transform: translate(-50%, calc(-50% - 4px));
+  20% {
+    translate: 0 -6px;
+    rotate: -4deg;
+  }
+  40% {
+    translate: 0 1px;
+    rotate: 2deg;
   }
 }
 

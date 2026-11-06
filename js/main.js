@@ -11,6 +11,7 @@ import { revealActions } from './screen-reveal.js';
 import { endActions } from './screen-end.js';
 import { roomActions } from './screen-room.js';
 import { showStats, statsActions } from './screen-stats.js';
+import { startDemo, stopDemo } from './demo.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
 // ブラウザの「戻る」も効く。ゲームの中の画面の切り替えは flow.js と online.js が受け持つ。
@@ -30,6 +31,8 @@ if (params.has('room')) {
 
 function render() {
   const hash = location.hash;
+  // トップ画面の見本（答え合わせのデモ）は、トップを出しているあいだだけ動かす
+  if (hash === '#play' || hash === '#stats' || hash === '#room') stopDemo();
   if (hash === '#play') {
     if (isOnline()) leaveOnline();
     if (!isPlaying()) startSoloGame({ onExit: () => navigate('top') });
@@ -49,6 +52,7 @@ function render() {
     if (isOnline()) leaveOnline();
     closeSheet('quit');
     showScreen('top');
+    startDemo();
   }
 }
 
