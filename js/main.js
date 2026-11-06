@@ -12,6 +12,7 @@ import { endActions } from './screen-end.js';
 import { roomActions } from './screen-room.js';
 import { showStats, statsActions } from './screen-stats.js';
 import { startDemo, stopDemo } from './demo.js';
+import { unlockSound, startBgm, sfx, soundOn, setSoundOn } from './sound.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
 // ブラウザの「戻る」も効く。ゲームの中の画面の切り替えは flow.js と online.js が受け持つ。
@@ -89,6 +90,11 @@ const actions = {
     navigate('room');
   },
   'play-solo': () => navigate('play'),
+  'sound-toggle': () => {
+    setSoundOn(!soundOn());
+    showSoundState();
+    sfx('tap');
+  },
   home: () => navigate('top'),
   help: () => openSheet('howto'),
   'close-help': () => closeSheet('howto'),
@@ -108,11 +114,30 @@ const actions = {
   ...statsActions,
 };
 
+// 音：スマホは画面を一度さわるまで音を出せないので、最初にさわったときに準備して BGM を流しはじめる
+startBgm();
+document.addEventListener('pointerdown', unlockSound, { capture: true });
+document.addEventListener('keydown', unlockSound, { capture: true });
+
+// 「音 オン／オフ」のボタンの見た目を、今の設定に合わせる
+function showSoundState() {
+  document.querySelectorAll('[data-action="sound-toggle"]').forEach((button) => {
+    button.classList.toggle('is-off', !soundOn());
+    button.setAttribute('aria-pressed', String(soundOn()));
+    const label = button.querySelector('[data-sound="label"]');
+    if (label) label.textContent = soundOn() ? '音 オン' : '音 オフ';
+  });
+}
+showSoundState();
+
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
   const action = actions[button.dataset.action];
-  if (action) action(button);
+  if (!action) return;
+  // ボタンを押した音（自分で音を出すボタンは、その中で鳴らす）
+  if (!['sound-toggle', 'lock', 'reveal-next'].includes(button.dataset.action)) sfx('tap');
+  action(button);
 });
 
 window.addEventListener('popstate', render);

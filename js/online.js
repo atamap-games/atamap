@@ -384,6 +384,8 @@ function startMake(me, room) {
     timeLimit: remaining === null ? 0 : Math.max(0.2, remaining),
     timeTotal: room.meta.timeLimit,
     pausable: false,
+    // 主役には、はじめにお題を大きく出す（とちゅうで開き直したときは出さない）
+    intro: remaining === null || remaining > (room.meta.timeLimit || 90) - 10,
   }).then(async (result) => {
     if (me.closed) return;
     me.holdUntil = Date.now() + AFTER_LOCK_MS;

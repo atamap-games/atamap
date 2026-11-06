@@ -293,7 +293,8 @@ export function moveSpotlight(spot, guesses, total = 5000) {
   const start = performance.now();
   let frame = 0;
   const step = (now) => {
-    const t = Math.min(1, (now - start) / total);
+    // 最初のコマの時刻は、動かしはじめより少し前のことがあるので、0〜1 に収める
+    const t = Math.min(1, Math.max(0, (now - start) / total));
     // だんだんゆっくり
     const pos = at(1 - (1 - t) ** 1.5);
     spot.style.left = `${pos.x}%`;

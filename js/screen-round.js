@@ -4,6 +4,7 @@ import { showScreen, el } from './ui.js';
 import { createMap } from './mapview.js';
 import { createTimer } from './timer.js';
 import { popIn, burstAt, bump } from './fx.js';
+import { sfx } from './sound.js';
 
 const screen = document.querySelector('[data-screen="round"]');
 const part = (name) => screen.querySelector(`[data-round="${name}"]`);
@@ -81,6 +82,7 @@ export function showMaking({ key, main, topic, round, rounds, remaining, deadlin
     const name = part('name').parentElement;
     popIn(name, { delay: 150, from: 'scale(2.2)' });
     window.setTimeout(() => burstAt(name, { count: 14, spread: 80, stars: true }), 450);
+    window.setTimeout(() => sfx('topic'), 200);
   }
 }
 

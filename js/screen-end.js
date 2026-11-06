@@ -4,6 +4,7 @@ import { totalPoints, awards } from './score.js';
 import { playerById } from './game.js';
 import { drawResultImage } from './result-image.js';
 import { popIn, slideIn, confetti, burstAt } from './fx.js';
+import { sfx } from './sound.js';
 
 const sheet = document.getElementById('share');
 const sheetPart = (name) => sheet.querySelector(`[data-share="${name}"]`);
@@ -49,6 +50,7 @@ export function showEnd({ game, topics, canRestart = true }) {
   showScreen('end');
   // 演出：紙ふぶき → 賞のカードが1枚ずつ出る → 順位がすべりこむ
   confetti();
+  sfx('fanfare');
   [...awardList.children].forEach((card, i) => popIn(card, { delay: 200 + i * 140, from: 'scale(0.4) rotate(-6deg)' }));
   [...list.children].forEach((row, i) => slideIn(row, { delay: 800 + i * 70 }));
   window.setTimeout(() => burstAt(list.querySelector('.rank-row--top'), { count: 14, spread: 70, stars: true }), 1200);

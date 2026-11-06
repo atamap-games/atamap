@@ -57,6 +57,8 @@
 
       <div class="links">
         <button type="button" class="btn btn--text" data-action="help">遊び方</button>
+        <!-- BGM と効果音のオン・オフ（このスマホに覚える） -->
+        <button type="button" class="btn btn--text sound-toggle" data-action="sound-toggle" aria-pressed="true"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="sound-icon__wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sound-icon__mute" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span data-sound="label">音 オン</span></button>
         <!-- 部屋の機能ができるまでの、1台のスマホを回して遊ぶ入り口 -->
         <button type="button" class="btn btn--text" data-action="play-solo">1台で遊ぶ →</button>
       </div>
@@ -177,6 +179,8 @@
           <p class="pass__text" data-pass="text"></p>
           <p class="pass__note" data-pass="note"></p>
         </div>
+        <!-- お題を大きく発表する（デデン！） -->
+        <div class="topic-card" data-pass="topic" hidden></div>
       </div>
       <div class="foot">
         <button type="button" class="btn btn--primary" data-action="pass-go">はじめる</button>
@@ -313,7 +317,10 @@
         </li>
       </ol>
       <p class="sheet__note">最新情報は X の <a href="https://x.com/atamap_games" target="_blank" rel="noopener">@atamap_games</a> で</p>
-      <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
+      <div class="actions actions--split">
+        <button type="button" class="btn btn--secondary btn--sound sound-toggle" data-action="sound-toggle" aria-pressed="true"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="sound-icon__wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sound-icon__mute" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span data-sound="label">音 オン</span></button>
+        <button type="button" class="btn btn--secondary" data-action="close-help">閉じる</button>
+      </div>
     </div>
   </dialog>
 

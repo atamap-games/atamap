@@ -10,6 +10,7 @@
 import { el } from './ui.js';
 import { createMap, createPin, fitLabel } from './mapview.js';
 import { popIn, ripple, haptic, stamp } from './fx.js';
+import { sfx } from './sound.js';
 
 // 指で隠れないよう、ドラッグ中のピンは指より少し上に出す（px）
 const TOUCH_LIFT = 56;
@@ -158,6 +159,7 @@ export function createBoard(root, topic, { onChange } = {}) {
     popIn(word.pin, { from: 'scale(0.2)' });
     ripple(map, pos);
     haptic(8);
+    sfx('place');
     // 選んで置いたときは、選んでいる印を消す
     if (selected === word) {
       select(null);
@@ -183,6 +185,7 @@ export function createBoard(root, topic, { onChange } = {}) {
   }
 
   function select(word) {
+    if (word && word !== selected) sfx('select');
     selected = word;
     for (const w of words) {
       w.chip.classList.toggle('is-selected', w === word);

@@ -72,17 +72,21 @@ async function playOneGame({ names, timeLimit }, topics, step) {
 
   // 主役を順番に回す：主役がマップを作ってロック → ほかの人が順に予想 → 答え合わせ
   for (const [index, main] of game.players.entries()) {
+    // 主役のお題を先に決めて、スマホを渡す画面で大きく発表する
+    const dealt = dealTopic(game, topics);
     await step(showPass({
       player: main,
       step: `ラウンド ${index + 1}/${count}・主役`,
       text: 'あなたが主役！自分のマップを作る番です',
       note: 'ほかの人は画面を見ないでね',
+      topic: dealt,
+      topicLabel: '今回のお題',
     }));
     const made = await step(runPlace({
       mode: 'make',
       player: main,
       timeLimit: game.timeLimit,
-      topic: dealTopic(game, topics),
+      topic: dealt,
       reroll: (now) => dealTopic(game, topics, [now.id]),
     }));
     setMap(game, main.id, made);
@@ -96,6 +100,8 @@ async function playOneGame({ names, timeLimit }, topics, step) {
         step: `ラウンド ${index + 1}/${count}・予想 ${g + 1}/${guessers.length}`,
         text: `${main.name}さんのマップを予想する番です`,
         note: 'ほかの人の予想は見ないでね',
+        topic,
+        topicLabel: `${main.name}さんのお題`,
       }));
       const result = await step(runPlace({ mode: 'guess', player: guesser, main, topic, timeLimit: game.timeLimit }));
       setGuess(game, main.id, guesser.id, result.placements);

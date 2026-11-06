@@ -9,6 +9,7 @@ import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from 
 import { playerById } from './game.js';
 import { wordResult, roundPoints, biggestMiss, gradeName, NEAR, CLOSE } from './score.js';
 import { popIn, dropIn, slideIn, burstAt, shake, haptic, reduced, moveSpotlight } from './fx.js';
+import { sfx, drumroll, duckBgm } from './sound.js';
 
 const screen = document.querySelector('[data-screen="reveal"]');
 const part = (name) => screen.querySelector(`[data-reveal="${name}"]`);
@@ -246,6 +247,7 @@ function showGuess(pin, animate) {
   if (animate) {
     popIn(pin, { from: 'scale(0)' });
     haptic(6);
+    sfx('pin', view.guessPins.filter(([p]) => !p.hidden).length - 1);
   }
 }
 
@@ -274,6 +276,9 @@ function revealAnswer({ suspense }) {
   // スポットライトが、みんなの予想とランダムな場所を5秒、なめらかにめぐる（答えの場所とは関係ない。止まる場所で答えがばれないように）
   stopSpot = moveSpotlight(spot, guessPins.map(([, r]) => r.pos), SUSPENSE_MS);
   haptic(8);
+  // BGM を小さくして、小太鼓のロール
+  duckBgm(SUSPENSE_MS + 2500, 0.1);
+  drumroll(SUSPENSE_MS);
   // 最後はスポットライトがぱっと消えて、答えが落ちてくる
   later(SUSPENSE_MS, () => layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }));
   later(SUSPENSE_MS + 250, () => {
@@ -311,11 +316,17 @@ function finishAnswer(animate) {
   later(450, () => {
     burstAt(answerPin?.querySelector('.pin__dot'), { count: 16, spread: 70, stars: true });
     haptic([30, 30, 60]);
+    sfx('reveal');
   });
   chips.forEach(([chip], i) => popIn(chip, { delay: 700 + i * 70 }));
   later(900, () => {
-    guessPins.filter(([, r]) => r.points === 3).forEach(([pin]) => burstAt(pin.querySelector('.pin__dot'), { count: 10, spread: 40, stars: true }));
-    if (shout) shake(shout.parentElement);
+    const bullseye = guessPins.filter(([, r]) => r.points === 3);
+    bullseye.forEach(([pin]) => burstAt(pin.querySelector('.pin__dot'), { count: 10, spread: 40, stars: true }));
+    if (bullseye.length) sfx('sparkle');
+    if (shout) {
+      shake(shout.parentElement);
+      later(bullseye.length ? 250 : 0, () => sfx('shout'));
+    }
   });
 }
 
