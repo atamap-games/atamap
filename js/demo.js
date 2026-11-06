@@ -3,10 +3,10 @@
 // トップ画面を出しているあいだだけ動かす。スマホが「動きを減らす」設定のときは、答えまで出した1枚の絵にする。
 import { el } from './ui.js';
 import { loadTopics } from './topics.js';
-import { createMap, createPin, placePinsApart, watchResize } from './mapview.js';
+import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { PLAYER_COLORS } from './game.js';
 import { NEAR, CLOSE } from './score.js';
-import { popIn, dropIn, burstAt, reduced } from './fx.js';
+import { popIn, dropIn, burstAt, shake, reduced } from './fx.js';
 
 const stage = document.querySelector('[data-screen="top"] .sample__stage');
 const caption = document.querySelector('[data-screen="top"] .sample__caption');
@@ -100,7 +100,12 @@ function play(topic, word) {
     map.append(pin);
     return [pin, g.pos];
   });
-  const answerPin = createPin('答え', { className: 'pin--answer' });
+  // 遠くに置いた人には、答えが出たら「そこ置く!?」（本番の答え合わせと同じ）
+  const farIndex = guesses.findIndex((g) => g.far);
+  const shout = el('span', 'pin__shout', 'そこ置く!?');
+  shout.hidden = true;
+  if (farIndex >= 0) guessPins[farIndex][0].append(shout);
+  const answerPin = createPin(ANSWER_LABEL, { className: 'pin--answer' });
   answerPin.hidden = true;
   map.append(answerPin);
 
@@ -117,6 +122,7 @@ function play(topic, word) {
     // 動きを減らす設定：答えまで出した1枚の絵
     guessPins.forEach(([pin]) => (pin.hidden = false));
     answerPin.hidden = false;
+    shout.hidden = false;
     rings.hidden = false;
     layout();
     return;
@@ -151,8 +157,11 @@ function play(topic, word) {
     layer.remove();
     rings.hidden = false;
     answerPin.hidden = false;
+    shout.hidden = false;
     layout();
     dropIn(answerPin);
+    popIn(shout, { delay: 650, from: 'scale(0) rotate(-20deg)', base: 'translateX(-50%) rotate(-5deg)' });
+    later(900, () => shake(shout.parentElement));
     rings.querySelectorAll('.ring').forEach((ring, i) => popIn(ring, { delay: 400 + i * 120, from: 'scale(0)', base: 'translate(-50%, -50%)' }));
     later(420, () => burstAt(answerPin.querySelector('.pin__dot'), { count: 12, spread: 50, stars: true }));
   });
@@ -169,8 +178,18 @@ function makeGuesses(answer) {
     const dist = rand(min, max);
     return { x: clamp(answer.x + Math.cos(angle) * dist), y: clamp(answer.y + Math.sin(angle) * dist) };
   };
-  const spots = shuffle([at(2, CLOSE - 2), at(CLOSE + 2, NEAR - 2), at(30, 50)]);
-  return PLAYERS.map((p, i) => ({ ...p, pos: spots[i] }));
+  // 遠い人は、本番で「そこ置く!?」が出る距離（35）より遠くに置く
+  const spots = shuffle([{ pos: at(2, CLOSE - 2) }, { pos: at(CLOSE + 2, NEAR - 2) }, { pos: farFrom(answer), far: true }]);
+  return PLAYERS.map((p, i) => ({ ...p, ...spots[i] }));
+}
+
+// 答えから40以上はなれた場所（マップの中で、いちばん遠い側から選ぶ）
+function farFrom(answer) {
+  for (let i = 0; i < 30; i++) {
+    const pos = { x: rand(8, 92), y: rand(8, 92) };
+    if (Math.hypot(pos.x - answer.x, pos.y - answer.y) >= 40) return pos;
+  }
+  return { x: answer.x < 50 ? 88 : 12, y: answer.y < 50 ? 88 : 12 };
 }
 
 function rand(min, max) {

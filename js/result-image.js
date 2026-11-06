@@ -3,6 +3,7 @@
 import { awards, wordResult, NEAR, CLOSE } from './score.js';
 import { playerById } from './game.js';
 import { arrangeLabels } from './labels.js';
+import { ANSWER_LABEL } from './mapview.js';
 
 const W = 1200;
 const H = 675;
@@ -37,7 +38,7 @@ export async function drawResultImage(game, topics) {
     ...game.players.map((p) => p.name),
     ...topics.filter((t) => Object.values(game.maps).some((m) => m.topicId === t.id)).flatMap((t) => [t.title, t.genre, ...t.words, ...Object.values(t.axes)]),
     'お題「」の今日のズレ大賞主役：さん　みんなの予想と平均ズレ以心伝心王ミステリアス賞ベストペア該当なし人が同点組（）点・＆',
-    'あなたならどこに置く？アタマップ#答え0123456789',
+    'あなたならどこに置く？アタマップ#ココらへん！0123456789',
   ].join('');
   await Promise.all([
     document.fonts?.load(`40px "Dela Gothic One"`, used),
@@ -187,7 +188,7 @@ function drawMap(ctx, box, topic, result, game) {
 
 // 主役の答えとみんなの予想。名札がたがいに重ならないように、置き場所を先に決める（答えの名札がいちばん先）
   const pins = [];
-  if (result.answer) pins.push({ pos: result.answer, text: '答え', color: COLOR.primary, radius: 14, answer: true });
+  if (result.answer) pins.push({ pos: result.answer, text: ANSWER_LABEL, color: COLOR.primary, radius: 14, answer: true });
   for (const r of result.results) {
     if (!r.pos) continue;
     const player = playerById(game, r.playerId);

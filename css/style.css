@@ -2736,12 +2736,19 @@ body::before {
     animation: screen-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
   }
 
-  /* ロゴの文字が1文字ずつはねて出てきて、そのあとは波のようにゆっくり上下しつづける */
+  /* ロゴの文字が1文字ずつはねて出てきて、そのあとは
+     ・波のようにゆっくり上下しつづける
+     ・ときどき1文字ずつ順番に、画面の奥に向かってくるっと1回転する（時計回り） */
+  .hero__title-ja {
+    perspective: 420px;
+  }
+
   .hero__title-ja > span {
     --i: 0;
     animation:
       letter-bounce 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.5) calc(var(--i) * 0.07s) both,
-      logo-wave 3.2s ease-in-out calc(1.2s + var(--i) * 0.16s) infinite;
+      logo-wave 3.2s ease-in-out calc(1.2s + var(--i) * 0.16s) infinite,
+      logo-spin 4.8s cubic-bezier(0.5, 0, 0.3, 1) calc(1.6s + var(--i) * 0.13s) infinite;
   }
 
   .hero__title-ja > span:nth-child(2) { --i: 1; }
@@ -2816,15 +2823,31 @@ body::before {
 @keyframes logo-wave {
   0%, 60%, 100% {
     translate: 0 0;
-    rotate: 0deg;
   }
   20% {
     translate: 0 -6px;
-    rotate: -4deg;
   }
   40% {
     translate: 0 1px;
-    rotate: 2deg;
+  }
+}
+
+/* ロゴの文字が、縦の軸のまわりに1回転する（上から見て時計回り）。回っているあいだは少し大きく */
+@keyframes logo-spin {
+  0% {
+    rotate: y 0deg;
+    scale: 1;
+  }
+  9% {
+    scale: 1.22;
+  }
+  18% {
+    rotate: y -360deg;
+    scale: 1;
+  }
+  100% {
+    rotate: y -360deg;
+    scale: 1;
   }
 }
 

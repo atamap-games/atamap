@@ -5,7 +5,7 @@
 //   4. 答えのピンが落ちてきて、3点・1点の輪が広がり、点数が出る
 // 5つ終わったら、そのラウンドのまとめを出す。
 import { showScreen, el } from './ui.js';
-import { createMap, createPin, placePinsApart, watchResize } from './mapview.js';
+import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { playerById } from './game.js';
 import { wordResult, roundPoints, biggestMiss, gradeName, NEAR, CLOSE } from './score.js';
 import { popIn, dropIn, slideIn, burstAt, shake, haptic, reduced } from './fx.js';
@@ -178,7 +178,7 @@ function renderWord() {
   // 主役の答え（答えを出すまで見せない）
   let answerPin = null;
   if (result.answer) {
-    answerPin = createPin('答え', { className: 'pin--answer' });
+    answerPin = createPin(ANSWER_LABEL, { className: 'pin--answer' });
     answerPin.hidden = true;
     map.append(answerPin);
   }

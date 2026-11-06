@@ -3,6 +3,9 @@
 import { el } from './ui.js';
 import { arrangeLabels } from './labels.js';
 
+// 主役の答えのピンの名札（答え合わせ・トップのデモ・結果画像で使う）
+export const ANSWER_LABEL = 'ココらへん！';
+
 // ピンの名札と点のすきま（px）
 const LABEL_GAP = 12;
 
