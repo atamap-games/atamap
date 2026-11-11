@@ -51,7 +51,7 @@ export async function createQrSvg(text) {
   }
   const path = document.createElementNS(SVG, 'path');
   path.setAttribute('d', d);
-  path.setAttribute('fill', '#2B2A3A');
+  path.setAttribute('fill', '#161616');
   svg.append(background, path);
   return svg;
 }

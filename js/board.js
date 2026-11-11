@@ -9,6 +9,8 @@
 // 座標は x：左 0 → 右 100、y：上 0 → 下 100（マップの見たままの向き）。
 import { el } from './ui.js';
 import { createMap, createPin, fitLabel } from './mapview.js';
+import { popIn, ripple, haptic, stamp } from './fx.js';
+import { sfx } from './sound.js';
 
 // 指で隠れないよう、ドラッグ中のピンは指より少し上に出す（px）
 const TOUCH_LIFT = 56;
@@ -73,6 +75,9 @@ export function createBoard(root, topic, { onChange } = {}) {
   // 画面の大きさが変わったら、名札の位置を整え直す
   const resizeObserver = new ResizeObserver(() => words.forEach(layoutPin));
   resizeObserver.observe(map);
+  // 文字（Google Fonts）があとから読み込まれると名札の幅が変わるので、整え直す
+  const onFonts = () => words.forEach(layoutPin);
+  document.fonts?.addEventListener?.('loadingdone', onFonts);
 
   // ---------- 指やマウスの操作 ----------
 
@@ -150,7 +155,11 @@ export function createBoard(root, topic, { onChange } = {}) {
     word.pin.style.top = `${pos.y}%`;
     setChipPlaced(word, true);
     layoutPin(word);
-    navigator.vibrate?.(8);
+    // ぽんっと置かれて、波紋が広がる
+    popIn(word.pin, { from: 'scale(0.2)' });
+    ripple(map, pos);
+    haptic(8);
+    sfx('place');
     // 選んで置いたときは、選んでいる印を消す
     if (selected === word) {
       select(null);
@@ -165,6 +174,7 @@ export function createBoard(root, topic, { onChange } = {}) {
     word.pin = null;
     word.pos = null;
     setChipPlaced(word, false);
+    popIn(word.chip);
     update();
   }
 
@@ -175,6 +185,7 @@ export function createBoard(root, topic, { onChange } = {}) {
   }
 
   function select(word) {
+    if (word && word !== selected) sfx('select');
     selected = word;
     for (const w of words) {
       w.chip.classList.toggle('is-selected', w === word);
@@ -259,11 +270,13 @@ export function createBoard(root, topic, { onChange } = {}) {
      * @param {object} [text]
      * @param {string} [text.message] 大きく出す文
      * @param {string} [text.note] 小さく添える文
+     * @param {string} [text.stamp] マップに押すハンコの文字（例：「ロック!」）
      */
-    lock({ message = 'ロックしました！', note = '' } = {}) {
+    lock({ message = 'ロックしました！', note = '', stamp: stampText = '' } = {}) {
       locked = true;
       select(null);
       map.classList.add('is-locked');
+      if (stampText) stamp(map, stampText);
       tray.classList.add('is-locked');
       trayDone.replaceChildren(message);
       if (note) trayDone.append(el('span', 'tray__sub', note));
@@ -272,6 +285,7 @@ export function createBoard(root, topic, { onChange } = {}) {
     /** 後片づけ（画面を離れるとき） */
     destroy() {
       resizeObserver.disconnect();
+      document.fonts?.removeEventListener?.('loadingdone', onFonts);
       document.querySelectorAll('.pin--ghost').forEach((ghost) => ghost.remove());
     },
   };

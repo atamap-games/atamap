@@ -26,6 +26,9 @@ export async function showStats() {
     const [topics, net] = await Promise.all([loadTopics(), connect()]);
     const stats = await net.get('stats');
     if (ticket !== loading) return;
+    // 文字（Google Fonts）の読み込みが終わってから、1ページの行数を決める（行の高さが変わるため）
+    await document.fonts?.ready;
+    if (ticket !== loading) return;
     const result = findSameSpots(stats, topics);
     found = result.found;
     part('summary').textContent = `記録したマップ ${result.maps}枚（お題 ${result.topics}個、調べたお題 ${result.checked}個）`;
@@ -75,6 +78,10 @@ function render() {
 }
 
 window.addEventListener('resize', () => {
+  if (!screen.hidden && found.length) render();
+});
+// あとから文字が読み込まれたときも、行数を決め直す
+document.fonts?.addEventListener?.('loadingdone', () => {
   if (!screen.hidden && found.length) render();
 });
 

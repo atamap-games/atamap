@@ -1,6 +1,10 @@
 // マップの見た目を作る部品（軸・軸の言葉・ピン）。動かす操作は board.js、答え合わせの表示は screen-reveal.js で使う。
 // 座標は x：左 0 → 右 100、y：上 0 → 下 100（マップの見たままの向き）。
 import { el } from './ui.js';
+import { arrangeLabels } from './labels.js';
+
+// 主役の答えのピンの名札（答え合わせ・トップのデモ・結果画像で使う）
+export const ANSWER_LABEL = 'ココらへん！';
 
 // ピンの名札と点のすきま（px）
 const LABEL_GAP = 12;
@@ -60,11 +64,93 @@ export function fitLabel(pin, x, y, areaWidth) {
 }
 
 /**
+ * 何本ものピンを置き、名札がたがいに重ならないように並べる（答え合わせのマップで使う）。
+ * 名札を点から離したときは、点と名札を細い線でつなぐ。
+ * @param {HTMLElement} map マップ
+ * @param {Array<{ pin: HTMLElement, pos: { x: number, y: number } }>} entries 見えているピン。先のものほど点のそばに名札を置く
+ */
+export function placePinsApart(map, entries) {
+  const width = map.clientWidth;
+  const height = map.clientHeight;
+  if (!width || !height) return;
+  const mapBox = map.getBoundingClientRect();
+  // 軸の言葉には、なるべく重ねない
+  // （画面が切りかわる動きで、マップが拡大・縮小されているときも測れるように、大きさの比で割る）
+  const scale = mapBox.width / map.offsetWidth || 1;
+  const soft = [...map.querySelectorAll('.map__label')].map((label) => {
+    const r = label.getBoundingClientRect();
+    return {
+      x: (r.left - mapBox.left) / scale - map.clientLeft,
+      y: (r.top - mapBox.top) / scale - map.clientTop,
+      w: r.width / scale,
+      h: r.height / scale,
+    };
+  });
+  const items = entries.map(({ pin, pos }) => {
+    pin.style.left = `${pos.x}%`;
+    pin.style.top = `${pos.y}%`;
+    pin.classList.add('pin--free');
+    const label = pin.querySelector('.pin__label');
+    const shout = pin.querySelector('.pin__shout:not([hidden])');
+    const answer = pin.classList.contains('pin--answer');
+    return {
+      x: (pos.x / 100) * width,
+      y: (pos.y / 100) * height,
+      w: label.offsetWidth,
+      h: label.offsetHeight + 3, // 下の影の分
+      gap: answer ? 15 : 10,
+      dot: answer ? 13 : 9,
+      // 少しかたむけているので、そのぶん上下にもはみ出す
+      top: shout ? shout.offsetHeight - 2 + Math.ceil(shout.offsetWidth * 0.05) : 0,
+      topW: shout ? shout.offsetWidth + 6 : 0, // 少しかたむけている分
+    };
+  });
+  const spots = arrangeLabels(items, { width, height, margin: 3 }, soft);
+  // 点と名札をつなぐ線は、すべての名札の下になるように、マップに1枚の層を作って描く
+  let lines = map.querySelector('.map__lines');
+  if (!lines) {
+    lines = el('span', 'map__lines');
+    map.append(lines);
+  }
+  lines.replaceChildren();
+  entries.forEach(({ pin }, i) => {
+    const it = items[i];
+    const spot = spots[i];
+    const lx = Math.round(spot.x - it.x);
+    const ly = Math.round(spot.y - it.y);
+    const label = pin.querySelector('.pin__label');
+    label.style.left = `${lx}px`;
+    label.style.top = `${ly}px`;
+    const shout = pin.querySelector('.pin__shout');
+    if (shout) {
+      shout.style.left = `${lx + it.w / 2}px`;
+      shout.style.top = `${ly - shout.offsetHeight}px`;
+    }
+    if (!spot.far) return;
+    // 名札が点から離れたら、点から名札のいちばん近いところまで線を引く
+    const nx = Math.min(Math.max(0, lx), lx + it.w);
+    const ny = Math.min(Math.max(0, ly), ly + it.h - 3);
+    const line = el('span', 'map__line');
+    line.style.left = `${it.x}px`;
+    line.style.top = `${it.y}px`;
+    line.style.width = `${Math.hypot(nx, ny)}px`;
+    line.style.transform = `rotate(${Math.atan2(ny, nx)}rad)`;
+    lines.append(line);
+  });
+}
+
+/**
  * マップの大きさが変わったら呼ばれるようにする（名札の位置を整え直すため）。
  * @returns {() => void} 見張りをやめる関数
  */
 export function watchResize(map, callback) {
   const observer = new ResizeObserver(() => callback());
   observer.observe(map);
-  return () => observer.disconnect();
+  // 文字（Google Fonts）があとから読み込まれたときも、名札を整え直す
+  const onFonts = () => callback();
+  document.fonts?.addEventListener?.('loadingdone', onFonts);
+  return () => {
+    observer.disconnect();
+    document.fonts?.removeEventListener?.('loadingdone', onFonts);
+  };
 }

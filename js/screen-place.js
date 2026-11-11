@@ -2,6 +2,9 @@
 import { createBoard } from './board.js';
 import { showScreen, showToast, el } from './ui.js';
 import { createTimer } from './timer.js';
+import { bump, haptic } from './fx.js';
+import { fillTopicCard, announceTopic } from './screen-pass.js';
+import { sfx } from './sound.js';
 
 const screen = document.querySelector('[data-screen="place"]');
 const part = (name) => screen.querySelector(`[data-place="${name}"]`);
@@ -12,6 +15,8 @@ const rerollButton = () => part('actions').querySelector('[data-action="reroll"]
 const CONFIRM_MS = 2500;
 // 残りがこの秒数になったら、残り時間の表示を目立たせる
 const HURRY_SECONDS = 10;
+// 残りがこの秒数になったら、画面のふちを赤く光らせる
+const FINAL_SECONDS = 5;
 // 時間切れのとき、主役のマップでまだ置いていないワードを置く場所（真ん中）
 const CENTER = { x: 50, y: 50 };
 
@@ -31,9 +36,10 @@ let timer = null;
  * @param {number} [options.timeLimit] 制限時間（秒）。0 なら制限なし
  * @param {number} [options.timeTotal] 円のまわりの長さの元になる、制限時間の全体（秒）。部屋で遊ぶとき、途中から入っても円の減り方がそろうように
  * @param {boolean} [options.pausable] 別窓が開いているあいだ時間を止めるか（部屋で遊ぶときは、みんなで時間をそろえるので止めない）
+ * @param {string|false} [options.intro] はじめにお題を大きく出すときの札の文字（部屋で遊ぶときの主役。1台のときはスマホを渡す画面で出している）
  * @returns {Promise<{ topicId: number, placements: object[], rerolled: boolean, timeUp: boolean }>}
  */
-export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0, timeTotal = timeLimit, pausable = true }) {
+export function runPlace({ mode, player, main = null, topic, reroll = null, timeLimit = 0, timeTotal = timeLimit, pausable = true, intro = false }) {
   stopPlace();
   current = { mode, player, main, topic, reroll, rerolled: false, placed: 0, resolve: null };
 
@@ -48,16 +54,32 @@ export function runPlace({ mode, player, main = null, topic, reroll = null, time
   renderReroll();
   showScreen('place');
   startTimer(timeLimit, timeTotal, pausable);
+  if (intro) showIntro(topic, intro);
 
   return new Promise((resolve) => {
     current.resolve = resolve;
   });
 }
 
+// お題を大きく出す（2.4秒たつか、さわると閉じる）
+function showIntro(topic, label) {
+  const card = el('div', 'topic-card');
+  fillTopicCard(card, topic, typeof label === 'string' ? label : 'あなたのお題');
+  const overlay = el('div', 'topic-intro');
+  overlay.append(card);
+  const close = () => overlay.remove();
+  overlay.addEventListener('pointerdown', close);
+  window.setTimeout(close, 2400);
+  screen.append(overlay);
+  announceTopic(card, { delay: 100 });
+}
+
 /** 画面を離れるときの後片づけ */
 export function stopPlace() {
+  screen.querySelector('.topic-intro')?.remove();
   timer?.stop();
   timer = null;
+  screen.classList.remove('is-final');
   board?.destroy();
   board = null;
   resetConfirm();
@@ -78,6 +100,10 @@ function startTimer(seconds, total, pausable) {
       part('seconds').textContent = left;
       box.style.setProperty('--left', String(Math.min(1, left / (total || seconds))));
       box.classList.toggle('is-hurry', left <= HURRY_SECONDS);
+      screen.classList.toggle('is-final', left > 0 && left <= FINAL_SECONDS);
+      if (left <= HURRY_SECONDS) bump(part('seconds'));
+      if (left > 0 && left <= 3) haptic(15);
+      if (left > 0 && left <= FINAL_SECONDS) sfx('tick');
       box.setAttribute('aria-label', `残り${left}秒`);
     },
     onEnd: timeUp,
@@ -91,7 +117,7 @@ function timeUp() {
   const guessing = current.mode === 'guess';
   const left = board.getPlacements().filter((p) => !p.pos).length;
   if (!guessing && left) board.placeRemaining(CENTER);
-  board.lock({ message: '時間切れ！' });
+  board.lock({ message: '時間切れ！', stamp: 'タイムアップ!' });
   if (left) showToast(guessing ? `時間切れ！置いていない${left}つは0点です` : `時間切れ！置いていない${left}つは真ん中に置きました`);
   else showToast('時間切れ！このまま決めます');
   finish(true);
@@ -100,6 +126,9 @@ function timeUp() {
 function finish(timeUpFlag) {
   timer?.stop();
   timer = null;
+  screen.classList.remove('is-final');
+  haptic([20, 40, 20]);
+  sfx(timeUpFlag ? 'timeUp' : 'lock');
   // 決まったあとは、次の画面へ移るまでボタンを押せないようにする
   lockButton().disabled = true;
   lockButton().textContent = timeUpFlag ? '時間切れ' : current.mode === 'guess' ? '決定しました' : 'ロックしました';
@@ -180,7 +209,10 @@ export const placeActions = {
   lock: () => {
     if (!board?.isComplete() || !current?.resolve) return;
     resetConfirm();
-    board.lock({ message: current.mode === 'guess' ? '予想を決めました！' : 'ロックしました！' });
+    board.lock({
+      message: current.mode === 'guess' ? '予想を決めました！' : 'ロックしました！',
+      stamp: current.mode === 'guess' ? '決定!' : 'ロック!',
+    });
     finish(false);
   },
 };
