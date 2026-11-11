@@ -212,6 +212,7 @@
     - 見ている人のスマホには、答え合わせのあいだは「配信で答え合わせ中！」だけを出し、お題の結果のときに自分の点数と順位を出す（配信の遅れで、先に答えがわからないように）。
     - お題は「いつものお題」か「マイお題」（配信者が保存したもの。先に使い、足りなくなったら、いつものお題）。「みんなで作る」は使わない。引き直しは、いつものお題のときだけ。
     - 部屋のデータ：rooms/{部屋}/ の viewers（見ている人）・vguesses（予想。お題ごとに上書き）・scores（点数。配信者が書く）を足した。state に topic（お題そのもの）を入れ、見ている人のスマホは meta・state・自分の分だけを見る（人数が多くても通信が少なくてすむように）。データベースのルールに viewers・vguesses・scores を足した。
+    - 配信の設定（2026-11-11）：配信者の画面の右上の歯車で開く別窓（js/screen-stream-settings.js）。BGMと効果音の大きさ（このパソコンに覚え、同じパソコンの配信用の画面にも伝わる。js/sound.js の setVolume）、配信用の画面に部屋の番号とQRコードを映すか（meta.hideCode）、リンクのコピー、見ている人を外す（rooms/{部屋}/kicked/{uid} に true。外した人は viewers・vguesses・scores から消し、ルールでも入れない）。
     - 作りのしくみ：流れは js/online-stream.js、点数と順位の計算は js/stream.js、大きく見せる画面は js/screen-cast.js、配信用の窓の入り口は js/cast.js。部屋を作る・入るところまでは js/online.js が受け持つ。
   - お題の発表：スマホを渡す画面で、お題を大きな札で「デデン！」と出す（js/screen-pass.js の fillTopicCard・announceTopic）。部屋で遊ぶときは、主役のマップ作りのはじめに同じ札を出す。マップ作り・答え合わせの画面の上のお題は白い札。
   - 音（2026-11-06 にユーザーの希望で追加）：BGM と効果音は js/sound.js。音のファイルは使わず、ブラウザの中（Web Audio）で作る（権利の心配がない、読みこみも速い）。BGM はこのゲームのために作った8小節のくり返し。効果音は、ボタン・ワードを置く・ロック・お題の発表（デデン）・予想のピン・ドキドキの小太鼓・答え（ジャーン）・ど真ん中・そこ置く!?・残り5秒・時間切れ・最終結果（ファンファーレ）。スマホは画面をさわるまで音を出せないので、最初にさわったときに鳴りはじめる（スマホによって認める操作がちがうので、音が出せるようになるまで、指をはなしたとき・タップしたときなど、どの操作でも準備をためす。iPhone はマナーモードでも鳴るように、ゲームの音として鳴らす）。トップの「音 オン／オフ」と遊び方の別窓で切りかえ、スマホに覚える。トップのデモは音を出さない。
@@ -230,7 +231,7 @@
 - 試し方（Claude 向け）：Claude の作業場所からは www.gstatic.com や本物の Firebase につながらないことがある。そのときは npm で firebase（同じ版）・qrcode-generator・firebase-tools を作業用フォルダに入れ、Firebase のエミュレーター（database と auth、--project atamap-27ddc、ルールは database.rules.json）を動かす。ページを 127.0.0.1 で ?emulator を付けて開くと、エミュレーターにつながる（js/net.js）。gstatic と jsdelivr への読み込みは Playwright の route で手元のファイルに差しかえる。この方法で、3〜8台のブラウザで部屋のゲームを最後まで確かめた。本物の Firebase では、まだ試していない。
 - 試作版のアーティファクト（1台で遊ぶ形を試せる）：https://claude.ai/artifact/TKmgVM2kDVxfrgs3QuZ8mq 。アーティファクトの中では、部屋で遊ぶこと（Firebase）と、画像の保存・共有は動かない。
 - ユーザーにお願いしていること：
-  - Firebase の画面で、database.rules.json の中身を「Realtime Database」→「ルール」に貼って「公開」する（これをしないと、部屋も記録も動かない）。2026-11-06 に requests と custom、2026-11-11 に配信用の viewers・vguesses・scores を足したので、貼り直しが必要（取り込み依頼 #3 を取り込む前後に）。「Authentication」の「匿名」がオンになっているか確かめる。
+  - Firebase の画面で、database.rules.json の中身を「Realtime Database」→「ルール」に貼って「公開」する（これをしないと、部屋も記録も動かない）。2026-11-06 に requests と custom、2026-11-11 に配信用の viewers・vguesses・scores・kicked を足したので、貼り直しが必要（取り込み依頼 #3 を取り込む前後に）。「Authentication」の「匿名」がオンになっているか確かめる。
   - GitHub Pages：2026-11-06 に公開した（https://atamap-games.github.io/atamap/ ）。dev の変更は、取り込み依頼をユーザーが取り込むと公開される。
   - 公開したら、本物のスマホ3台以上で部屋を作って遊んでみる（指の操作、QRコードの読み取り、つながり方）。
   - ドメインと商標の確認、X のアイコン・ヘッダー画像（Claude が作れる）。

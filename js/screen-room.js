@@ -173,6 +173,9 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode =
   lobbyPart('count-note').textContent = stream ? `人が参加中（${stream.max}人まで）` : `人（${MIN_PLAYERS}〜${MAX_PLAYERS}人で遊べます）`;
   lobbyPart('note').hidden = !stream;
   lobbyPart('cast').hidden = !stream;
+  // 配信の設定は、遊び方の「?」のかわりに出す（遊び方はトップからも見られる）
+  lobbyPart('settings').hidden = !stream || !isHost;
+  lobbyPart('help').hidden = Boolean(stream && isHost);
   lobbyPart('actions').classList.toggle('actions--split', Boolean(stream));
   lobbyPart('code').textContent = code;
   lobbyPart('url').textContent = url;
@@ -358,6 +361,7 @@ export const roomActions = {
   'lobby-time-off': () => lobbyHandlers.setTime?.(false),
   'lobby-topic': () => lobbyHandlers.topic?.(),
   'lobby-cast': () => lobbyHandlers.openCast?.(),
+  'lobby-settings': () => lobbyHandlers.settings?.(),
   'wait-skip': () => waitHandlers.skip?.(),
 };
 

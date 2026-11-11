@@ -107,7 +107,8 @@
           <p class="topic__genre" data-lobby="label">部屋の番号</p>
           <h2 class="topic__title room-code" data-lobby="code"></h2>
         </div>
-        <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
+        <button type="button" class="icon-btn" data-action="help" data-lobby="help" aria-label="遊び方">?</button>
+        <button type="button" class="icon-btn" data-action="lobby-settings" data-lobby="settings" aria-label="配信の設定" hidden><svg viewBox="0 0 24 24" aria-hidden="true" class="gear-icon"><path fill="currentColor" d="M10.3 2h3.4l.5 2.6c.6.2 1.2.5 1.7.9l2.5-.9 1.7 2.9-2 1.7a7 7 0 0 1 0 1.9l2 1.7-1.7 2.9-2.5-.9c-.5.4-1.1.7-1.7.9l-.5 2.6h-3.4l-.5-2.6c-.6-.2-1.2-.5-1.7-.9l-2.5.9-1.7-2.9 2-1.7a7 7 0 0 1 0-1.9l-2-1.7 1.7-2.9 2.5.9c.5-.4 1.1-.7 1.7-.9zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill-rule="evenodd"/></svg></button>
       </header>
       <div class="qr" data-lobby="qr"></div>
       <div class="invite">
@@ -291,6 +292,7 @@
         <div class="head__right">
           <p class="timer" data-cast="timer" role="timer" aria-label="残り時間" hidden><span data-cast="seconds"></span></p>
           <p class="head__count" data-cast="count"></p>
+          <button type="button" class="icon-btn cast__settings" data-action="cast-settings" data-cast="settings" aria-label="配信の設定"><svg viewBox="0 0 24 24" aria-hidden="true" class="gear-icon"><path fill="currentColor" d="M10.3 2h3.4l.5 2.6c.6.2 1.2.5 1.7.9l2.5-.9 1.7 2.9-2 1.7a7 7 0 0 1 0 1.9l2 1.7-1.7 2.9-2.5-.9c-.5.4-1.1.7-1.7.9l-.5 2.6h-3.4l-.5-2.6c-.6-.2-1.2-.5-1.7-.9l-2.5.9-1.7-2.9 2-1.7a7 7 0 0 1 0-1.9l-2-1.7 1.7-2.9 2.5.9c.5-.4 1.1-.7 1.7-.9zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill-rule="evenodd"/></svg></button>
         </div>
       </header>
       <div class="cast__info" data-cast="info"></div>
@@ -483,6 +485,53 @@
       </div>
       <button type="button" class="btn btn--secondary btn--small" data-action="my-open" data-mode-edit>マイお題を作る・えらぶ</button>
       <button type="button" class="btn btn--text" data-action="topic-mode-close">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- 配信の設定（別窓。配信者だけ） -->
+  <dialog class="sheet sheet--small" id="stream-settings" aria-labelledby="ss-title">
+    <div class="sheet__body">
+      <h2 class="sheet__title" id="ss-title">配信の設定</h2>
+      <div class="volume">
+        <label class="volume__row"><span class="volume__name">BGM</span><input class="volume__range" type="range" min="0" max="100" step="10" data-ss="bgm"><output class="volume__value" data-ss="bgm-value"></output></label>
+        <label class="volume__row"><span class="volume__name">効果音</span><input class="volume__range" type="range" min="0" max="100" step="10" data-ss="sfx"><output class="volume__value" data-ss="sfx-value"></output></label>
+        <p class="volume__note">音は「配信用の画面」の窓から出ます</p>
+      </div>
+      <div class="ss-code">
+        <p class="setting__label">配信用の画面に、部屋の番号とQRコードを</p>
+        <div class="segmented" role="radiogroup" aria-label="部屋の番号とQRコード">
+          <button type="button" class="segmented__item" role="radio" data-action="ss-code-show" data-ss="code-show">映す</button>
+          <button type="button" class="segmented__item" role="radio" data-action="ss-code-hide" data-ss="code-hide">映さない</button>
+        </div>
+        <p class="ss-code__note" data-ss="code-note"></p>
+      </div>
+      <div class="actions actions--row">
+        <button type="button" class="btn btn--secondary btn--small" data-action="ss-copy">リンクをコピー</button>
+        <button type="button" class="btn btn--secondary btn--small" data-action="ss-viewers" data-ss="viewers">見ている人を外す</button>
+      </div>
+      <button type="button" class="btn btn--text" data-action="ss-close">閉じる</button>
+    </div>
+  </dialog>
+
+  <!-- 見ている人を外す（別窓。配信者だけ） -->
+  <dialog class="sheet sheet--small" id="stream-viewers" aria-labelledby="sv-title">
+    <div class="sheet__body">
+      <h2 class="sheet__title" id="sv-title" data-sv="title">見ている人</h2>
+      <p class="sheet__text" data-sv="text">外したい人の名前を押してね。外した人は、この部屋にもう入れません</p>
+      <ul class="kick-list" data-sv="list"></ul>
+      <div class="pager" data-sv="pager">
+        <button type="button" class="btn btn--secondary btn--small" data-action="sv-prev">前へ</button>
+        <p class="pager__text" data-sv="page"></p>
+        <button type="button" class="btn btn--secondary btn--small" data-action="sv-next">次へ</button>
+      </div>
+      <div class="kick-confirm" data-sv="confirm" hidden>
+        <p class="kick-confirm__text" data-sv="confirm-text"></p>
+        <div class="actions actions--row">
+          <button type="button" class="btn btn--primary btn--small" data-action="sv-kick">外す</button>
+          <button type="button" class="btn btn--secondary btn--small" data-action="sv-cancel">やめる</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn--text" data-action="sv-close">閉じる</button>
     </div>
   </dialog>
 

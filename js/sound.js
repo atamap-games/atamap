@@ -3,6 +3,8 @@
 // ・「音 オン／オフ」は、このスマホに覚えておく
 // ・音が出せないブラウザでは、何もしない（遊ぶのには困らない）
 const KEY = 'atamap.sound';
+// BGM と効果音の大きさ（0〜1。このパソコン・スマホに覚えておく）
+const VOLUME_KEY = 'atamap.volume';
 
 // 音の大きさ（全体・BGM・効果音）
 const MASTER = 0.8;
@@ -15,6 +17,7 @@ let bgmGain = null;
 let sfxGain = null;
 let noise = null;
 let on = loadOn();
+let volume = loadVolume();
 let bgmWanted = false;
 let scheduler = 0;
 let nextStep = 0;
@@ -31,6 +34,64 @@ function loadOn() {
     return true;
   }
 }
+
+function loadVolume() {
+  const clamp = (v) => (typeof v === 'number' && v >= 0 && v <= 1 ? v : 1);
+  try {
+    const saved = JSON.parse(localStorage.getItem(VOLUME_KEY) ?? '{}') ?? {};
+    return { bgm: clamp(saved.bgm), sfx: clamp(saved.sfx) };
+  } catch {
+    return { bgm: 1, sfx: 1 };
+  }
+}
+
+/** BGM と効果音の大きさ（{ bgm, sfx }。0〜1） */
+export function getVolume() {
+  return { ...volume };
+}
+
+/**
+ * BGM か効果音の大きさを変える（このパソコン・スマホに覚える）。
+ * 同じパソコンで開いている、ほかの窓（配信用の画面）にも伝わる。
+ * @param {'bgm'|'sfx'} kind
+ * @param {number} value 0〜1
+ */
+export function setVolume(kind, value) {
+  volume = { ...volume, [kind]: Math.min(1, Math.max(0, value)) };
+  try {
+    localStorage.setItem(VOLUME_KEY, JSON.stringify(volume));
+  } catch {
+    // 覚えられなくても、今は変わる
+  }
+  applyVolume();
+}
+
+function bgmLevel() {
+  return BGM_VOLUME * volume.bgm;
+}
+
+function applyVolume() {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  sfxGain.gain.setTargetAtTime(SFX_VOLUME * volume.sfx, t, 0.05);
+  bgmGain.gain.cancelScheduledValues(t);
+  if (duckUntil > t) {
+    bgmGain.gain.setTargetAtTime(bgmLevel() * 0.15, t, 0.08);
+    bgmGain.gain.setTargetAtTime(bgmLevel(), duckUntil, 0.4);
+  } else {
+    bgmGain.gain.setTargetAtTime(bgmLevel(), t, 0.05);
+  }
+}
+
+// 配信者の操作の画面で大きさを変えたら、配信用の画面（同じパソコンの別の窓）の音も変える。
+// 効果音を変えたときは、大きさがわかるように1つ鳴らす
+window.addEventListener('storage', (event) => {
+  if (event.key !== VOLUME_KEY) return;
+  const before = volume;
+  volume = loadVolume();
+  applyVolume();
+  if (volume.sfx !== before.sfx) sfx('tap');
+});
 
 /** 音が出る設定か */
 export function soundOn() {
@@ -91,10 +152,10 @@ export function unlockSound() {
     master.gain.value = on && quiet !== 'all' ? MASTER : 0;
     master.connect(ctx.destination);
     bgmGain = ctx.createGain();
-    bgmGain.gain.value = BGM_VOLUME;
+    bgmGain.gain.value = bgmLevel();
     bgmGain.connect(master);
     sfxGain = ctx.createGain();
-    sfxGain.gain.value = SFX_VOLUME;
+    sfxGain.gain.value = SFX_VOLUME * volume.sfx;
     sfxGain.connect(master);
     noise = makeNoise();
     // 画面が見えていないあいだは、音を止める
@@ -146,8 +207,8 @@ export function duckBgm(ms, level = 0.15) {
   const t = ctx.currentTime;
   duckUntil = Math.max(duckUntil, t + ms / 1000);
   bgmGain.gain.cancelScheduledValues(t);
-  bgmGain.gain.setTargetAtTime(BGM_VOLUME * level, t, 0.08);
-  bgmGain.gain.setTargetAtTime(BGM_VOLUME, duckUntil, 0.4);
+  bgmGain.gain.setTargetAtTime(bgmLevel() * level, t, 0.08);
+  bgmGain.gain.setTargetAtTime(bgmLevel(), duckUntil, 0.4);
 }
 
 // ---------- BGM（このゲームのために作った、明るい8小節のくり返し） ----------

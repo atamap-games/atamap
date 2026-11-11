@@ -54,6 +54,7 @@ function clearTimers() {
  * @param {string} o.streamer 配信者の名前
  * @param {string} o.code 部屋の番号
  * @param {string} o.url 参加するためのアドレス
+ * @param {boolean} [o.hideCode] 部屋の番号とQRコードを映さない（参加のリンクは、配信者がコメント欄などで知らせる）
  * @param {{ uid: string, name: string }[]} o.viewers 今つながっている、見ている人
  * @param {object} [o.topic] 今のお題
  * @param {number} [o.roundNo] 何問目か
@@ -66,11 +67,11 @@ function clearTimers() {
  * @param {boolean} [o.answerShown] 答えを出したか
  * @param {object[]} [o.ranking] 合計のランキング（[{ name, total, round, rank }]）
  * @param {object[]} [o.roundRanking] このお題のランキング
- * @param {object} [o.handlers] 操作の画面のボタン { answer, next, close, finish, again, openCast }
+ * @param {object} [o.handlers] 操作の画面のボタン { answer, next, close, finish, again, openCast, settings }
  */
 export function showCast(o) {
   handlers = o.handlers ?? {};
-  const wordKey = `${o.phase}:${o.key}:${o.phase === 'reveal' ? o.wordIndex : ''}`;
+  const wordKey = `${o.phase}:${o.key}:${o.phase === 'reveal' ? o.wordIndex : ''}:${o.phase === 'lobby' && o.hideCode ? 'hide' : ''}`;
   const same = view && view.wordKey === wordKey;
   const wasShown = view?.answerShown;
   view = same ? Object.assign(view, o) : { ...o, wordKey, stage: '' };
@@ -155,6 +156,10 @@ function renderClosed() {
 
 function renderLobby() {
   view.seen = new Set();
+  if (view.hideCode) {
+    renderLobbyHidden();
+    return;
+  }
   const qr = el('div', 'qr cast__qr');
   part('stage').replaceChildren(qr);
   qrFor = '';
@@ -165,6 +170,22 @@ function renderLobby() {
     el('p', 'cast__how', 'スマホでQRコードを読んで、名前を入れるだけ'),
     codeLine(view.code),
     el('p', 'cast__url', view.url),
+    el('p', 'cast__people'),
+    el('ul', 'members cast__members'),
+  );
+  part('info').replaceChildren(info);
+  renderLobbyMembers();
+}
+
+// 部屋の番号とQRコードを映さないとき：参加のしかただけを出す
+function renderLobbyHidden() {
+  const card = el('div', 'cast__invite');
+  card.append(el('b', '', 'スマホで参加できます'), el('span', '', `参加のリンクは\n${view.streamer}さんが\nコメント欄などで知らせます`));
+  part('stage').replaceChildren(card);
+  const info = el('div', 'cast__lobby');
+  info.append(
+    el('p', 'cast__lead', `${view.streamer}さんの頭の中を当てよう！`),
+    el('p', 'cast__how', 'リンクを開いて、名前を入れるだけ'),
     el('p', 'cast__people'),
     el('ul', 'members cast__members'),
   );
@@ -213,7 +234,7 @@ function showQr(box, url, isCurrent, setCurrent) {
 // 配信用の画面のすみに、あとから参加する人のための小さなQRコードと番号を出す
 function renderJoin() {
   const box = part('join');
-  const show = view.mode === 'cast' && !['lobby', 'closed'].includes(view.phase);
+  const show = view.mode === 'cast' && !view.hideCode && !['lobby', 'closed'].includes(view.phase);
   box.hidden = !show;
   if (!show) return;
   if (joinQrFor !== view.url) {
@@ -556,6 +577,9 @@ export const castActions = {
     else if (view.phase === 'reveal' && view.stage === 'answer') handlers.next?.();
     else if (view.phase === 'summary') handlers.next?.();
     else if (view.phase === 'end') handlers.again?.();
+  },
+  'cast-settings': () => {
+    if (view && view.mode !== 'cast') handlers.settings?.();
   },
   'cast-sub': () => {
     if (!view || view.mode === 'cast') return;

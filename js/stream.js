@@ -15,6 +15,8 @@
 //   vguesses : { [uid]: { gameNo, roundNo, at, placements } }                            … 見ている人の予想（お題ごとに上書き）
 //   scores   : { [uid]: { key, total, round, rank, of } }                           … 配信者がお題の結果で書く
 //   custom   : { [お題の id]: お題 }                                                  … 配信者のマイお題
+//   kicked   : { [uid]: true }                                                       … 配信者が外した人（もう入れない）
+//   meta.hideCode : true のとき、配信用の画面に部屋の番号とQRコードを映さない
 import { distance, pointsFor } from './score.js';
 
 // 見ている人の数の上限（Firebase の無料プランは、同時につなげるのが100人まで。配信者の2画面と、ゆとりを引いた数）

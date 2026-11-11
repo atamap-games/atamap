@@ -13,6 +13,7 @@ import { showCast, stopCast } from './screen-cast.js';
 import { openTopicMode, openMyTopics } from './screen-mytopics.js';
 import { chosenMyTopics, isCustomTopic } from './custom.js';
 import { setQuiet } from './sound.js';
+import { openStreamSettings, updateStreamSettings, closeStreamSettings } from './screen-stream-settings.js';
 import { burstAt } from './fx.js';
 import {
   STREAM_MAX_VIEWERS, STREAMER_COLOR, VIEWER_COLOR, onlineViewers, roundKey, streamerAnswer, currentGuesses,
@@ -60,6 +61,8 @@ export async function joinStreamRoom(net, code, meta, name) {
     await net.update(`rooms/${code}/players/${net.uid}`, { online: true });
     return null;
   }
+  // 配信者に外された人は、もう入れない
+  if (await net.get(`rooms/${code}/kicked/${net.uid}`)) return 'この配信の部屋には、もう入れません';
   const viewers = (await net.get(`rooms/${code}/viewers`)) ?? {};
   const already = viewers[net.uid];
   const count = Object.values(viewers).filter((v) => v && v.online !== false).length;
@@ -99,6 +102,7 @@ export function stopStream(me) {
   for (const t of me.timers ?? []) window.clearTimeout(t);
   window.clearTimeout(me.holdTimer);
   stopCast();
+  closeStreamSettings();
   setQuiet('');
 }
 
@@ -149,6 +153,7 @@ export function castModel(room, { mode, now, handlers = {} }) {
     code,
     url: joinUrl(code),
     viewers: onlineViewers(room),
+    hideCode: Boolean(meta.hideCode),
     topic: s.topic ?? null,
     roundNo: s.roundNo ?? 1,
     remaining: s.deadline ? Math.max(0, (s.deadline - now()) / 1000) : null,
@@ -177,7 +182,44 @@ function onHostRoom(me, room) {
   room.code = me.code;
   directStream(me, room);
   if (me.room !== room) return;
+  updateStreamSettings(settingsModel(me, room));
   renderHost(me, room);
+}
+
+// ---------- 配信の設定（音の大きさ・部屋の番号を映すか・見ている人を外す） ----------
+
+function settingsModel(me, room) {
+  return {
+    hideCode: Boolean(room.meta?.hideCode),
+    url: joinUrl(me.code),
+    viewers: onlineViewers(room),
+    handlers: {
+      hideCode: (on) => {
+        me.net.update(`rooms/${me.code}/meta`, { hideCode: on }).catch((err) => {
+          console.error(err);
+          showToast('変えられませんでした。もう一度押してね');
+        });
+      },
+      kick: (uid, name) => kickViewer(me, uid, name),
+    },
+  };
+}
+
+function openSettings(me) {
+  if (me.room) openStreamSettings(settingsModel(me, me.room));
+}
+
+// 見ている人を外す：見ている人の一覧・予想・点数から消して、もう入れないようにする
+function kickViewer(me, uid, name) {
+  me.net.update(`rooms/${me.code}`, {
+    [`kicked/${uid}`]: true,
+    [`viewers/${uid}`]: null,
+    [`vguesses/${uid}`]: null,
+    [`scores/${uid}`]: null,
+  }).then(() => showToast(`${name}さんを外しました`)).catch((err) => {
+    console.error(err);
+    showToast('外せませんでした。もう一度ためしてね');
+  });
 }
 
 function renderHost(me, room) {
@@ -207,6 +249,7 @@ function renderHost(me, room) {
         setTime: (on) => me.deps.setTime(on),
         topic: () => hostChooseTopicMode(me),
         openCast: () => openCastWindow(me),
+        settings: () => openSettings(me),
       },
     });
     return;
@@ -231,6 +274,7 @@ function renderHost(me, room) {
       again: () => hostStart(me),
       quit: () => me.deps.leave(),
       openCast: () => openCastWindow(me),
+      settings: () => openSettings(me),
     },
   }));
 }
@@ -436,7 +480,8 @@ function onViewerData(me) {
     return;
   }
   if (!self) {
-    showToast('部屋から出ました');
+    // 配信者に外された
+    showToast('配信者が、あなたを部屋から外しました', 4000);
     me.deps.leave({ silent: true });
     return;
   }

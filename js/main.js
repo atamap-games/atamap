@@ -15,6 +15,7 @@ import { startDemo, stopDemo } from './demo.js';
 import { makeTopicActions } from './screen-maketopic.js';
 import { myTopicsActions } from './screen-mytopics.js';
 import { castActions } from './screen-cast.js';
+import { streamSettingsActions } from './screen-stream-settings.js';
 import { unlockSound, soundReady, startBgm, sfx, soundOn, setSoundOn } from './sound.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
@@ -127,6 +128,7 @@ const actions = {
   ...makeTopicActions,
   ...myTopicsActions,
   ...castActions,
+  ...streamSettingsActions,
 };
 
 // 音：スマホは画面を一度さわるまで音を出せないので、最初にさわったときに準備して BGM を流しはじめる

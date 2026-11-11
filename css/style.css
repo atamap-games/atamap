@@ -4720,3 +4720,182 @@ body::before {
     font-size: 1rem;
   }
 }
+
+/* =====================================================================
+   配信の設定（配信者だけ）：音の大きさ・部屋の番号を映すか・見ている人を外す
+   ===================================================================== */
+
+.gear-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* 配信者の操作の画面：右上に「設定」。残り時間や 1/5 と横に並べる */
+.screen--cast:not(.is-broadcast) > .head {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+}
+
+.screen--cast:not(.is-broadcast) .head__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+}
+
+.screen--cast.is-broadcast .cast__settings {
+  display: none;
+}
+
+/* 音の大きさ */
+.volume {
+  display: grid;
+  gap: 4px;
+}
+
+.volume__row {
+  display: grid;
+  grid-template-columns: 3.6em minmax(0, 1fr) 3em;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-weight: 800;
+}
+
+.volume__name {
+  font-size: 0.875rem;
+}
+
+.volume__range {
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.volume__value {
+  font-family: var(--font-round);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.volume__note,
+.ss-code__note {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ss-code {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 2px dashed var(--line);
+}
+
+.ss-code .setting__label {
+  font-size: 0.8125rem;
+}
+
+/* 見ている人を外す：名前のボタンを2列（PCは3列）に並べる */
+.kick-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows, 4), 38px);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kick-list__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 0 10px;
+  border: 2px solid var(--player-color, var(--line));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.kick-list__item.is-picked {
+  border-color: var(--primary);
+  background: #FFF0F8;
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.kick-list__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kick-list__empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-align: center;
+}
+
+.kick-confirm {
+  display: grid;
+  gap: 6px;
+}
+
+.kick-confirm__text {
+  font-weight: 800;
+  text-align: center;
+}
+
+/* 部屋の番号とQRコードを映さないときの、待合室の案内 */
+.cast__invite {
+  display: grid;
+  place-content: center;
+  gap: 0.6em;
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  margin: auto;
+  padding: 1em;
+  border: 4px dashed var(--primary);
+  border-radius: 24px;
+  background: var(--surface);
+  text-align: center;
+  font-size: clamp(0.9rem, 6cqmin, 2.4rem);
+}
+
+.cast__invite b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3em;
+  color: var(--primary);
+}
+
+.cast__invite span {
+  color: var(--ink-soft);
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+@media (min-width: 900px) and (min-height: 540px) {
+  .kick-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #stream-settings,
+  #stream-viewers {
+    width: min(100% - 24px, 520px);
+  }
+}
