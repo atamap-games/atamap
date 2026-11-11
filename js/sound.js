@@ -45,6 +45,8 @@ const FILES = {
 };
 const buffers = {};
 let filesLoading = false;
+// 鳴っているドラムロール（とちゅうで止められるように）
+let drum = null;
 
 function loadOn() {
   try {
@@ -412,6 +414,7 @@ function playFile(name, t, { rate = 1, until = 0 } = {}) {
     src.connect(gain).connect(sfxGain);
     src.start(t);
     src.stop(until + 0.02);
+    if (name === 'drumroll') drum = { src, gain };
   } else {
     src.connect(sfxGain);
     src.start(t);
@@ -445,10 +448,27 @@ export function drumroll(ms) {
   if (!ctx || !on || quiet === 'all' || ctx.state !== 'running') return;
   const start = ctx.currentTime + 0.02;
   const end = start + ms / 1000;
+  stopDrumroll();
   if (playFile('drumroll', start, { until: end })) return;
   for (let t = start; t < end; t += 0.045) {
     const progress = (t - start) / (end - start);
     burst(t, 0.05, 0.08 + progress * 0.3, 2200, 'bandpass');
+  }
+}
+
+/** 鳴っているドラムロールを、すっと止める */
+export function stopDrumroll() {
+  if (!drum || !ctx) return;
+  const { src, gain } = drum;
+  drum = null;
+  const t = ctx.currentTime;
+  try {
+    gain.gain.cancelScheduledValues(t);
+    gain.gain.setValueAtTime(gain.gain.value, t);
+    gain.gain.linearRampToValueAtTime(0.0001, t + 0.12);
+    src.stop(t + 0.15);
+  } catch {
+    // もう止まっている
   }
 }
 
