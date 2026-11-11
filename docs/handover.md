@@ -59,7 +59,7 @@
 | X | @atamap_games（表示名 アタマップ）。2026-11-05 作成 |
 | GitHub | 組織 atamap-games（持ち主は個人。あとで会社向けの契約に切り替えられる）、リポジトリ atamap（Public、ライセンスなし＝無断の再利用はできない） |
 | Claude の GitHub アプリ | atamap-games の `atamap` だけに許可 |
-| Firebase | プロジェクト atamap（ID atamap-27ddc）、無料プラン（Spark）。Realtime Database（シンガポール）と匿名ログインを使う。設定値は js/firebase-config.js、データベースのルールは database.rules.json（Firebase の画面の「Realtime Database」→「ルール」に貼る）。作るときの親リソース（組織）はユーザーが選んだ |
+| Firebase | プロジェクト atamap（ID atamap-27ddc）、無料プラン（Spark）。Realtime Database（シンガポール）と匿名ログインを使う。設定値は js/firebase-config.js、データベースのルールは database.rules.json（Firebase の画面の「Realtime Database」→「ルール」に貼る）。作るときの親リソース（組織）はユーザーが選んだ。2026-11-11 に、持ち主を別の Google アカウントに移した（新しいアカウントをオーナーに足し、古いアカウントを外した。メールアドレスはここには書かない）。プロジェクトの ID と設定値は変わらない |
 | ドメイン | まだ確認していない。候補は atamap.app → atamap.com → atamap.jp |
 | 商標 | まだ確認していない。J-PlatPat で「アタマップ」「ATAMAP」を第9類（ゲームソフト）・第41類（オンラインゲームの提供）で調べる |
 | 企画スライド | 古いアカウントの artifact「新ジャンル提案「アタマップ」— ティア表の次は2軸マップ」 |
