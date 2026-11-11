@@ -4,8 +4,8 @@
 //   3. 出そろったら、主役が「答えを見る！」を押す
 //   4. ドキドキの演出（スポットライトがマップの上を動き、だんだんゆっくりになって答えの場所で止まる）
 //   5. 答えのピンが落ちてきて、3点・1点の輪が広がり、点数が出る。かなり遠い人には全員「そこ置く!?」
-// 5つ終わったら、そのラウンドの結果を、主役のボタンで1つずつ発表する。
-//   0. 「ラウンドの結果発表」（ドラムロール）→ 1. 2位から下の人が下から順に出る。1位は「？？？」→ 2. 1位の発表（紙ふぶき）
+// 5つ終わったら、主役が「結果を見る」を押す。ラウンドの結果を、下の順位から1人ずつ出し、
+// 最後に「1位は…？」（ドキドキ）のあと、1位を発表する（紙ふぶき・ファンファーレ）。
 import { showScreen, el } from './ui.js';
 import { createMap, createPin, placePinsApart, watchResize, ANSWER_LABEL } from './mapview.js';
 import { playerById } from './game.js';
@@ -24,8 +24,11 @@ const SHOUT_DISTANCE = 35;
 // ドキドキの演出：スポットライトがめぐる時間（ミリ秒）
 const SUSPENSE_MS = 5000;
 
-// ラウンドの結果の、最後の段（0：結果発表、1：2位から下、2：1位）
-export const SUMMARY_LAST_STEP = 2;
+// ラウンドの結果の、最後の段（今は1段だけ。押さずに、下から順に出る）
+export const SUMMARY_LAST_STEP = 0;
+// ラウンドの結果：1人ずつ出す間かく・1位の前のドキドキの長さ（ミリ秒）
+const RANK_INTERVAL = 700;
+const RANK_DRUM_MS = 2000;
 
 // 今出している答え合わせ
 // stage：'intro'（予想を見る前）→ 'pins'（予想を発表中）→ 'ready'（答えを見る前）→ 'suspense'（ドキドキ）→ 'answer'（答えを出した）／ 'summary'（ラウンドの結果）
@@ -123,7 +126,6 @@ export function showRevealAt(options) {
   const { key, index, answerShown } = options;
   const sameWord = view && view.key === key && view.index === index;
   const wasShown = view?.answerShown;
-  const wasStep = view?.step ?? 0;
   view = sameWord ? Object.assign(view, options) : { ...options, stage: 'intro' };
   view.step = view.step ?? 0;
 
@@ -133,7 +135,6 @@ export function showRevealAt(options) {
 
   if (index >= words().length) {
     if (!sameWord) renderSummary();
-    else if (view.step > wasStep) showSummaryStep(view.step, true);
   } else if (!sameWord) {
     renderWord();
   } else {
@@ -271,7 +272,7 @@ function startPins({ cue = true } = {}) {
   // 「デデン！」と鳴らしてから出しはじめる
   const wait = cue ? 700 : 300;
   if (cue) {
-    sfx('topic');
+    sfx('pinsCue');
     haptic(10);
   }
   view.steps.forEach(([chip, pin], i) => {
@@ -384,7 +385,7 @@ function finishAnswer(animate) {
 function renderSummary() {
   clearTimers();
   stopWatching();
-  view.stage = 'summary';
+  view.stage = 'summary-playing';
   const { game, main } = view;
   const points = roundPoints(game, main.id);
   const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]);
@@ -399,111 +400,71 @@ function renderSummary() {
     }
     const player = playerById(game, id);
     const top = rank === 1;
-    const row = el('li', `summary__row${top ? ' summary__row--top is-covered' : ''}`);
+    const row = el('li', `summary__row${top ? ' summary__row--top' : ''} is-waiting`);
     row.style.setProperty('--player-color', player.color);
     row.append(el('span', 'summary__rank', `${rank}位`), el('span', 'summary__name', player.name), el('span', 'summary__points', `+${total}点`));
-    // 1位は、発表まで「？？？」でかくしておく
-    if (top) row.append(el('span', 'summary__cover', '？？？'));
-    row.hidden = true;
     return { row, top, name: player.name };
   });
   const miss = biggestMiss(game, main.id);
   part('count').textContent = '結果';
+  part('word').textContent = '結果発表！';
+  part('word').classList.remove('reveal__word--long');
   part('map').hidden = true;
   part('scores').hidden = true;
   part('summary').hidden = false;
-
-  // 0段目：結果発表の札
-  const intro = el('div', 'result-intro');
-  intro.append(
-    el('p', 'result-intro__eyebrow', 'ラウンドの結果発表'),
-    el('p', 'result-intro__lead', `${main.name}さんの頭の中を\nいちばんわかっていたのは…`),
-    el('p', 'result-intro__mark', '？'),
-  );
   const list = el('ol', `summary__list${rows.length > 4 ? ' summary__list--two' : ''}`);
   list.append(...rows.map((r) => r.row));
   const missText = el('p', 'summary__miss', miss ? `いちばんズレたのは「${miss.word}」。${main.name}さん、ひとこと説明を！` : '');
   missText.hidden = true;
-  part('summary').replaceChildren(intro, list, missText);
-  const tops = rows.filter((r) => r.top);
-  Object.assign(view, { summary: { intro, list, rows, tops, missText, best, shown: -1 } });
-  showSummaryStep(view.step, view.step === 0);
-}
-
-// ラウンドの結果を、決まった段まで出す（animate：その段の演出をする）
-function showSummaryStep(step, animate) {
-  const sum = view.summary;
-  if (!sum || step <= sum.shown) return;
-  sum.shown = step;
-  clearTimers();
-  const { intro, list, rows, tops, missText, best } = sum;
-  const names = tops.map((r) => r.name).join('さん・');
+  part('summary').replaceChildren(list, missText);
+  popIn(part('word'), { from: 'scale(0.4) rotate(-6deg)' });
   applyButton();
 
-  if (step === 0) {
-    part('word').textContent = '結果発表！';
-    intro.hidden = false;
-    list.hidden = true;
-    if (!animate) return;
-    popIn(part('word'), { from: 'scale(0.4) rotate(-6deg)' });
-    popIn(intro, { delay: 150, from: 'scale(0.6)' });
-    duckBgm(6500, 0.15);
-    drumroll(5600);
-    return;
-  }
-
-  intro.hidden = true;
-  list.hidden = false;
-  if (step === 1) {
-    part('word').textContent = '1位は…？';
-    // 下の順位から1人ずつ出す。1位は「？？？」のまま、最後に出す
-    stopDrumroll();
-    const others = rows.filter((r) => !r.top).reverse();
-    if (!animate) {
-      rows.forEach((r) => (r.row.hidden = false));
-      return;
-    }
-    popIn(part('word'), { from: 'scale(0.4) rotate(-6deg)' });
-    others.forEach((r, i) => later(250 + i * 380, () => {
-      r.row.hidden = false;
-      slideIn(r.row);
-      sfx('pin', i);
-    }));
-    later(350 + others.length * 380, () => {
-      tops.forEach((r) => {
-        r.row.hidden = false;
-        popIn(r.row, { from: 'scale(0.6)' });
-      });
-      duckBgm(6500, 0.15);
-      drumroll(5600);
-    });
-    return;
-  }
-
-  // 2段目：1位の発表
-  stopDrumroll();
-  rows.forEach((r) => (r.row.hidden = false));
+  // 下の順位から1人ずつ出す（場所はとっておき、順番に見せる）
+  const tops = rows.filter((r) => r.top);
+  const others = rows.filter((r) => !r.top).reverse();
   const nobody = best === 0;
-  // 同点のときは人数だけ（名前は下の札に出る）
-  part('word').textContent = nobody ? '全員0点…！' : tops.length > 1 ? `1位は${tops.length}人！` : `1位は${names}さん！`;
-  // 名前が長いときは、1行に入るように文字を小さくする
-  part('word').classList.toggle('reveal__word--long', part('word').textContent.length > 9);
-  tops.forEach((r) => r.row.classList.remove('is-covered'));
-  missText.hidden = !missText.textContent;
-  if (!animate) return;
-  popIn(part('word'), { from: 'scale(2)' });
-  tops.forEach((r, i) => popIn(r.row, { delay: i * 120, from: 'scale(1.6) rotate(-4deg)' }));
-  haptic([30, 30, 80]);
-  if (nobody) {
-    sfx('shout');
-    tops.forEach((r) => shake(r.row));
-  } else {
-    sfx('reveal');
-    later(150, () => tops.forEach((r) => burstAt(r.row.querySelector('.summary__points'), { count: 18, spread: 80, stars: true })));
-    later(200, () => confetti({ duration: 2200, count: 90 }));
-    later(700, () => sfx('fanfare'));
+  const start = 500;
+  others.forEach((r, i) => later(start + i * RANK_INTERVAL, () => {
+    r.row.classList.remove('is-waiting');
+    slideIn(r.row);
+    sfx('rankRow', i);
+  }));
+  // 1位の前：「1位は…？」とドキドキ
+  const drumAt = start + others.length * RANK_INTERVAL;
+  later(drumAt, () => {
+    part('word').textContent = nobody ? 'そして…' : '1位は…？';
+    popIn(part('word'), { from: 'scale(0.6)' });
+    duckBgm(RANK_DRUM_MS + 2500, 0.15);
+    drumroll(RANK_DRUM_MS, 'rankDrum');
+  });
+  // 1位の発表
+  later(drumAt + RANK_DRUM_MS, () => {
+    tops.forEach((r) => r.row.classList.remove('is-waiting'));
+    // 同点のときは人数だけ（名前は下の札に出る）
+    part('word').textContent = nobody ? '全員0点…！' : tops.length > 1 ? `1位は${tops.length}人！` : `1位は${tops[0].name}さん！`;
+    // 名前が長いときは、1行に入るように文字を小さくする
+    part('word').classList.toggle('reveal__word--long', part('word').textContent.length > 9);
+    popIn(part('word'), { from: 'scale(2)' });
+    tops.forEach((r, i) => popIn(r.row, { delay: i * 120, from: 'scale(1.6) rotate(-4deg)' }));
+    haptic([30, 30, 80]);
+    if (nobody) {
+      sfx('rankZero');
+      tops.forEach((r) => shake(r.row));
+    } else {
+      sfx('rankTop');
+      later(150, () => tops.forEach((r) => burstAt(r.row.querySelector('.summary__points'), { count: 18, spread: 80, stars: true })));
+      later(200, () => confetti({ duration: 2200, count: 90 }));
+    }
+    view.stage = 'summary';
+    applyButton();
+  });
+  if (miss) {
+    later(drumAt + RANK_DRUM_MS + 1300, () => {
+      missText.hidden = false;
+      popIn(missText, { from: 'scale(0.6) rotate(3deg)' });
+    });
   }
-  if (!missText.hidden) popIn(missText, { delay: 1300, from: 'scale(0.6) rotate(3deg)' });
 }
 
 // ---------- ボタン ----------
@@ -514,18 +475,14 @@ function applyButton() {
   const button = nextButton();
   const can = view.canAdvance;
   const last = view.index >= words().length - 1;
-  const summaryTexts = [
-    ['発表する！', '主役が発表します'],
-    ['1位は…？', '主役が発表します'],
-    [view.isLast ? '最終結果へ' : '次の主役へ', '主役が進めます'],
-  ];
   const texts = {
     intro: ['みんなの予想を見る！', '主役が予想を出します'],
     pins: ['みんなの予想を発表中…', 'みんなの予想を発表中…'],
     ready: ['答えを見る！', '主役が答えを出します'],
     suspense: ['ドキドキ…', 'ドキドキ…'],
-    answer: [last ? 'このラウンドの結果' : '次のワード', '主役が進めます'],
-    summary: summaryTexts[Math.min(view.step ?? 0, SUMMARY_LAST_STEP)],
+    answer: [last ? '結果を見る' : '次のワード', '主役が進めます'],
+    'summary-playing': ['結果発表中…', '結果発表中…'],
+    summary: [view.isLast ? '最終結果へ' : '次の主役へ', '主役が進めます'],
   };
   const enabled = can && ['intro', 'ready', 'answer', 'summary'].includes(view.stage);
   button.disabled = !enabled;

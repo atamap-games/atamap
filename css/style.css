@@ -24,6 +24,10 @@
   --pink: #E5007F;
   --sky: #19B4F0;
   --purple: #6E36E0;
+  /* 黒の背景は使わない（2026-11-11 ユーザーの希望）。濃い背景には、この紫を使う */
+  --deep: #6E36E0;
+  --deep-lip: #4A1FA8;
+  --dim: rgba(74, 31, 168, 0.45);
   --on-color: #FFFFFF;
   --shade: rgba(22, 22, 22, 0.18);
   /* 黄色の地に置いた白い紙の、下にのぞくふち */
@@ -933,7 +937,7 @@ button {
 }
 
 .segmented__item.is-on {
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
 }
 
@@ -1428,8 +1432,8 @@ button {
 
 .pin--answer .pin__label {
   bottom: 15px;
-  border-color: var(--ink);
-  background: var(--ink);
+  border-color: var(--primary-deep);
+  background: var(--primary);
   color: var(--on-color);
 }
 
@@ -1820,7 +1824,7 @@ button {
   max-width: calc(100% - 32px);
   padding: 12px 18px;
   border-radius: 14px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   font-size: 0.9375rem;
   font-weight: 700;
@@ -2050,7 +2054,7 @@ body::before {
 }
 
 .pass__card .pass__note {
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
 }
 
@@ -2257,7 +2261,7 @@ body::before {
   margin-top: 14px;
   padding: 0 8px;
   border-radius: 4px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--yellow);
   font-family: var(--font-display);
   font-weight: 400;
@@ -2308,7 +2312,7 @@ body::before {
 .head__count {
   padding: 1px 8px;
   border-radius: 999px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--yellow);
   font-weight: 900;
 }
@@ -2363,7 +2367,7 @@ body::before {
 /* トップの見本のワード */
 .map__pin {
   border: 0;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   font-weight: 800;
   box-shadow: none;
@@ -2388,17 +2392,17 @@ body::before {
   font-weight: 900;
 }
 
-/* ピン：自分のワードは黒い札。答え合わせの予想は、その人の色の札 */
+/* ピン：自分のワードは紫の札。答え合わせの予想は、その人の色の札 */
 .pin__dot {
   border: 3px solid var(--surface);
-  background: var(--ink);
+  background: var(--deep);
   box-shadow: 0 0 0 1.5px var(--ink);
 }
 
 .pin__label {
   padding: 2px 10px 3px;
   border: 0;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   font-weight: 800;
   box-shadow: 0 2px 0 rgba(22, 22, 22, 0.25);
@@ -2609,7 +2613,7 @@ body::before {
 .summary__miss {
   border: 0;
   border-radius: 12px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   font-weight: 800;
 }
@@ -2720,7 +2724,7 @@ body::before {
 }
 
 .sheet::backdrop {
-  background: rgba(22, 22, 22, 0.6);
+  background: var(--dim);
 }
 
 .share__frame {
@@ -2732,7 +2736,7 @@ body::before {
 .toast {
   border: 0;
   border-radius: 12px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   font-weight: 800;
   box-shadow: 0 4px 0 rgba(22, 22, 22, 0.3);
@@ -2851,7 +2855,7 @@ body::before {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(22, 22, 22, 0.55);
+  background: var(--dim);
 }
 
 .topic-intro .topic-card {
@@ -3606,7 +3610,7 @@ body::before {
   border: 4px solid var(--yellow);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 212, 0, 0) 55%, rgba(255, 212, 0, 0.35));
-  box-shadow: 0 0 0 999px rgba(22, 22, 22, 0.55), 0 0 18px 4px rgba(255, 212, 0, 0.8);
+  box-shadow: 0 0 0 999px var(--dim), 0 0 18px 4px rgba(255, 212, 0, 0.8);
   transform: translate(-50%, -50%);
 }
 
@@ -4380,7 +4384,7 @@ body::before {
   justify-self: center;
   padding: 2px 14px;
   border-radius: 999px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--surface);
   font-size: 0.9375rem;
   font-weight: 800;
@@ -4536,7 +4540,7 @@ body::before {
   z-index: 50;
   padding: 4px 12px;
   border-radius: 999px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--surface);
   font-size: 0.75rem;
   font-weight: 800;
@@ -4943,10 +4947,10 @@ body::before {
   gap: 6px;
   padding: 18px 16px 14px;
   border-radius: 20px;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--on-color);
   text-align: center;
-  box-shadow: 0 5px 0 #000;
+  box-shadow: 0 5px 0 var(--deep-lip);
 }
 
 .result-intro__eyebrow {
@@ -5013,7 +5017,7 @@ body::before {
   display: none;
   place-items: center;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--deep);
   color: var(--yellow);
   font-family: var(--font-display);
   font-size: 1.125rem;
@@ -5021,7 +5025,7 @@ body::before {
 }
 
 .summary__row--top.is-covered {
-  box-shadow: 0 4px 0 #000;
+  box-shadow: 0 4px 0 var(--deep-lip);
 }
 
 .summary__row--top.is-covered .summary__cover {
@@ -5109,4 +5113,9 @@ body::before {
 
 .summary__list--two .summary__cover {
   font-size: 0.9375rem;
+}
+
+/* ラウンドの結果：出番が来るまで、場所だけとっておく */
+.summary__row.is-waiting {
+  visibility: hidden;
 }
