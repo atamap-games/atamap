@@ -1776,6 +1776,11 @@ button {
   text-align: center;
 }
 
+.sheet__note b {
+  color: var(--primary);
+  font-weight: 900;
+}
+
 /* ---------- 結果画像（別窓） ---------- */
 .share__frame {
   overflow: hidden;
@@ -3529,7 +3534,8 @@ body::before {
   }
 }
 
-@media (max-height: 520px) {
+/* 遊び方の小窓の文字（縦が短い画面では少し小さく） */
+@media (max-height: 560px) {
   .steps h3 {
     font-size: 0.8125rem;
   }
