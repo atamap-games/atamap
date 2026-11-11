@@ -14,7 +14,7 @@ import {
 import { askEntry, setEntryBusy, showLobby, showWait, stopWait } from './screen-room.js';
 import { runPlace, stopPlace } from './screen-place.js';
 import { showMaking, stopMaking } from './screen-round.js';
-import { showRevealAt, stopReveal } from './screen-reveal.js';
+import { showRevealAt, stopReveal, SUMMARY_LAST_STEP } from './screen-reveal.js';
 import { showEnd } from './screen-end.js';
 import { recordMaps } from './stats.js';
 import { editTopic, closeEditor } from './screen-maketopic.js';
@@ -377,7 +377,10 @@ function render(me, room, isHost) {
       isLast: round >= rounds,
       index: phase === 'summary' ? topic.words.length : (s.wordIndex ?? 0),
       answerShown: Boolean(s.answerShown),
+      pinsShown: Boolean(s.pinsShown),
+      step: s.step ?? 0,
       canAdvance: isMain || (isHost && mainOffline),
+      onPins: () => control(me, 'pins'),
       onAnswer: () => control(me, 'answer'),
       onNext: () => control(me, 'next'),
     });
@@ -487,7 +490,7 @@ function startGuess(me, room, main, topic) {
 // 今の答え合わせの場所（同じボタンが2回効かないように、お願いにこれを付ける）
 function controlKey(room) {
   const s = room?.state ?? {};
-  return `${s.gameNo ?? 0}:${s.phase}:${s.roundIndex ?? 0}:${s.wordIndex ?? 0}:${s.answerShown ? 1 : 0}`;
+  return `${s.gameNo ?? 0}:${s.phase}:${s.roundIndex ?? 0}:${s.wordIndex ?? 0}:${s.answerShown ? 1 : 0}:${s.pinsShown ? 1 : 0}:${s.step ?? 0}`;
 }
 
 // 主役が「答えを見る！」「次へ」を押したとき。ホストならそのまま進め、ほかの人ならホストにお願いを送る
@@ -508,14 +511,18 @@ function control(me, action) {
 function applyControl(me, room, action) {
   const s = room.state ?? {};
   if (!once(me, `control:${controlKey(room)}:${action}`)) return;
-  if (action === 'answer' && s.phase === 'reveal' && !s.answerShown) {
-    updateState(me, { answerShown: true });
+  if (action === 'pins' && s.phase === 'reveal' && !s.pinsShown) {
+    updateState(me, { pinsShown: true });
+  } else if (action === 'answer' && s.phase === 'reveal' && !s.answerShown) {
+    updateState(me, { answerShown: true, pinsShown: true });
   } else if (action === 'next' && s.phase === 'reveal' && s.answerShown) {
     const words = findTopic(me, room, room.maps?.[s.mainUid]?.topicId)?.words.length ?? 5;
-    if ((s.wordIndex ?? 0) < words - 1) updateState(me, { wordIndex: (s.wordIndex ?? 0) + 1, answerShown: false });
-    else updateState(me, { phase: 'summary' });
+    if ((s.wordIndex ?? 0) < words - 1) updateState(me, { wordIndex: (s.wordIndex ?? 0) + 1, answerShown: false, pinsShown: false });
+    else updateState(me, { phase: 'summary', step: 0 });
   } else if (action === 'next' && s.phase === 'summary') {
-    hostNextRound(me);
+    // ラウンドの結果は、1つずつ発表する（最後まで出したら、次の主役へ）
+    if ((s.step ?? 0) < SUMMARY_LAST_STEP) updateState(me, { step: (s.step ?? 0) + 1 });
+    else hostNextRound(me);
   }
 }
 
@@ -806,7 +813,7 @@ function hostStartReveal(me) {
   const room = me.room;
   const s = room.state;
   if (s?.phase !== 'guess' || !once(me, `reveal:${stateKey(room)}`)) return;
-  updateState(me, { phase: 'reveal', wordIndex: 0, answerShown: false, deadline: null });
+  updateState(me, { phase: 'reveal', wordIndex: 0, answerShown: false, pinsShown: false, step: 0, deadline: null });
 }
 
 // ---------- 部屋を出る ----------
