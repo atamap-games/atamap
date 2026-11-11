@@ -43,6 +43,14 @@ const FILES = {
   shout: 'boyoyon1', // そこ置く!?
   fanfare: 'levelup1', // 最終結果
 };
+// 新しい場面の音。決まるまでは、ほかの場面の音を使う（2026-11-11 に答え合わせとラウンドの結果を変えたときに足した）
+const ALIAS = {
+  pinsCue: 'topic', // 「みんなの予想を見る！」
+  rankRow: 'pin', // ラウンドの結果を1人ずつ出す
+  rankDrum: 'drumroll', // 1位の前のドキドキ
+  rankTop: 'reveal', // 1位の発表（このあとファンファーレも鳴らす）
+  rankZero: 'shout', // 全員0点
+};
 const buffers = {};
 let filesLoading = false;
 // 鳴っているドラムロール（とちゅうで止められるように）
@@ -414,7 +422,7 @@ function playFile(name, t, { rate = 1, until = 0 } = {}) {
     src.connect(gain).connect(sfxGain);
     src.start(t);
     src.stop(until + 0.02);
-    if (name === 'drumroll') drum = { src, gain };
+    drum = { src, gain };
   } else {
     src.connect(sfxGain);
     src.start(t);
@@ -428,12 +436,19 @@ function playFile(name, t, { rate = 1, until = 0 } = {}) {
  * @param {number} [arg] 音によって使う数（ピンの何本目か など）
  */
 export function sfx(name, arg) {
-  if (!ctx || !on || quiet === 'all' || ctx.state !== 'running' || !SOUNDS[name]) return;
+  if (!ctx || !on || quiet === 'all' || ctx.state !== 'running') return;
   try {
     const t = ctx.currentTime + 0.01;
     // ピンは、1本ごとに少しずつ高くする（高くなりすぎないように6本目まで）
-    const rate = name === 'pin' ? 2 ** (Math.min(arg ?? 0, 5) / 6) : 1;
+    const rate = name === 'pin' || name === 'rankRow' ? 2 ** (Math.min(arg ?? 0, 5) / 6) : 1;
     if (playFile(name, t, { rate })) return;
+    if (!SOUNDS[name] && ALIAS[name]) {
+      // まだ音のファイルがない場面は、ほかの場面の音で鳴らす
+      if (name === 'rankTop') window.setTimeout(() => sfx('fanfare'), 700);
+      sfx(ALIAS[name], arg);
+      return;
+    }
+    if (!SOUNDS[name]) return;
     SOUNDS[name](t, arg);
   } catch {
     // 音が鳴らせなくても、遊ぶのには困らない
@@ -443,13 +458,14 @@ export function sfx(name, arg) {
 /**
  * ドキドキの小太鼓（だんだん大きくなる）を鳴らす。
  * @param {number} ms 鳴らす時間
+ * @param {string} [name] 音のファイルの場面（'rankDrum' など。なければふつうのドラムロール）
  */
-export function drumroll(ms) {
+export function drumroll(ms, name = 'drumroll') {
   if (!ctx || !on || quiet === 'all' || ctx.state !== 'running') return;
   const start = ctx.currentTime + 0.02;
   const end = start + ms / 1000;
   stopDrumroll();
-  if (playFile('drumroll', start, { until: end })) return;
+  if (playFile(name, start, { until: end }) || playFile('drumroll', start, { until: end })) return;
   for (let t = start; t < end; t += 0.045) {
     const progress = (t - start) / (end - start);
     burst(t, 0.05, 0.08 + progress * 0.3, 2200, 'bandpass');

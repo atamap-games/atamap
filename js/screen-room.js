@@ -38,6 +38,7 @@ export function askEntry({ mode, code = '', error = '' }) {
     ? (code ? `部屋「${code}」に入ります` : '部屋の番号と、あなたの名前を入れてね')
     : 'あなたの名前を入れてね（ホストになります）';
   entryPart('go').disabled = false;
+  entryPart('go').textContent = goText();
   entryPart('code-field').hidden = !joining || Boolean(code);
   // 部屋を作るときだけ、遊び方（友だちと／配信で）をえらぶ
   entryPart('type-field').hidden = joining;
@@ -58,7 +59,7 @@ export function setEntryBusy(busy) {
 }
 
 function goText() {
-  if (entryMode === 'join') return '入る';
+  if (entryMode === 'join') return '部屋に入る';
   return entryType === 'stream' ? '配信の部屋を作る' : '部屋を作る';
 }
 
