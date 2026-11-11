@@ -1,4 +1,6 @@
-// BGM と効果音。音のファイルは使わず、ブラウザの中（Web Audio）で音を作って鳴らす。
+// BGM と効果音。ブラウザの中（Web Audio）で鳴らす。
+// ・BGM と一部の効果音は、ブラウザの中で音を作る
+// ・ほかの効果音は「効果音ラボ」の音（sounds/ のファイル。2026-11-11 にユーザーがえらんだ）。読みこめるまでは、作った音で鳴らす
 // ・スマホは、画面を一度さわるまで音を出せないので、最初にさわったときに準備する
 // ・「音 オン／オフ」は、このスマホに覚えておく
 // ・音が出せないブラウザでは、何もしない（遊ぶのには困らない）
@@ -26,6 +28,23 @@ let duckUntil = 0;
 // この画面だけ音を小さくする（設定には覚えない）。'' ：ふつう、'bgm'：BGM だけ消す、'all'：全部消す
 // 配信で遊ぶとき、配信者の操作の画面は音を出さず（配信用の画面から出す）、見ている人のスマホは BGM を流さない
 let quiet = '';
+
+// 効果音ラボの音（sounds/ のファイル名）。ここにない効果音（ワードをえらぶ・残りわずか）は、作った音のまま
+const FILES = {
+  tap: 'cursor7', // ボタンを押す
+  place: 'peta1', // ワードを置く
+  lock: 'decision4', // ロック
+  timeUp: 'beep4', // 時間切れ
+  topic: 'question1', // お題が出る
+  pin: 'pa1', // みんなのピンが出る
+  drumroll: 'tympani-roll1', // ドキドキ
+  reveal: 'jajean1', // 答えの発表
+  sparkle: 'correct1', // ど真ん中
+  shout: 'boyoyon1', // そこ置く!?
+  fanfare: 'levelup1', // 最終結果
+};
+const buffers = {};
+let filesLoading = false;
 
 function loadOn() {
   try {
@@ -158,6 +177,7 @@ export function unlockSound() {
     sfxGain.gain.value = SFX_VOLUME * volume.sfx;
     sfxGain.connect(master);
     noise = makeNoise();
+    loadFiles();
     // 画面が見えていないあいだは、音を止める
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) ctx.suspend?.();
@@ -359,6 +379,46 @@ const SOUNDS = {
   },
 };
 
+// 効果音ラボの音を読みこむ（js/ と同じ場所にある sounds/ から。読みこめなかった音は、作った音で鳴らす）
+function loadFiles() {
+  if (filesLoading || typeof fetch !== 'function') return;
+  filesLoading = true;
+  for (const [name, file] of Object.entries(FILES)) {
+    fetch(new URL(`../sounds/${file}.mp3`, import.meta.url))
+      .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error(res.status))))
+      // 古い iPhone でも動くように、結果は関数で受け取る形にする
+      .then((data) => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)))
+      .then((buffer) => {
+        buffers[name] = buffer;
+      })
+      .catch(() => {
+        // 読みこめなくても、作った音で鳴る
+      });
+  }
+}
+
+// 効果音ラボの音を鳴らす（読みこめていなければ false）
+function playFile(name, t, { rate = 1, until = 0 } = {}) {
+  const buffer = buffers[name];
+  if (!buffer) return false;
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.playbackRate.value = rate;
+  if (until) {
+    // 決めた時間で、すっと小さくして止める
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(1, Math.max(t, until - 0.15));
+    gain.gain.linearRampToValueAtTime(0.0001, until);
+    src.connect(gain).connect(sfxGain);
+    src.start(t);
+    src.stop(until + 0.02);
+  } else {
+    src.connect(sfxGain);
+    src.start(t);
+  }
+  return true;
+}
+
 /**
  * 効果音を鳴らす。
  * @param {keyof SOUNDS} name 音の名前
@@ -367,7 +427,11 @@ const SOUNDS = {
 export function sfx(name, arg) {
   if (!ctx || !on || quiet === 'all' || ctx.state !== 'running' || !SOUNDS[name]) return;
   try {
-    SOUNDS[name](ctx.currentTime + 0.01, arg);
+    const t = ctx.currentTime + 0.01;
+    // ピンは、1本ごとに少しずつ高くする（高くなりすぎないように6本目まで）
+    const rate = name === 'pin' ? 2 ** (Math.min(arg ?? 0, 5) / 6) : 1;
+    if (playFile(name, t, { rate })) return;
+    SOUNDS[name](t, arg);
   } catch {
     // 音が鳴らせなくても、遊ぶのには困らない
   }
@@ -381,6 +445,7 @@ export function drumroll(ms) {
   if (!ctx || !on || quiet === 'all' || ctx.state !== 'running') return;
   const start = ctx.currentTime + 0.02;
   const end = start + ms / 1000;
+  if (playFile('drumroll', start, { until: end })) return;
   for (let t = start; t < end; t += 0.045) {
     const progress = (t - start) / (end - start);
     burst(t, 0.05, 0.08 + progress * 0.3, 2200, 'bandpass');
