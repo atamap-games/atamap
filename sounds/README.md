@@ -17,3 +17,5 @@
 | correct1.mp3 | クイズ正解1 | ど真ん中 |
 | boyoyon1.mp3 | ボヨヨーン | そこ置く!? |
 | levelup1.mp3 | レベルアップ | 最終結果 |
+| treasure-chest1.mp3 | 宝箱を開ける | 「みんなの予想を見る！」 |
+| dondonpafupafu1.mp3 | ドンドンパフパフ | ラウンドの結果の1位の発表 |
