@@ -5,7 +5,7 @@
 // ほかの人のスマホは、部屋のデータ（Firebase）が変わるたびに、同じ画面を出す。
 import { showToast, closeSheet } from './ui.js';
 import { loadTopics } from './topics.js';
-import { connect, useEmulator } from './net.js';
+import { connect } from './net.js';
 import { TIME_LIMIT, PLAYER_COLORS } from './game.js';
 import {
   makeCode, encodePlacements, playersInOrder, toGame, pickRerollTopic, guessersOf,
@@ -21,6 +21,10 @@ import { editTopic, closeEditor } from './screen-maketopic.js';
 import { openTopicMode, openMyTopics, TOPIC_MODES } from './screen-mytopics.js';
 import { assignMadeTopics, chosenMyTopics, isCustomTopic, shuffle } from './custom.js';
 import { decodePlacements } from './room.js';
+import { stopCast } from './screen-cast.js';
+import {
+  joinUrl, createStreamRoom, joinStreamRoom, startStream, stopStream, streamLeaveTexts, leaveStreamRoom,
+} from './online-stream.js';
 
 // 「みんなで作る」で、お題を作る時間（秒。制限時間ありのとき）
 const CREATE_SECONDS = 150;
@@ -45,6 +49,7 @@ export function isOnline() {
 
 /** 「←」で出るときの確かめの文 */
 export function leaveTexts() {
+  if (session?.stream) return streamLeaveTexts(session);
   const isHost = session?.room?.meta?.hostUid === session?.uid;
   if (!session?.room) return { title: 'やめますか？', text: '', ok: 'やめる' };
   return isHost
@@ -78,7 +83,7 @@ export async function startOnline({ mode, code = '', auto = false, onExit }) {
         me.net = await connect();
         if (me.closed) return;
         me.uid = me.net.uid;
-        me.code = mode === 'create' ? await createRoom(me.net, entry.name) : await joinRoom(me.net, entry.code, entry.name);
+        me.code = mode === 'create' ? await createRoom(me, entry.name, entry.type) : await joinRoom(me, entry.code, entry.name);
         break;
       } catch (err) {
         if (me.closed) return;
@@ -95,6 +100,15 @@ export async function startOnline({ mode, code = '', auto = false, onExit }) {
     }
     if (me.closed) return;
     rememberRoom(me.code);
+    // 配信で遊ぶ部屋は、online-stream.js が受け持つ
+    if (me.stream) {
+      startStream(me, {
+        leave: (options) => leave(me, options),
+        enterView: (key) => enterView(me, key),
+        setTime: (on) => hostSetTime(me, on),
+      });
+      return;
+    }
     // 通信が切れたら「いない」と分かるようにする
     const onlinePath = `rooms/${me.code}/players/${me.uid}/online`;
     await me.net.set(onlinePath, true);
@@ -156,10 +170,17 @@ function explainError(err) {
 
 // ---------- 部屋を作る・入る ----------
 
-async function createRoom(net, name) {
+async function createRoom(me, name, type) {
+  const net = me.net;
   for (let i = 0; i < 6; i++) {
     const code = makeCode();
     if (await net.get(`rooms/${code}/meta`)) continue;
+    if (type === 'stream') {
+      await createStreamRoom(net, code, name, loadTimeLimit());
+      me.stream = true;
+      me.isHost = true;
+      return code;
+    }
     await net.set(`rooms/${code}/meta`, { hostUid: net.uid, createdAt: net.serverTime(), status: 'lobby', timeLimit: loadTimeLimit() });
     await net.set(`rooms/${code}/players/${net.uid}`, { name, joinedAt: net.serverTime(), online: true });
     return code;
@@ -167,9 +188,18 @@ async function createRoom(net, name) {
   throw new Error('部屋の番号が作れませんでした');
 }
 
-async function joinRoom(net, code, name) {
+async function joinRoom(me, code, name) {
+  const net = me.net;
   const meta = await net.get(`rooms/${code}/meta`);
   if (!meta || meta.status === 'closed') throw new UserError(`部屋「${code}」が見つかりませんでした。番号を確かめてね`);
+  // 配信で遊ぶ部屋：人数の上限が多く、ゲームのとちゅうでも入れる
+  if (meta.type === 'stream') {
+    const reason = await joinStreamRoom(net, code, meta, name);
+    if (reason) throw new UserError(reason);
+    me.stream = true;
+    me.isHost = meta.hostUid === net.uid;
+    return code;
+  }
   const players = (await net.get(`rooms/${code}/players`)) ?? {};
   const already = players[net.uid];
   if (!already) {
@@ -186,12 +216,6 @@ function loadTimeLimit() {
   } catch {
     return TIME_LIMIT;
   }
-}
-
-function joinUrl(code) {
-  const params = new URLSearchParams({ room: code });
-  if (useEmulator()) params.set('emulator', '');
-  return `${location.origin}${location.pathname}?${params.toString().replace(/=$|=(?=&)/g, '')}`;
 }
 
 // ---------- 部屋のデータが変わったとき ----------
@@ -225,6 +249,7 @@ function enterView(me, key) {
   if (me.view.startsWith('reveal:')) stopReveal();
   if (me.view.startsWith('making:')) stopMaking();
   if (me.view.startsWith('create:')) closeEditor();
+  if (me.view.startsWith('cast:')) stopCast();
   me.view = key;
   return true;
 }
@@ -799,9 +824,17 @@ async function leave(me, { silent = false } = {}) {
   closeEditor();
   closeSheet('quit');
   closeSheet('share');
+  closeSheet('topic-mode');
+  if (me.stream) stopStream(me);
   rememberRoom('');
   if (session === me) session = null;
-  if (me.net && me.code && !silent) {
+  if (me.stream && me.net && me.code && !silent) {
+    try {
+      await leaveStreamRoom(me);
+    } catch (err) {
+      console.error(err);
+    }
+  } else if (me.net && me.code && !silent) {
     const room = me.room;
     const base = `rooms/${me.code}`;
     try {

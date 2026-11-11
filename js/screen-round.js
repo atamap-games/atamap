@@ -23,17 +23,18 @@ let skipHandler = null;
  * @param {object} options.topic 主役のお題（引き直すと変わる）
  * @param {number} options.round 何ラウンド目か
  * @param {number} options.rounds 全部で何ラウンドか
+ * @param {string} [options.step] 上に出す、今どこか（配信で遊ぶとき「2問目」など。なければ「ラウンド 1/4」）
  * @param {number|null} options.remaining 残り時間（秒）。null なら制限なし
  * @param {number|null} options.deadline 締め切り（同じなら、時間を数え直さない）
  * @param {number} options.total 制限時間の全体（秒）
  * @param {boolean} options.canSkip 「この主役をとばす」を押せるか（ホストで、主役がいないとき）
  * @param {() => void} options.onSkip 「この主役をとばす」を押したとき
  */
-export function showMaking({ key, main, topic, round, rounds, remaining, deadline, total, canSkip, onSkip }) {
+export function showMaking({ key, main, topic, round, rounds, step = '', remaining, deadline, total, canSkip, onSkip }) {
   const fresh = shownKey !== key;
   shownKey = key;
   skipHandler = onSkip;
-  part('step').textContent = `ラウンド ${round}/${rounds}`;
+  part('step').textContent = step || `ラウンド ${round}/${rounds}`;
   part('name').textContent = main.name;
   // 名前が長いときは、1行に収まるように文字を小さくする（css/style.css の --name-len）
   part('name').parentElement.style.setProperty('--name-len', String(Math.max(3, [...main.name].length)));

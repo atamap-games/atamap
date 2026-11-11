@@ -140,11 +140,16 @@ let modeHandler = null;
  * @param {object} options
  * @param {string} options.mode 今のえらび方
  * @param {string} [options.mineLabel] 「マイお題」の名前（部屋では「ホストのマイお題」）
+ * @param {string[]} [options.modes] 出すえらび方（配信で遊ぶときは、いつものお題とマイお題だけ）
  * @param {(mode: string) => void} options.onPick えらんだとき
  */
-export function openTopicMode({ mode, mineLabel = TOPIC_MODES.mine, onPick }) {
+export function openTopicMode({ mode, mineLabel = TOPIC_MODES.mine, modes = Object.keys(TOPIC_MODES), onPick }) {
   modeHandler = onPick;
   const box = document.getElementById('topic-mode');
+  // 配信で遊ぶときは「みんなで作る」を出さない
+  box.querySelectorAll('[data-action="topic-mode"]').forEach((button) => {
+    button.hidden = !modes.includes(button.dataset.mode);
+  });
   box.querySelector('[data-mode-mine-title]').textContent = mineLabel;
   box.querySelectorAll('[data-action="topic-mode"]').forEach((button) => {
     button.classList.toggle('is-on', button.dataset.mode === mode);

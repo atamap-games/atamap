@@ -14,6 +14,7 @@ import { showStats, statsActions } from './screen-stats.js';
 import { startDemo, stopDemo } from './demo.js';
 import { makeTopicActions } from './screen-maketopic.js';
 import { myTopicsActions } from './screen-mytopics.js';
+import { castActions } from './screen-cast.js';
 import { unlockSound, soundReady, startBgm, sfx, soundOn, setSoundOn } from './sound.js';
 
 // アドレスの印で、トップか、1台で遊ぶとちゅう（#play）か、部屋で遊ぶとちゅう（#room）かを決める。
@@ -22,7 +23,11 @@ let roomIntent = null; // 部屋を作る・入る、のどちらか（と、わ
 
 // QRコードやリンク（?room=番号）から来たときは、その部屋に入る
 const params = new URLSearchParams(location.search);
-if (params.has('room')) {
+// 配信用の画面（?cast=部屋の番号）。配信ソフトに映す窓なので、ほかの画面には行かない
+const castCode = params.has('cast') ? normalizeCode(params.get('cast')) : '';
+if (castCode) {
+  // 配信用の画面のときは、ほかの印は使わない
+} else if (params.has('room')) {
   roomIntent = { mode: 'join', code: normalizeCode(params.get('room')) };
   params.delete('room');
   const rest = params.toString();
@@ -33,6 +38,11 @@ if (params.has('room')) {
 }
 
 function render() {
+  if (castCode) {
+    stopDemo();
+    import('./cast.js').then(({ startCast }) => startCast(castCode));
+    return;
+  }
   const hash = location.hash;
   // トップ画面の見本（答え合わせのデモ）は、トップを出しているあいだだけ動かす
   if (hash === '#play' || hash === '#stats' || hash === '#room') stopDemo();
@@ -116,6 +126,7 @@ const actions = {
   ...statsActions,
   ...makeTopicActions,
   ...myTopicsActions,
+  ...castActions,
 };
 
 // 音：スマホは画面を一度さわるまで音を出せないので、最初にさわったときに準備して BGM を流しはじめる

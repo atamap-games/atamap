@@ -40,6 +40,21 @@
             ".validate": "newData.hasChildren(['action', 'key']) && newData.child('action').isString() && newData.child('action').val().length <= 10"
           }
         },
+        "viewers": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 8"
+          }
+        },
+        "vguesses": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['gameNo', 'roundNo', 'placements'])"
+          }
+        },
+        "scores": {
+          ".write": "auth != null && root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid"
+        },
         "custom": {
           "$id": {
             ".write": "auth != null && (auth.uid === $id || root.child('rooms/' + $code + '/meta/hostUid').val() === auth.uid)",

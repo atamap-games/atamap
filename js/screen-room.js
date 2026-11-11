@@ -7,6 +7,9 @@ import { NAME_MAX } from './game.js';
 import { normalizeCode, CODE_LENGTH, MIN_PLAYERS, MAX_PLAYERS } from './room.js';
 
 const NAME_KEY = 'atamap.myName';
+const TYPE_KEY = 'atamap.roomType';
+// この数は online-stream.js の上限と同じにする（画面の部品から、つなぐ部品を読み込まないため、ここにも書く）
+const STREAM_MAX = 90;
 
 // ---------- 名前（と部屋の番号）を入れる画面 ----------
 
@@ -17,6 +20,7 @@ const nameInput = () => entry.querySelector('#room-name');
 
 let entryResolve = null;
 let entryMode = 'create';
+let entryType = loadType();
 
 /**
  * 名前（部屋に入るときは部屋の番号も）を入れてもらう。
@@ -33,9 +37,11 @@ export function askEntry({ mode, code = '', error = '' }) {
   entryPart('guide').textContent = joining
     ? (code ? `部屋「${code}」に入ります` : '部屋の番号と、あなたの名前を入れてね')
     : 'あなたの名前を入れてね（ホストになります）';
-  entryPart('go').textContent = joining ? '入る' : '部屋を作る';
   entryPart('go').disabled = false;
   entryPart('code-field').hidden = !joining || Boolean(code);
+  // 部屋を作るときだけ、遊び方（友だちと／配信で）をえらぶ
+  entryPart('type-field').hidden = joining;
+  setType(entryType);
   codeInput().value = code;
   if (!nameInput().value) nameInput().value = loadName();
   entryPart('error').textContent = error;
@@ -48,7 +54,42 @@ export function askEntry({ mode, code = '', error = '' }) {
 /** 「入る」を押したあと、つなぐあいだボタンを押せなくする */
 export function setEntryBusy(busy) {
   entryPart('go').disabled = busy;
-  entryPart('go').textContent = busy ? 'つないでいます…' : entryMode === 'join' ? '入る' : '部屋を作る';
+  entryPart('go').textContent = busy ? 'つないでいます…' : goText();
+}
+
+function goText() {
+  if (entryMode === 'join') return '入る';
+  return entryType === 'stream' ? '配信の部屋を作る' : '部屋を作る';
+}
+
+function setType(type) {
+  entryType = type === 'stream' ? 'stream' : 'party';
+  entry.querySelectorAll('[data-action="entry-type"]').forEach((button) => {
+    const on = button.dataset.type === entryType;
+    button.classList.toggle('is-on', on);
+    button.setAttribute('aria-checked', String(on));
+  });
+  entryPart('type-hint').textContent = entryType === 'stream'
+    ? `あなたがずっと主役。見ている人がスマホで当てます（${STREAM_MAX}人まで）`
+    : `${MIN_PLAYERS}〜${MAX_PLAYERS}人。みんなが自分のスマホで遊びます`;
+  if (entryMode !== 'join') entryPart('go').textContent = goText();
+  if (entryMode !== 'join') entryPart('guide').textContent = entryType === 'stream' ? 'あなたの名前を入れてね（配信者の名前になります）' : 'あなたの名前を入れてね（ホストになります）';
+}
+
+function loadType() {
+  try {
+    return localStorage.getItem(TYPE_KEY) === 'stream' ? 'stream' : 'party';
+  } catch {
+    return 'party';
+  }
+}
+
+function saveType(type) {
+  try {
+    localStorage.setItem(TYPE_KEY, type);
+  } catch {
+    // 覚えられなくても遊べる
+  }
 }
 
 function submitEntry() {
@@ -66,9 +107,10 @@ function submitEntry() {
   }
   document.activeElement?.blur?.();
   saveName(name);
+  if (entryMode !== 'join') saveType(entryType);
   const resolve = entryResolve;
   entryResolve = null;
-  resolve({ name, code });
+  resolve({ name, code, type: entryMode === 'join' ? '' : entryType });
 }
 
 entryPart('form').addEventListener('submit', (event) => {
@@ -123,8 +165,15 @@ let lobbyCode = '';
  * @param {boolean} options.timeOn 制限時間があるか
  * @param {object} options.handlers { start, setTime }
  */
-export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode = 'いつものお題', handlers }) {
+export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode = 'いつものお題', stream = null, handlers }) {
   lobbyHandlers = handlers;
+  // 配信で遊ぶとき：見ている人の数と、配信用の画面を開くボタン
+  lobby.classList.toggle('is-stream', Boolean(stream));
+  lobbyPart('label').textContent = stream ? '配信の部屋の番号' : '部屋の番号';
+  lobbyPart('count-note').textContent = stream ? `人が参加中（${stream.max}人まで）` : `人（${MIN_PLAYERS}〜${MAX_PLAYERS}人で遊べます）`;
+  lobbyPart('note').hidden = !stream;
+  lobbyPart('cast').hidden = !stream;
+  lobbyPart('actions').classList.toggle('actions--split', Boolean(stream));
   lobbyPart('code').textContent = code;
   lobbyPart('url').textContent = url;
   if (qrFor !== url) {
@@ -138,14 +187,16 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode =
         if (qrFor === url) lobbyPart('qr').replaceChildren(el('p', 'qr__loading', 'QRコードを出せませんでした。番号かリンクで入ってね'));
       });
   }
-  lobbyPart('count').textContent = members.length;
+  lobbyPart('count').textContent = stream ? stream.count : members.length;
   if (lobbyCode !== code) {
     lobbyCode = code;
     lobbySeen = new Set();
   }
-  const chips = members.map((m) => memberChip(m, { isMe: m.uid === uid, isHost: m.isHost }));
+  // 配信のときは人数が多いので、新しく入った人から入るだけ出す
+  const shown = stream ? members.slice(0, 24) : members;
+  const chips = shown.map((m) => memberChip(m, { isMe: m.uid === uid, isHost: m.isHost }));
   lobbyPart('members').replaceChildren(...chips);
-  members.forEach((m, i) => {
+  shown.forEach((m, i) => {
     if (lobbySeen.has(m.uid)) return;
     lobbySeen.add(m.uid);
     popIn(chips[i], { from: 'scale(0.2) rotate(-12deg)' });
@@ -165,7 +216,10 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode =
   lobbyPart('topic').disabled = !isHost;
 
   const start = lobbyPart('start');
-  if (!isHost) {
+  if (stream) {
+    start.disabled = !stream.count;
+    start.textContent = stream.count ? `${stream.count}人ではじめる` : '見ている人を待っています';
+  } else if (!isHost) {
     start.disabled = true;
     start.textContent = 'ホストがはじめるのを待っています';
   } else if (members.length < MIN_PLAYERS) {
@@ -176,6 +230,18 @@ export function showLobby({ code, url, members, uid, isHost, timeOn, topicMode =
     start.textContent = `${members.length}人ではじめる`;
   }
   showScreen('lobby');
+  if (stream) fitMembers();
+}
+
+// 配信のときは、入りきらない名前を出さない（画面をスクロールさせないため）
+function fitMembers() {
+  const list = lobbyPart('members');
+  const items = [...list.children];
+  items.forEach((item) => (item.hidden = false));
+  const limit = list.getBoundingClientRect().bottom + 1;
+  for (const item of items) {
+    if (item.getBoundingClientRect().bottom > limit) item.hidden = true;
+  }
 }
 
 function memberChip(member, { isMe, isHost }) {
@@ -276,6 +342,8 @@ export function stopWait() {
   waitTimer?.stop();
   waitTimer = null;
   waitDeadline = null;
+  // 次に出す画面に、前の残り時間が残らないように
+  waitPart('timer').hidden = true;
   waitKey = '';
 }
 
@@ -283,11 +351,13 @@ export { memberChip };
 
 export const roomActions = {
   'entry-go': () => submitEntry(),
+  'entry-type': (button) => setType(button.dataset.type),
   'lobby-copy': () => copyUrl(),
   'lobby-start': () => lobbyHandlers.start?.(),
   'lobby-time-on': () => lobbyHandlers.setTime?.(true),
   'lobby-time-off': () => lobbyHandlers.setTime?.(false),
   'lobby-topic': () => lobbyHandlers.topic?.(),
+  'lobby-cast': () => lobbyHandlers.openCast?.(),
   'wait-skip': () => waitHandlers.skip?.(),
 };
 

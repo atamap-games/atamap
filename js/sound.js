@@ -20,6 +20,9 @@ let scheduler = 0;
 let nextStep = 0;
 let nextTime = 0;
 let duckUntil = 0;
+// この画面だけ音を小さくする（設定には覚えない）。'' ：ふつう、'bgm'：BGM だけ消す、'all'：全部消す
+// 配信で遊ぶとき、配信者の操作の画面は音を出さず（配信用の画面から出す）、見ている人のスマホは BGM を流さない
+let quiet = '';
 
 function loadOn() {
   try {
@@ -43,12 +46,28 @@ export function setSoundOn(value) {
     // 覚えられなくても、今は切りかわる
   }
   if (!ctx) return;
-  master.gain.setTargetAtTime(on ? MASTER : 0, ctx.currentTime, 0.05);
-  if (on && bgmWanted) startScheduler();
+  master.gain.setTargetAtTime(on && quiet !== 'all' ? MASTER : 0, ctx.currentTime, 0.05);
+  if (on && bgmWanted && !quiet) startScheduler();
   // オフのあいだは、BGM の音も作らない（電池のため）
   if (!on) {
     window.clearInterval(scheduler);
     scheduler = 0;
+  }
+}
+
+/**
+ * この画面だけ音を小さくする（設定には覚えない）。
+ * @param {''|'bgm'|'all'} mode ''：ふつう、'bgm'：BGM だけ消す、'all'：全部消す
+ */
+export function setQuiet(mode) {
+  quiet = mode || '';
+  if (!ctx) return;
+  master.gain.setTargetAtTime(on && quiet !== 'all' ? MASTER : 0, ctx.currentTime, 0.05);
+  if (quiet) {
+    window.clearInterval(scheduler);
+    scheduler = 0;
+  } else if (on && bgmWanted) {
+    startScheduler();
   }
 }
 
@@ -69,7 +88,7 @@ export function unlockSound() {
       return;
     }
     master = ctx.createGain();
-    master.gain.value = on ? MASTER : 0;
+    master.gain.value = on && quiet !== 'all' ? MASTER : 0;
     master.connect(ctx.destination);
     bgmGain = ctx.createGain();
     bgmGain.gain.value = BGM_VOLUME;
@@ -155,7 +174,7 @@ const CHORDS = [
 const ROOTS = [48, 45, 41, 43, 48, 45, 41, 48];
 
 function startScheduler() {
-  if (scheduler || !on) return;
+  if (scheduler || !on || quiet) return;
   nextStep = 0;
   nextTime = ctx.currentTime + 0.1;
   scheduler = window.setInterval(schedule, 25);
@@ -285,7 +304,7 @@ const SOUNDS = {
  * @param {number} [arg] 音によって使う数（ピンの何本目か など）
  */
 export function sfx(name, arg) {
-  if (!ctx || !on || ctx.state !== 'running' || !SOUNDS[name]) return;
+  if (!ctx || !on || quiet === 'all' || ctx.state !== 'running' || !SOUNDS[name]) return;
   try {
     SOUNDS[name](ctx.currentTime + 0.01, arg);
   } catch {
@@ -298,7 +317,7 @@ export function sfx(name, arg) {
  * @param {number} ms 鳴らす時間
  */
 export function drumroll(ms) {
-  if (!ctx || !on || ctx.state !== 'running') return;
+  if (!ctx || !on || quiet === 'all' || ctx.state !== 'running') return;
   const start = ctx.currentTime + 0.02;
   const end = start + ms / 1000;
   for (let t = start; t < end; t += 0.045) {

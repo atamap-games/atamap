@@ -79,6 +79,15 @@
           <span class="field__label">部屋の番号（5文字）</span>
           <input class="field__input field__input--code" id="room-code" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next" placeholder="例：AB3CD">
         </label>
+        <!-- 部屋を作るときだけ：友だちと遊ぶか、配信で見ている人と遊ぶか -->
+        <div class="field" data-entry="type-field">
+          <span class="field__label">遊び方</span>
+          <div class="segmented" role="radiogroup" aria-label="遊び方">
+            <button type="button" class="segmented__item" role="radio" data-action="entry-type" data-type="party">友だちと</button>
+            <button type="button" class="segmented__item" role="radio" data-action="entry-type" data-type="stream">配信で</button>
+          </div>
+          <span class="field__hint" data-entry="type-hint"></span>
+        </div>
         <label class="field">
           <span class="field__label">名前（8文字まで）</span>
           <input class="field__input" id="room-name" type="text" maxlength="8" autocomplete="nickname" enterkeyhint="go" placeholder="例：あおい">
@@ -95,7 +104,7 @@
       <header class="head">
         <button type="button" class="icon-btn" data-action="quit" aria-label="部屋を出る">←</button>
         <div class="topic">
-          <p class="topic__genre">部屋の番号</p>
+          <p class="topic__genre" data-lobby="label">部屋の番号</p>
           <h2 class="topic__title room-code" data-lobby="code"></h2>
         </div>
         <button type="button" class="icon-btn" data-action="help" aria-label="遊び方">?</button>
@@ -105,8 +114,9 @@
         <p class="invite__url" data-lobby="url"></p>
         <button type="button" class="btn btn--secondary btn--small" data-action="lobby-copy">コピー</button>
       </div>
-      <p class="members-count"><span data-lobby="count">1</span>人（3〜8人で遊べます）</p>
+      <p class="members-count"><span data-lobby="count">1</span><span data-lobby="count-note">人（3〜8人で遊べます）</span></p>
       <ul class="members" data-lobby="members"></ul>
+      <p class="note lobby__note" data-lobby="note" hidden>配信ソフトには「配信用の画面」の窓を映してね（ワードの置き場所は映りません）</p>
       <div class="settings-row" data-lobby="setting">
         <div class="setting">
           <p class="setting__label">制限時間</p>
@@ -121,7 +131,10 @@
         </div>
       </div>
       <div class="foot">
-        <button type="button" class="btn btn--primary" data-action="lobby-start" data-lobby="start">はじめる</button>
+        <div class="actions" data-lobby="actions">
+          <button type="button" class="btn btn--secondary" data-action="lobby-cast" data-lobby="cast" hidden>配信用の画面</button>
+          <button type="button" class="btn btn--primary" data-action="lobby-start" data-lobby="start">はじめる</button>
+        </div>
       </div>
     </section>
 
@@ -266,6 +279,33 @@
         <button type="button" class="btn btn--primary" data-action="reveal-next">次のワード</button>
       </div>
     </section>
+
+    <!-- 配信で遊ぶとき：配信用の画面（配信ソフトに映す）と、配信者の操作の画面 -->
+    <section class="screen screen--cast" data-screen="cast" hidden>
+      <header class="head">
+        <button type="button" class="icon-btn" data-action="quit" data-cast="quit" aria-label="部屋を閉じる">←</button>
+        <div class="topic">
+          <p class="topic__genre" data-cast="genre"></p>
+          <h2 class="topic__title" data-cast="title"></h2>
+        </div>
+        <div class="head__right">
+          <p class="timer" data-cast="timer" role="timer" aria-label="残り時間" hidden><span data-cast="seconds"></span></p>
+          <p class="head__count" data-cast="count"></p>
+        </div>
+      </header>
+      <div class="cast__info" data-cast="info"></div>
+      <div class="stage cast__stage" data-cast="stage"></div>
+      <p class="cast__join" data-cast="join" hidden></p>
+      <div class="foot" data-cast="foot">
+        <div class="actions actions--split">
+          <button type="button" class="btn btn--secondary" data-action="cast-sub" data-cast="sub">配信用の画面</button>
+          <button type="button" class="btn btn--primary" data-action="cast-main" data-cast="main"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 配信用の画面で、音が出せるようになるまでの知らせ（左上の、何も出ていない場所に出す） -->
+    <p class="cast__sound" data-cast="sound" hidden>クリックすると音が出ます</p>
 
     <!-- 最終結果 -->
     <section class="screen screen--end" data-screen="end" hidden>

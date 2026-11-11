@@ -4136,3 +4136,587 @@ body::before {
     font-size: 1.1rem;
   }
 }
+
+/* =====================================================================
+   配信で遊ぶ（見ている人が参加する）
+   ・配信用の画面（.is-broadcast）：配信ソフトに映す。ボタンはない
+   ・配信者の操作の画面：同じ見た目に、下のボタンが付く
+   ===================================================================== */
+
+/* 名前を入れる画面の「遊び方（友だちと／配信で）」 */
+.field__hint {
+  min-height: 1.4em;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* 待合室（配信）：名前は2段まで。入りきらない名前は出さない */
+.screen--lobby.is-stream .members {
+  max-height: 4.6rem;
+  overflow: hidden;
+}
+
+.lobby__note {
+  font-weight: 700;
+}
+
+@media (max-height: 560px) {
+  .screen--lobby.is-stream .members {
+    max-height: 2.2rem;
+  }
+
+  .lobby__note {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+}
+
+.cast__info {
+  flex: none;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+
+.cast__info > * {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cast__stage {
+  position: relative;
+}
+
+.cast__lead {
+  text-wrap: balance;
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 3.4vh, 1.5rem);
+  line-height: 1.3;
+}
+
+.cast__lead--big {
+  color: var(--primary);
+}
+
+.cast__how {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cast__code {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cast__code small {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.cast__code b {
+  font-family: var(--font-round);
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.cast__url {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cast__people {
+  font-weight: 800;
+}
+
+.cast__people b {
+  margin-right: 2px;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 1.5em;
+  font-weight: 400;
+}
+
+.cast__members {
+  max-height: 4.6rem;
+  overflow: hidden;
+}
+
+.cast__words {
+  gap: 6px;
+}
+
+/* QRコード（待合室）は、空いている場所いっぱいに */
+.cast__qr {
+  width: 100%;
+  height: 100%;
+}
+
+.cast__qr svg {
+  width: min(100cqw, 100cqh);
+  height: auto;
+}
+
+/* 配信者が置いているあいだ：マップに「考え中…」 */
+.cast__thinking {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-content: center;
+  grid-auto-flow: column;
+  align-items: baseline;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: min(9cqmin, 3rem);
+  letter-spacing: 0.04em;
+}
+
+.cast__dots {
+  display: inline-block;
+  animation: cast-dots 1.2s steps(4) infinite;
+  overflow: hidden;
+  width: 1.1em;
+  clip-path: inset(0 100% 0 0);
+}
+
+@keyframes cast-dots {
+  to { clip-path: inset(0 -10% 0 0); }
+}
+
+/* 見ている人の予想：ぼかした丸を重ねて、たくさん集まったところほど濃く */
+.map__heat {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.heat {
+  position: absolute;
+  width: 18%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(229, 0, 127, 0.4) 0, rgba(229, 0, 127, 0.16) 38%, rgba(229, 0, 127, 0) 70%);
+  mix-blend-mode: multiply;
+  transform: translate(-50%, -50%);
+  animation: heat-in 0.35s ease-out;
+}
+
+.heat::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary-deep);
+  transform: translate(-50%, -50%);
+}
+
+@keyframes heat-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+}
+
+/* 答え合わせ：ど真ん中・近い・はずれ が何人か */
+.cast__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cast__stat {
+  display: grid;
+  justify-items: center;
+  padding: 4px 6px 6px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: inset 0 6px 0 var(--band, var(--line)), 0 4px 0 var(--paper-lip);
+  font-weight: 800;
+}
+
+.cast__stat--p3 { --band: var(--primary); }
+.cast__stat--p1 { --band: var(--accent); }
+.cast__stat--p0 { --band: #B9B4AA; }
+
+.cast__stat-name {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+}
+
+.cast__stat small {
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+}
+
+.cast__stat b {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.cast__stats > .cast__people,
+.cast__stats > .cast__how,
+.cast__best {
+  grid-column: 1 / -1;
+}
+
+.cast__best {
+  justify-self: center;
+  padding: 2px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+/* お題の結果・最後のランキング */
+.cast__stage > .cast__board {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 40rem);
+  height: 100%;
+  min-height: 0;
+}
+
+.cast__board-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.cast__rank {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 6px;
+  overflow: hidden;
+  list-style: none;
+}
+
+.cast__row {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 14px 6px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: inset 8px 0 0 var(--accent), 0 4px 0 var(--paper-lip);
+  font-weight: 800;
+}
+
+.cast__row.is-top {
+  box-shadow: inset 8px 0 0 var(--primary), 0 4px 0 var(--paper-lip);
+  background: #FFF3C4;
+}
+
+.cast__row--empty {
+  justify-content: center;
+  color: var(--ink-soft);
+}
+
+.cast__row-rank {
+  flex: none;
+  min-width: 3.2em;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.cast__row.is-top .cast__row-rank {
+  color: var(--primary);
+}
+
+.cast__row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cast__row-points {
+  font-family: var(--font-round);
+  font-size: 1.125rem;
+  font-weight: 900;
+}
+
+.cast__row-plus {
+  min-width: 2.6em;
+  color: var(--accent-deep);
+  font-weight: 800;
+  text-align: right;
+}
+
+.cast__winner {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 5vh, 2.25rem);
+  line-height: 1.25;
+  -webkit-text-stroke: 5px var(--surface);
+  paint-order: stroke fill;
+  overflow-wrap: anywhere;
+}
+
+.cast__winner.cast__winner--small {
+  font-size: clamp(1.125rem, 3.4vh, 1.5rem);
+}
+
+/* 配信用の画面のすみ：あとから参加する人のための、小さなQRコードと番号 */
+.cast__join {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cast__join[hidden] {
+  display: none;
+}
+
+.cast__join-qr {
+  display: grid;
+  width: 4.5rem;
+}
+
+.cast__join-qr svg {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.cast__join-qr .qr__loading {
+  font-size: 0.625rem;
+}
+
+.cast__join-text {
+  display: grid;
+  text-align: left;
+}
+
+.cast__join-text small {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.cast__join-text b {
+  font-family: var(--font-round);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+/* 音が出せるようになるまでの知らせ（配信用の画面。左上の「←」がない場所に出す） */
+.cast__sound {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 50;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* 右上の数（1/5）は、ないときは出さない */
+.screen--cast .head__count:empty {
+  display: none;
+}
+
+/* 配信用の画面：ボタンと「←」はない */
+.screen--cast.is-broadcast .foot {
+  display: none;
+}
+
+.screen--cast.is-broadcast [data-cast="quit"] {
+  visibility: hidden;
+}
+
+/* 縦が短いスマホ */
+@media (max-height: 560px) {
+  .cast__members {
+    max-height: 2.2rem;
+  }
+
+  .cast__stat b {
+    font-size: 1.125rem;
+  }
+
+  .cast__row {
+    padding-block: 4px;
+  }
+}
+
+/* PC版：左に大きくマップ・QRコード・ランキング、右に文字とボタン */
+@media (min-width: 900px) and (min-height: 540px) {
+  .screen--cast {
+    display: grid;
+    grid-template-columns: var(--left, min(calc(100vh - 7rem), 58%)) minmax(0, 1fr);
+    grid-template-areas:
+      "head head"
+      "stage info"
+      "stage join"
+      "stage foot";
+    grid-template-rows: auto 1fr auto auto;
+    column-gap: 2.6rem;
+    row-gap: 0.85rem;
+  }
+
+  /* 配信用の画面は、横いっぱいに使う */
+  .screen--cast.is-broadcast {
+    max-width: none;
+    padding-inline: 3rem;
+  }
+
+  .screen--cast .topic {
+    justify-self: center;
+    width: min(100%, 720px);
+  }
+
+  .screen--cast .topic__title {
+    font-size: 1.9rem;
+  }
+
+  .cast__stage { grid-area: stage; }
+  .screen--cast .foot { grid-area: foot; }
+  .cast__join { grid-area: join; justify-self: start; }
+
+  .cast__info {
+    grid-area: info;
+    align-self: center;
+    gap: 1rem;
+  }
+
+  .cast__info > * {
+    gap: 1rem;
+  }
+
+  .cast__lead {
+    font-size: 2.1rem;
+  }
+
+  .cast__how {
+    font-size: 1.05rem;
+  }
+
+  .cast__code b {
+    font-size: 3.6rem;
+  }
+
+  .cast__code small {
+    font-size: 1rem;
+  }
+
+  .cast__url {
+    font-size: 0.95rem;
+  }
+
+  .cast__people {
+    font-size: 1.25rem;
+  }
+
+  .cast__members {
+    max-height: 12rem;
+  }
+
+  .cast__words .chip.chip--static {
+    min-height: 2.6rem;
+    padding-inline: 1rem;
+    font-size: 1.15rem;
+  }
+
+  .cast__word.reveal__word {
+    font-size: 3rem;
+  }
+
+  .cast__stats {
+    gap: 12px;
+  }
+
+  .cast__stat {
+    padding: 0.6rem 0.4rem 0.8rem;
+  }
+
+  .cast__stat-name {
+    margin-top: 6px;
+    font-size: 1.1rem;
+  }
+
+  .cast__stat small {
+    font-size: 0.9rem;
+  }
+
+  .cast__stat b {
+    font-size: 2.4rem;
+  }
+
+  .cast__best {
+    padding: 4px 20px;
+    font-size: 1.25rem;
+  }
+
+  .cast__board-title {
+    font-size: 1.5rem;
+  }
+
+  .cast__row {
+    padding: 0.55rem 1.2rem 0.55rem 1.6rem;
+    font-size: 1.2rem;
+  }
+
+  .cast__row-rank {
+    font-size: 1.05rem;
+  }
+
+  .cast__row-points {
+    font-size: 1.4rem;
+  }
+
+  .cast__winner {
+    font-size: 3.2rem;
+  }
+
+  .cast__winner.cast__winner--small {
+    font-size: 1.9rem;
+  }
+
+  .cast__join-qr {
+    width: 6.5rem;
+  }
+
+  .cast__join-text small {
+    font-size: 1rem;
+  }
+
+  .cast__join-text b {
+    font-size: 2.4rem;
+  }
+
+  .cast__sound {
+    font-size: 1rem;
+  }
+}
